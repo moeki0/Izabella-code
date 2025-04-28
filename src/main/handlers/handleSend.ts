@@ -1,0 +1,150 @@
+import { agent, chat, titleAgent, tools } from '../lib/llm'
+import { z } from 'zod'
+import { mainWindow } from '..'
+import { createMessage, getMessages } from '../lib/message'
+import { getOrCreateThread, updateThreadTitle } from '../lib/thread'
+import { store } from '../lib/store'
+import pickBy from 'lodash/pickBy'
+
+// ツール実行の承認待ちを管理するPromise
+let toolApprovalResolver: ((approved: boolean) => void) | null = null
+
+// ツール実行の承認を待つ関数
+const waitForToolApproval = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    toolApprovalResolver = resolve
+  })
+}
+
+// ツール実行の承認ハンドラー
+export const handleToolApproval = async (approved: boolean): Promise<void> => {
+  if (toolApprovalResolver) {
+    toolApprovalResolver(approved)
+    toolApprovalResolver = null
+  }
+}
+
+export type Assistant = {
+  name: string
+  instructions: string
+  tools: Array<string>
+  autoApprove: boolean
+}
+
+export const handleSend = async (
+  _,
+  input,
+  resourceId,
+  threadId,
+  isRetry: boolean
+): Promise<void> => {
+  try {
+    const assistants = store.get('assistants') as Array<Assistant>
+    const currentAssistantName = store.get('assistant')
+    const assistant = assistants?.find((a) => a.name === currentAssistantName)
+    const availableTools =
+      assistant && assistant.tools.length > 0
+        ? pickBy(tools, (_, key) => {
+            return (
+              assistant.tools.filter((tool) => {
+                return key.match(new RegExp(tool))
+              }).length > 0
+            )
+          })
+        : tools
+
+    const stream = await chat(
+      await agent(assistant ? assistant.instructions : '', availableTools),
+      input,
+      resourceId,
+      threadId
+    )
+
+    let content = ''
+    if (!isRetry) {
+      await getOrCreateThread(threadId)
+      await createMessage({
+        threadId,
+        role: 'user',
+        content: input
+      })
+    }
+
+    for await (const chunk of stream.fullStream) {
+      if (chunk.type === 'error') {
+        await createMessage({
+          threadId,
+          role: 'tool',
+          toolName: 'Error',
+          toolRes: String(chunk.error)
+        })
+        mainWindow.webContents.send('retry', String(chunk.error))
+        throw 'RetryRequired'
+      }
+      if (globalThis.interrupt) {
+        globalThis.interrupt = false
+        throw 'Interrupt'
+      }
+      if (chunk.type === 'tool-call') {
+        mainWindow.webContents.send('tool-call', chunk, !assistant?.autoApprove)
+        const approved = assistant?.autoApprove ? true : await waitForToolApproval()
+        if (!approved) {
+          throw 'ToolRejected'
+        }
+      }
+      if (chunk.type === 'tool-result') {
+        mainWindow.webContents.send('tool-result', chunk)
+        await createMessage({
+          threadId,
+          role: 'tool',
+          toolName: chunk.toolName,
+          toolReq: JSON.stringify(chunk.args),
+          toolRes: JSON.stringify(chunk.result)
+        })
+      }
+      if (chunk.type === 'text-delta') {
+        mainWindow.webContents.send('stream', chunk.textDelta)
+        content += chunk.textDelta
+      }
+      if (chunk.type === 'step-finish') {
+        mainWindow.webContents.send('step-finish')
+        if (content.length > 0) {
+          await createMessage({
+            threadId,
+            role: 'assistant',
+            content
+          })
+        }
+        content = ''
+      }
+      if (chunk.type === 'finish') {
+        mainWindow.webContents.send('finish')
+        if (content.length > 0) {
+          await createMessage({
+            threadId,
+            role: 'assistant',
+            content
+          })
+        }
+      }
+    }
+
+    const title = await titleAgent()
+    const messages = await getMessages(threadId)
+    const titleStream = await title.stream(`${messages.map((m) => m.content)}`, {
+      output: z.object({
+        title: z.string()
+      })
+    })
+    let titleResult = ''
+    for await (const chunk of titleStream.partialObjectStream) {
+      mainWindow.webContents.send('title', chunk.title)
+      titleResult = chunk.title
+    }
+    if (titleResult) {
+      await updateThreadTitle({ id: threadId, title: titleResult })
+    }
+  } catch (e) {
+    mainWindow.webContents.send('error', typeof e === 'string' ? e : String(e))
+  }
+}

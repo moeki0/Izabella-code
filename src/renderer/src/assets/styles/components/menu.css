@@ -1,0 +1,39 @@
+.menu-wrapper {
+  padding: 10px;
+}
+
+.menu {
+  overflow-y: scroll;
+  height: 100%;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  width: 300px;
+  z-index: 10;
+  padding: 20px;
+  animation: slideInFromRight 0.1s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.menu-header {
+  display: flex;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #efefef;
+  font-size: 12px;
+}
+
+.menu-header-item {
+  border-radius: 6px;
+  padding: 5px 15px;
+  width: 33.3%;
+  text-align: center;
+  cursor: default;
+}
+
+.menu-header-item-active {
+  background-color: white;
+  box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.1);
+}

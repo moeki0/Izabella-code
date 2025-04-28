@@ -1,0 +1,127 @@
+.assistants {
+  padding: 10px;
+}
+
+.assistants-box {
+  display: flex;
+  overflow: hidden;
+  height: 100%;
+}
+
+.assistants-list-inner {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  height: 100%;
+  max-height: 100%;
+}
+
+.assistant-panel {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  justify-self: center;
+}
+
+.assistants-list-item {
+  cursor: default;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
+  width: 100%;
+  overflow: hidden;
+  max-width: 300px;
+  transition: all;
+  flex-shrink: 0;
+  border-radius: 5px;
+  padding: 8px;
+}
+
+.assistants-list-item-current {
+  background-color: #efefef;
+}
+
+.assistants-list-footer {
+  padding: 0px 20px 10px;
+}
+
+.assistant-input-name {
+  margin-bottom: 4px;
+}
+
+.assistant-input-field {
+  border: 1px solid #ddd;
+  resize: none;
+  outline: none;
+  border-radius: 7px;
+  padding: 4px;
+  width: 100%;
+}
+
+.assistant-input-field::placeholder {
+  color: #ccc;
+}
+
+.assistant-prompt {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 4px;
+  font-family: monospace;
+  width: 100%;
+  outline: none;
+}
+
+.assistant-form {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 200px;
+  overflow-y: scroll;
+}
+
+.assistant-form-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.new-assistant-form {
+  padding: 20px;
+}
+
+.new-assistant-heading {
+  margin: 0;
+}
+
+.new-assistant-title {
+  padding: 10px;
+  border: none;
+  width: 100%;
+  outline: none;
+}
+
+.new-assistant-prompt {
+  padding: 20px 10px;
+  border: none;
+  width: 100%;
+  outline: none;
+  resize: none;
+}
+
+.new-assistant-prompt::placeholder {
+  color: #ccc;
+}
+
+.new-assistant-title-section {
+  display: flex;
+  padding: 0 10px;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.new-assistant-label {
+  color: #999;
+}

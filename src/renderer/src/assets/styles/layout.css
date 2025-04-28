@@ -1,0 +1,53 @@
+main {
+  background-color: white;
+  width: 100vw;
+  position: relative;
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+.messages {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow-y: scroll;
+}
+
+.messages-inner {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  width: 100%;
+  justify-self: center;
+}
+
+.user-container {
+  bottom: 0px;
+  width: 100%;
+  padding: 0px 10px 20px;
+  background-color: white;
+}
+
+.banner {
+  position: fixed;
+  bottom: 60px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.scroll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: center;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 27px;
+  box-shadow: 1px 1px 10px 0px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  cursor: default;
+}

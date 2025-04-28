@@ -1,0 +1,29 @@
+.cm-focused {
+  outline: none !important;
+}
+
+.cm-gutters {
+  display: none !important;
+}
+
+.cm-activeLine {
+  background-color: white !important;
+}
+
+.cm-scroller {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+.cm-theme-light {
+  flex-grow: 1;
+}
+
+.cm-editor {
+  height: auto !important;
+  min-height: 29px;
+  max-height: 300px;
+}
+
+.cm-placeholder {
+  color: #ccc !important;
+}

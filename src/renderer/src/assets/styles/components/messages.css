@@ -1,0 +1,171 @@
+.prompt {
+  padding: 10px;
+  line-height: 1.8;
+  word-break: break-all;
+}
+
+.prompt p {
+  margin: 0;
+}
+
+.prompt-user {
+  padding-right: 20px;
+}
+
+.prompt-user-bubble {
+  justify-self: right;
+  background-color: #efefef;
+  width: auto;
+  max-width: 500px;
+  border-radius: 20px;
+  padding: 6px 16px;
+}
+
+.prompt:last-child {
+  padding-bottom: 100px;
+}
+
+.prompt ul,
+.prompt ol {
+  padding-inline-start: 20px;
+}
+
+.prompt blockquote {
+  border-left: 4px solid #eee;
+  margin-left: 0;
+  padding-left: 16px;
+}
+
+.prompt code {
+  font-family: monospace !important;
+  background-color: #eee;
+  font-size: 12px;
+  padding: 3px;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.prompt-user-bubble pre code {
+  min-width: 200px;
+  border-radius: 10px;
+  padding: 20px;
+  color: whitesmoke;
+  font-family: monospace;
+  display: block;
+  background-color: #0a1031;
+  overflow-x: scroll;
+  width: 100%;
+  max-width: 100%;
+}
+
+.prompt-assistant pre code {
+  min-width: 200px;
+  background-color: #0a1031;
+  border-radius: 10px;
+  padding: 20px;
+  color: whitesmoke;
+  font-family: monospace;
+  display: block;
+  overflow-x: scroll;
+  width: 100%;
+  max-width: 100%;
+}
+
+.user {
+  border-radius: 24px;
+  background-color: white;
+  padding: 6px 6px;
+  padding-left: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  max-width: 800px;
+  justify-self: center;
+  display: flex;
+  align-items: end;
+}
+
+.send {
+  background-color: #333;
+  border: none;
+  padding: 8px;
+  border-radius: 20px;
+  display: flex;
+  justify-self: right;
+  transition: all;
+}
+
+.send:hover {
+  background-color: #444;
+}
+
+.send:disabled {
+  background-color: #ccc;
+}
+
+.arrow {
+  justify-self: center;
+  align-self: center;
+}
+
+.tool-confirmation {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  backdrop-filter: blur(8px);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 400px;
+  animation: slideUp 0.2s ease-out;
+  text-align: center;
+}
+
+.tool-confirmation-text {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tool-confirmation-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.tool-confirmation-buttons button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.tool-confirmation-buttons button:first-child {
+  background: #333;
+  color: white;
+}
+
+.tool-confirmation-buttons button:last-child {
+  background: white;
+  border: 1px solid #ddd;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translate(-50%, 20px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}

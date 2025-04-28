@@ -1,0 +1,11 @@
+@import './styles/base.css';
+@import './styles/layout.css';
+@import './styles/animations.css';
+@import './styles/components/header.css';
+@import './styles/components/messages.css';
+@import './styles/components/threads.css';
+@import './styles/components/tools.css';
+@import './styles/components/menu.css';
+@import './styles/components/assistants.css';
+@import './styles/components/codemirror.css';
+@import './styles/components/search.css';

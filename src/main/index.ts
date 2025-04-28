@@ -1,0 +1,60 @@
+import { app, BrowserWindow, ipcMain } from 'electron'
+import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { handleInit } from './handlers/handleInit'
+import { handleSend } from './handlers/handleSend'
+import { handleToolsGet } from './handlers/handleToolsGet'
+import { handleLink } from './handlers/handleLink'
+import { handleInterrupt } from './handlers/handleInterrupt'
+import { handleThreadGet } from './handlers/handleThreadGet'
+import { handleThreadsSearch } from './handlers/handleThreadsSearch'
+import { createWindow } from './lib/createWindow'
+import { handleThreadContextMenu } from './handlers/handleThreadContextMenu'
+import { handleMessageContextMenu } from './handlers/handleMessageContextMenu'
+import { updateElectronApp } from 'update-electron-app'
+import { store } from './lib/store'
+import { initializeConfig } from './lib/initializeConfig'
+import { handleToolApproval } from './handlers/handleToolApproval'
+
+let mainWindow: BrowserWindow
+
+app.whenReady().then(async () => {
+  if (process.env.DISABLE_UPDATE !== 'true') {
+    updateElectronApp()
+  }
+
+  initializeConfig()
+
+  electronApp.setAppUserModelId('com.electron')
+  app.on('browser-window-created', (_, window) => {
+    optimizer.watchWindowShortcuts(window)
+  })
+
+  mainWindow = await createWindow()
+
+  ipcMain.on('show-message-context-menu', handleMessageContextMenu)
+  ipcMain.on('show-thread-context-menu', handleThreadContextMenu)
+  ipcMain.handle('link', handleLink)
+  ipcMain.handle('get-tools', handleToolsGet)
+  ipcMain.handle('init', handleInit)
+  ipcMain.handle('get-threads', handleThreadGet)
+  ipcMain.handle('interrupt', handleInterrupt)
+  ipcMain.handle('send', handleSend)
+  ipcMain.handle('set-config', (_, name, input) => store.set(name, input))
+  ipcMain.handle('get-config', (_, name) => store.get(name))
+  ipcMain.handle('search-threads', handleThreadsSearch)
+  ipcMain.on('tool-approval', async (_, approved) => {
+    await handleToolApproval(approved)
+  })
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+
+export { mainWindow }

@@ -1,0 +1,137 @@
+.tools-list-wrapper {
+  padding: 10px;
+}
+
+.tools-list {
+  overflow-y: scroll;
+  height: 100%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tools-list-item-name {
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  margin-bottom: 4px;
+}
+
+.tools-list-item-description {
+  font-size: 10px;
+  color: #999;
+}
+
+.tool {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 10px;
+  animation: fadeIn 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tool-name {
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tool-name-text {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.tool-name button {
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  border: none;
+  justify-self: end;
+}
+
+.tool-name button:hover {
+  background-color: #efefef;
+}
+
+.tool-args {
+  font-size: 12px;
+  background-color: #eee;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  font-size: 12px;
+  animation: fadeIn 0.2s;
+}
+
+.tool-args p {
+  margin-bottom: 8px;
+}
+
+.tool-args-code {
+  overflow-x: scroll;
+  scrollbar-width: none;
+  display: block;
+}
+
+.tool-args-code::-webkit-scrollbar {
+  display: none;
+}
+
+.tool-response {
+  font-size: 12px;
+  background-color: #eee;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  font-size: 12px;
+  animation: fadeIn 0.2s;
+}
+
+.tool-response p {
+  margin-bottom: 8px;
+}
+
+.tool-response-code {
+  overflow-x: scroll;
+  scrollbar-width: none;
+  display: block;
+}
+
+.tool-response-code::-webkit-scrollbar {
+  display: none;
+}
+
+.tool-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: center;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 1px 1px 10px 0px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.tool-loading-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-loader {
+  width: 12px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: black;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  animation: l1 2s infinite cubic-bezier(0.3, 1, 0, 1);
+}

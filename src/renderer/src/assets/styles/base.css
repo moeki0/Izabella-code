@@ -1,0 +1,69 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+  overflow: hidden;
+  color: #333;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input {
+  -webkit-app-region: no-drag;
+}
+
+a {
+  color: #0064b5;
+  text-decoration: none;
+}
+
+table {
+  width: 100%;
+  text-align: center;
+  border-collapse: collapse;
+}
+
+table td,
+table th {
+  border: 1px solid #ccc;
+  padding: 3px 4px;
+}
+
+table tbody td {
+  font-size: 13px;
+}
+
+table thead {
+  border-bottom: 1px solid #eee;
+}
+
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+  background-color: #efefef;
+}
+
+table tfoot {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333333;
+  border-top: 2px solid #333333;
+}
+
+table tfoot td {
+  font-size: 14px;
+}

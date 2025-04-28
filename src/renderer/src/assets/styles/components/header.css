@@ -1,0 +1,54 @@
+header {
+  -webkit-app-region: drag;
+  height: 50px;
+  min-height: 50px;
+  width: 100%;
+  top: 0;
+  padding: 0 12px;
+  justify-content: space-between;
+  padding-left: 100px;
+  display: flex;
+  align-items: center;
+}
+
+.header-scrolled {
+  border-bottom: 1px solid #ddd;
+}
+
+.header-button-active {
+  background-color: #ddd;
+}
+
+.header-menu {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+header h1 {
+  font-size: 12px;
+  margin: 0;
+  font-weight: normal;
+}
+
+header time {
+  font-size: 10px;
+  color: #aaa;
+  display: block;
+}
+
+header button {
+  display: flex;
+  align-items: center;
+  justify-items: center;
+  border: none;
+  transition: all;
+  padding: 8px;
+  border-radius: 5px;
+  background-color: white;
+}
+
+header button:hover {
+  background-color: #efefef;
+}
