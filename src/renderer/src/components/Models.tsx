@@ -14,7 +14,7 @@ function Models(): React.JSX.Element {
   }, [])
 
   return (
-    <div className="assistants-list-inner">
+    <div className="assistants-list-inner" data-testid="assistants-list-inner">
       {models.map((m) => (
         <div
           className={`assistants-list-item ${current === m ? 'assistants-list-item-current' : ''}`}
