@@ -46,15 +46,24 @@ export const createMenu = async (intl): Promise<Menu> => {
         { role: 'cut', label: intl.formatMessage({ id: 'cut' }) },
         { role: 'copy', label: intl.formatMessage({ id: 'copy' }) },
         { role: 'paste', label: intl.formatMessage({ id: 'paste' }) },
-        { role: 'pasteAndMatchStyle', label: intl.formatMessage({ id: 'pasteAndMatchStyle' }) },
+        {
+          role: 'pasteAndMatchStyle',
+          label: intl.formatMessage({ id: 'pasteAndMatchStyle' })
+        },
         { role: 'delete', label: intl.formatMessage({ id: 'delete' }) },
         { role: 'selectAll', label: intl.formatMessage({ id: 'selectAll' }) },
         { type: 'separator' },
         {
           label: intl.formatMessage({ id: 'speak' }),
           submenu: [
-            { role: 'startSpeaking', label: intl.formatMessage({ id: 'startSpeaking' }) },
-            { role: 'stopSpeaking', label: intl.formatMessage({ id: 'stopSpeaking' }) }
+            {
+              role: 'startSpeaking',
+              label: intl.formatMessage({ id: 'startSpeaking' })
+            },
+            {
+              role: 'stopSpeaking',
+              label: intl.formatMessage({ id: 'stopSpeaking' })
+            }
           ]
         }
       ]
@@ -66,9 +75,15 @@ export const createMenu = async (intl): Promise<Menu> => {
         { role: 'zoomOut', label: intl.formatMessage({ id: 'zoomOut' }) },
         { role: 'resetZoom', label: intl.formatMessage({ id: 'resetZoom' }) },
         { type: 'separator' },
-        { role: 'toggleDevTools', label: intl.formatMessage({ id: 'toggleDevTools' }) },
+        {
+          role: 'toggleDevTools',
+          label: intl.formatMessage({ id: 'toggleDevTools' })
+        },
         { type: 'separator' },
-        { role: 'togglefullscreen', label: intl.formatMessage({ id: 'togglefullscreen' }) }
+        {
+          role: 'togglefullscreen',
+          label: intl.formatMessage({ id: 'togglefullscreen' })
+        }
       ]
     },
     {

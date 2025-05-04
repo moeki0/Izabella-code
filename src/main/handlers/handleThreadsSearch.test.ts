@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { handleThreadsSearch } from './handleThreadsSearch'
-import { searchThread } from '../lib/thread'
+import { handleThreadsSearch, SearchThreadsParams } from './handleThreadsSearch'
+import { searchThread, ThreadsWithPagination } from '../lib/thread'
 
 vi.mock('../lib/thread', () => ({
   searchThread: vi.fn()
@@ -9,7 +9,7 @@ vi.mock('../lib/thread', () => ({
 describe('handleThreadsSearch', () => {
   it('検索結果を返すこと', async () => {
     const query = 'test'
-    const threads = [
+    const threadsData = [
       {
         id: '1',
         title: 'Thread 1',
@@ -23,21 +23,36 @@ describe('handleThreadsSearch', () => {
         updatedAt: new Date().toISOString()
       }
     ]
-    vi.mocked(searchThread).mockResolvedValue(threads)
 
-    const result = await handleThreadsSearch(null, query)
+    const mockResponse: ThreadsWithPagination = {
+      threads: threadsData,
+      total: threadsData.length,
+      totalPages: 1
+    }
 
-    expect(searchThread).toHaveBeenCalledWith(query)
-    expect(result).toEqual(threads)
+    vi.mocked(searchThread).mockResolvedValue(mockResponse)
+
+    const params: SearchThreadsParams = { query }
+    const result = await handleThreadsSearch(null, params)
+
+    expect(searchThread).toHaveBeenCalledWith(query, 1, 12)
+    expect(result).toEqual(mockResponse)
   })
 
-  it('検索結果が空の場合は空配列を返すこと', async () => {
+  it('検索結果が空の場合は空の結果を返すこと', async () => {
     const query = 'nonexistent'
-    vi.mocked(searchThread).mockResolvedValue([])
+    const mockResponse: ThreadsWithPagination = {
+      threads: [],
+      total: 0,
+      totalPages: 0
+    }
 
-    const result = await handleThreadsSearch(null, query)
+    vi.mocked(searchThread).mockResolvedValue(mockResponse)
 
-    expect(searchThread).toHaveBeenCalledWith(query)
-    expect(result).toEqual([])
+    const params: SearchThreadsParams = { query }
+    const result = await handleThreadsSearch(null, params)
+
+    expect(searchThread).toHaveBeenCalledWith(query, 1, 12)
+    expect(result).toEqual(mockResponse)
   })
 })

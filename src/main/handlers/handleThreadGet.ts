@@ -1,5 +1,13 @@
-import { getThreads, Thread } from '../lib/thread'
+import { getThreads, ThreadsWithPagination } from '../lib/thread'
 
-export const handleThreadGet = async (): Promise<Array<Thread>> => {
-  return await getThreads()
+export interface GetThreadsParams {
+  page?: number
+  itemsPerPage?: number
+}
+
+export const handleThreadGet = async (
+  params: GetThreadsParams = {}
+): Promise<ThreadsWithPagination> => {
+  const { page = 1, itemsPerPage = 12 } = params
+  return await getThreads(page, itemsPerPage)
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { handleThreadGet } from './handleThreadGet'
-import { getThreads } from '../lib/thread'
+import { getThreads, ThreadsWithPagination } from '../lib/thread'
 
 vi.mock('../lib/thread', () => ({
   getThreads: vi.fn()
@@ -8,7 +8,7 @@ vi.mock('../lib/thread', () => ({
 
 describe('handleThreadGet', () => {
   it('全スレッドのリストを返すこと', async () => {
-    const threads = [
+    const threadsData = [
       {
         id: '1',
         title: 'Thread 1',
@@ -22,11 +22,18 @@ describe('handleThreadGet', () => {
         updatedAt: new Date().toISOString()
       }
     ]
-    vi.mocked(getThreads).mockResolvedValue(threads)
+
+    const mockResponse: ThreadsWithPagination = {
+      threads: threadsData,
+      total: threadsData.length,
+      totalPages: 1
+    }
+
+    vi.mocked(getThreads).mockResolvedValue(mockResponse)
 
     const result = await handleThreadGet()
 
     expect(getThreads).toHaveBeenCalled()
-    expect(result).toEqual(threads)
+    expect(result).toEqual(mockResponse)
   })
 })

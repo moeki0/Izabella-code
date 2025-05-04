@@ -1,5 +1,15 @@
-import { searchThread, Thread } from '../lib/thread'
+import { searchThread, ThreadsWithPagination } from '../lib/thread'
 
-export const handleThreadsSearch = async (_, query): Promise<Array<Thread>> => {
-  return await searchThread(query)
+export interface SearchThreadsParams {
+  query: string
+  page?: number
+  itemsPerPage?: number
+}
+
+export const handleThreadsSearch = async (
+  _,
+  params: SearchThreadsParams
+): Promise<ThreadsWithPagination> => {
+  const { query, page = 1, itemsPerPage = 12 } = params
+  return await searchThread(query, page, itemsPerPage)
 }

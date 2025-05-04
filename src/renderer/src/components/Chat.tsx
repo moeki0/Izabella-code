@@ -119,7 +119,10 @@ function Chat({
   const { id } = useParams()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [pendingTool, setPendingTool] = useState<{ toolName: string; args: string } | null>(null)
+  const [pendingTool, setPendingTool] = useState<{
+    toolName: string
+    args: string
+  } | null>(null)
 
   useEffect(() => {
     const unsubscribe = registerNewThreadListener(() => {
@@ -232,7 +235,11 @@ function Chat({
       setMessages((prev) => {
         return prev.map((message, i) => {
           if (i === prev.length - 1) {
-            return { ...message, tool_res: JSON.stringify(content, null, 2), open: false }
+            return {
+              ...message,
+              tool_res: JSON.stringify(content, null, 2),
+              open: false
+            }
           }
           return { ...message, open: false }
         })
