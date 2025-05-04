@@ -3,7 +3,10 @@ import { store } from '../lib/store'
 import { Assistant } from './handleSend'
 import pickBy from 'lodash/pickBy'
 
-export const handleToolsGet = (): Array<{ name: string; description: string }> => {
+export const handleToolsGet = (): Array<{
+  name: string
+  description: string
+}> => {
   const assistants = store.get('assistants') as Array<Assistant>
   const currentAssistantName = store.get('assistant')
   const assistant = assistants?.find((a) => a.name === currentAssistantName)

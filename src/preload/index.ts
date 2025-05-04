@@ -14,11 +14,22 @@ const api = {
   getTools: (): Promise<Array<Tool>> => ipcRenderer.invoke('get-tools'),
   link: (url: string): Promise<void> => ipcRenderer.invoke('link', url),
   interrupt: (): Promise<void> => ipcRenderer.invoke('interrupt'),
-  getThreads: (): Promise<Array<Thread>> => ipcRenderer.invoke('get-threads'),
+  getThreads: (params?: {
+    page?: number
+    itemsPerPage?: number
+  }): Promise<{
+    threads: Array<Thread>
+    total: number
+    totalPages: number
+  }> => ipcRenderer.invoke('get-threads', params),
   send: (input: string, resourceId: string, threadId: string, isRetry: boolean): Promise<void> =>
     ipcRenderer.invoke('send', input, resourceId, threadId, isRetry),
-  searchThreads: (query: string): Promise<Array<Thread>> =>
-    ipcRenderer.invoke('search-threads', query),
+  searchThreads: (params: {
+    query: string
+    page?: number
+    itemsPerPage?: number
+  }): Promise<{ threads: Array<Thread>; total: number; totalPages: number }> =>
+    ipcRenderer.invoke('search-threads', params),
   getConfig: (name: string): Promise<string> => ipcRenderer.invoke('get-config', name),
   setConfig: (name: string, input: unknown): Promise<void> =>
     ipcRenderer.invoke('set-config', name, input)

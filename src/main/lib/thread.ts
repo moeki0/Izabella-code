@@ -7,8 +7,34 @@ export type Thread = {
   updatedAt: string
 }
 
-export const searchThread = async (query: string): Promise<Array<Thread>> => {
+export const searchThread = async (
+  query: string,
+  page: number = 1,
+  itemsPerPage: number = 12
+): Promise<ThreadsWithPagination> => {
   const db = await database()
+
+  // First, get the total count of matching threads
+  const countResult = await db
+    .prepare(
+      `
+      SELECT COUNT(DISTINCT t.id) as count
+      FROM threads t
+      LEFT JOIN messages m ON t.id = m.thread_id
+      WHERE
+        t.title LIKE ?
+        OR m.content LIKE ?
+      `
+    )
+    .get(`%${query}%`, `%${query}%`)
+
+  const total = countResult.count
+  const totalPages = Math.ceil(total / itemsPerPage)
+
+  // Calculate offset
+  const offset = (page - 1) * itemsPerPage
+
+  // Get matching threads with pagination
   const rows = await db
     .prepare(
       `
@@ -22,13 +48,20 @@ export const searchThread = async (query: string): Promise<Array<Thread>> => {
         m.created_at as message_created_at
       FROM threads t
       LEFT JOIN messages m ON t.id = m.thread_id
-      WHERE
-        t.title LIKE ?
-        OR m.content LIKE ?
+      WHERE t.id IN (
+        SELECT DISTINCT t.id
+        FROM threads t
+        LEFT JOIN messages m ON t.id = m.thread_id
+        WHERE
+          t.title LIKE ?
+          OR m.content LIKE ?
+        ORDER BY t.created_at DESC
+        LIMIT ? OFFSET ?
+      )
       ORDER BY m.created_at DESC
     `
     )
-    .all(`%${query}%`, `%${query}%`)
+    .all(`%${query}%`, `%${query}%`, itemsPerPage, offset)
 
   const result = rows.reduce((acc, row) => {
     if (!acc[row.thread_id]) {
@@ -50,11 +83,34 @@ export const searchThread = async (query: string): Promise<Array<Thread>> => {
     return acc
   }, {})
 
-  return Object.values(result)
+  return {
+    threads: Object.values(result),
+    total,
+    totalPages
+  }
 }
 
-export const getThreads = async (): Promise<Array<Thread>> => {
+export type ThreadsWithPagination = {
+  threads: Array<Thread>
+  total: number
+  totalPages: number
+}
+
+export const getThreads = async (
+  page: number = 1,
+  itemsPerPage: number = 12
+): Promise<ThreadsWithPagination> => {
   const db = await database()
+
+  // First, get the total count of threads
+  const countResult = await db.prepare('SELECT COUNT(DISTINCT id) as count FROM threads').get()
+  const total = countResult.count
+  const totalPages = Math.ceil(total / itemsPerPage)
+
+  // Calculate offset
+  const offset = (page - 1) * itemsPerPage
+
+  // Get threads with pagination
   const rows = await db
     .prepare(
       `
@@ -62,10 +118,15 @@ export const getThreads = async (): Promise<Array<Thread>> => {
            m.id as message_id, m.content as message_content, m.role as message_role, m.created_at as message_created_at
     FROM threads t
     LEFT JOIN messages m ON t.id = m.thread_id
+    WHERE t.id IN (
+      SELECT id FROM threads
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    )
     ORDER BY m.created_at DESC
   `
     )
-    .all()
+    .all(itemsPerPage, offset)
 
   const result = rows.reduce((acc, row) => {
     if (!acc[row.thread_id]) {
@@ -87,7 +148,11 @@ export const getThreads = async (): Promise<Array<Thread>> => {
     return acc
   }, {})
 
-  return Object.values(result)
+  return {
+    threads: Object.values(result),
+    total,
+    totalPages
+  }
 }
 
 export const deleteThread = async (id): Promise<void> => {
