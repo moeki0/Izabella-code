@@ -95,9 +95,9 @@ describe('Models', () => {
   it('APIが失敗した場合でもエラーなくレンダリングされること', async () => {
     // エラーログを抑制
     const consoleErrorMock = vi.spyOn(console, 'error').mockImplementation(() => {})
-    
+
     // APIエラーを返すようにモックを変更（catchされるように同期的にエラーを返す）
-    mockGetConfig.mockImplementation((key) => {
+    mockGetConfig.mockImplementation(() => {
       return Promise.resolve([]) // エラーではなく空配列を返す
     })
 

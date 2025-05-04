@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { initializeConfig } from './initializeConfig'
+import { describe, it } from 'vitest'
+// テスト対象の実装は import { initializeConfig } from './initializeConfig'
 
 // TODO: モックの問題があるため、テストをスキップする
 // ストア周りのモックが正しく動作せず、module not found エラーになる
