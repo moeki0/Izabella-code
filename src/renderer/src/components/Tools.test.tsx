@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { Tools } from './Tools'
 
@@ -31,5 +31,25 @@ describe('Tools', () => {
       const wrapper = screen.getByTestId('tools-list')
       expect(wrapper.children.length).toBe(0)
     })
+  })
+
+  it('検索によってツールをフィルタリングできること', async () => {
+    render(<Tools getTools={getTools} />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Tool 1')).toBeInTheDocument()
+      expect(screen.getByText('Tool 2')).toBeInTheDocument()
+    })
+
+    const searchInput = screen.getByPlaceholderText('Search tools...')
+    fireEvent.change(searchInput, { target: { value: 'Tool 1' } })
+
+    expect(screen.getByText('Tool 1')).toBeInTheDocument()
+    expect(screen.queryByText('Tool 2')).not.toBeInTheDocument()
+
+    fireEvent.change(searchInput, { target: { value: 'description 2' } })
+
+    expect(screen.queryByText('Tool 1')).not.toBeInTheDocument()
+    expect(screen.getByText('Tool 2')).toBeInTheDocument()
   })
 })
