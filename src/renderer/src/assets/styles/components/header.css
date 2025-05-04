@@ -30,6 +30,10 @@ header h1 {
   font-size: 12px;
   margin: 0;
   font-weight: normal;
+  width: calc(100vw - 250px);
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
 }
 
 header time {
