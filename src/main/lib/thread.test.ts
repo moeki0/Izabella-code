@@ -3,9 +3,10 @@ import { searchThread, getThreads, deleteThread, getThread } from './thread'
 
 vi.mock('./database', () => ({
   database: vi.fn().mockResolvedValue({
-    prepare: vi.fn().mockReturnValue({
-      all: vi.fn().mockImplementation((query) => {
-        if (query?.includes('WHERE t.title LIKE')) {
+    prepare: vi.fn().mockImplementation((sql) => {
+      // Mock for all queries
+      const allMock = vi.fn().mockImplementation((query1, query2, limit, offset) => {
+        if (typeof sql === 'string' && sql.includes('WHERE t.title LIKE')) {
           return [
             {
               thread_id: 'search-1',
@@ -38,14 +39,26 @@ vi.mock('./database', () => ({
             message_created_at: '2025-05-01T00:00:00.000Z'
           }
         ]
-      }),
-      run: vi.fn(),
-      get: vi.fn().mockReturnValue({
-        id: 'thread-1',
-        title: 'Thread 1',
-        created_at: '2025-05-01T00:00:00.000Z',
-        updated_at: '2025-05-01T00:00:00.000Z'
       })
+
+      // Mock for get queries
+      const getMock = vi.fn().mockImplementation(() => {
+        if (typeof sql === 'string' && sql.includes('COUNT')) {
+          return { count: 10 } // Mock pagination count
+        }
+        return {
+          id: 'thread-1',
+          title: 'Thread 1',
+          created_at: '2025-05-01T00:00:00.000Z',
+          updated_at: '2025-05-01T00:00:00.000Z'
+        }
+      })
+
+      return {
+        all: allMock,
+        run: vi.fn(),
+        get: getMock
+      }
     })
   })
 }))
@@ -53,9 +66,9 @@ vi.mock('./database', () => ({
 describe('thread', () => {
   describe('searchThread', () => {
     it('指定した検索クエリにマッチするスレッドとそのメッセージを取得できること', async () => {
-      const threads = await searchThread('test')
-      expect(threads).toHaveLength(1)
-      expect(threads[0]).toEqual(
+      const result = await searchThread('test')
+      expect(result.threads).toHaveLength(1)
+      expect(result.threads[0]).toEqual(
         expect.objectContaining({
           id: 'thread-1',
           title: 'Thread 1',
@@ -76,14 +89,16 @@ describe('thread', () => {
           ]
         })
       )
+      expect(result.total).toBeDefined()
+      expect(result.totalPages).toBeDefined()
     })
   })
 
   describe('getThreads', () => {
     it('全てのスレッドとそのメッセージを取得できること', async () => {
-      const threads = await getThreads()
-      expect(threads).toHaveLength(1)
-      expect(threads[0]).toEqual(
+      const result = await getThreads()
+      expect(result.threads).toHaveLength(1)
+      expect(result.threads[0]).toEqual(
         expect.objectContaining({
           id: 'thread-1',
           title: 'Thread 1',
@@ -104,6 +119,8 @@ describe('thread', () => {
           ]
         })
       )
+      expect(result.total).toBeDefined()
+      expect(result.totalPages).toBeDefined()
     })
   })
 
