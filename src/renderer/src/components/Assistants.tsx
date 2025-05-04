@@ -24,7 +24,7 @@ function Assistants(): React.JSX.Element {
   }, [])
 
   return (
-    <div className="assistants-list-inner">
+    <div className="assistants-list-inner" data-testid="assistants-list-inner">
       <div
         className={`assistants-list-item ${current === 'default' ? 'assistants-list-item-current' : ''}`}
         key={'default'}
