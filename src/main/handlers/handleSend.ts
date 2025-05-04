@@ -78,8 +78,7 @@ export const handleSend = async (
           toolName: 'Error',
           toolRes: String(chunk.error)
         })
-        mainWindow.webContents.send('retry', String(chunk.error))
-        throw 'RetryRequired'
+        throw chunk.error
       }
       if (globalThis.interrupt) {
         globalThis.interrupt = false
