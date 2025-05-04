@@ -5,7 +5,7 @@ vi.mock('./database', () => ({
   database: vi.fn().mockResolvedValue({
     prepare: vi.fn().mockImplementation((sql) => {
       // Mock for all queries
-      const allMock = vi.fn().mockImplementation((query1, query2, limit, offset) => {
+      const allMock = vi.fn().mockImplementation(() => {
         if (typeof sql === 'string' && sql.includes('WHERE t.title LIKE')) {
           return [
             {
