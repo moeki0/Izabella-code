@@ -70,6 +70,8 @@ export const handleSend = async (
       })
     }
 
+    globalThis.interrupt = false
+
     for await (const chunk of stream.fullStream) {
       if (chunk.type === 'error') {
         await createMessage({
