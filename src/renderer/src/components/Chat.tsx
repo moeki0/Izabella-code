@@ -17,9 +17,12 @@ import 'highlight.js/styles/dracula.css'
 export type Message = {
   role: 'user' | 'assistant' | 'tool'
   content?: string
-  tool_name?: string
-  tool_req?: string
-  tool_res?: string
+  toolName?: string
+  toolReq?: string
+  toolRes?: string
+  tool_name?: string  // 後方互換性のため
+  tool_req?: string   // 後方互換性のため
+  tool_res?: string   // 後方互換性のため
   open?: boolean
 }
 
@@ -193,8 +196,8 @@ function Chat({
           ...prev,
           {
             role: 'tool',
-            tool_name: content.toolName,
-            tool_req: JSON.stringify(content.args, null, 2),
+            toolName: content.toolName,
+            toolReq: JSON.stringify(content.args, null, 2),
             open: true
           }
         ]
@@ -216,7 +219,7 @@ function Chat({
     const unsubscribeRetry = registerRetryListener((error) => {
       const userMessages = messages.filter((m) => m.role === 'user')
       const lastUserMessage = userMessages[userMessages.length - 1]
-      setMessages((pre) => [...pre, { role: 'tool', tool_name: 'Error', tool_res: String(error) }])
+      setMessages((pre) => [...pre, { role: 'tool', toolName: 'Error', toolRes: String(error) }])
       send(
         `This error occurred on the previous run. Please avoid this and continue processing:${error}\n${lastUserMessage.content}`,
         resourceId,
@@ -237,7 +240,7 @@ function Chat({
           if (i === prev.length - 1) {
             return {
               ...message,
-              tool_res: JSON.stringify(content, null, 2),
+              toolRes: JSON.stringify(content, null, 2),
               open: false
             }
           }

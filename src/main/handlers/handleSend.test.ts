@@ -31,13 +31,14 @@ vi.mock('../lib/thread', () => ({
   updateThreadTitle: vi.fn()
 }))
 
-vi.mock('../lib/database', () => ({
-  database: vi.fn().mockResolvedValue({
-    prepare: vi.fn().mockReturnValue({
-      all: vi.fn().mockResolvedValue([{ content: 'Hello' }, { content: 'Hi there!' }])
-    })
-  })
-}))
+// データベースモックは不要
+// vi.mock('../lib/database', () => ({
+//   database: vi.fn().mockResolvedValue({
+//     prepare: vi.fn().mockReturnValue({
+//       all: vi.fn().mockResolvedValue([{ content: 'Hello' }, { content: 'Hi there!' }])
+//     })
+//   })
+// }))
 
 vi.mock('..', () => ({
   mainWindow: {
