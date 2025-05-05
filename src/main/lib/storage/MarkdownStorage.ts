@@ -22,8 +22,8 @@ import {
 export class MarkdownStorage implements IStorage {
   private baseDir: string
 
-  constructor(basePath?: string) {
-    this.baseDir = basePath || join(app.getPath('userData'), 'threads')
+  constructor() {
+    this.baseDir = join(app.getPath('userData'), 'threads')
     this.initStorage()
   }
 

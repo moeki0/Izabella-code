@@ -1,7 +1,6 @@
-import { Menu, shell, dialog } from 'electron'
+import { Menu, shell } from 'electron'
 import { store } from './store'
 import { mainWindow } from '..'
-import { getStoragePath, setStoragePath } from './storage'
 
 export const createMenu = async (intl): Promise<Menu> => {
   const template = [
@@ -16,29 +15,6 @@ export const createMenu = async (intl): Promise<Menu> => {
             shell.openPath(store.path)
           },
           accelerator: 'Command+,'
-        },
-        {
-          label: intl.formatMessage({ id: 'storage' }),
-          submenu: [
-            {
-              label: intl.formatMessage({ id: 'openStorageLocation' }),
-              click: async (): Promise<void> => {
-                const storagePath = getStoragePath()
-                await shell.openPath(storagePath)
-              }
-            },
-            {
-              label: intl.formatMessage({ id: 'changeStorageLocation' }),
-              click: (): void => {
-                const result = dialog.showOpenDialogSync(mainWindow, {
-                  properties: ['openDirectory', 'createDirectory']
-                })
-                if (result && result.length > 0) {
-                  setStoragePath(result[0])
-                }
-              }
-            }
-          ]
         },
         { type: 'separator' },
         { role: 'services', label: intl.formatMessage({ id: 'services' }) },

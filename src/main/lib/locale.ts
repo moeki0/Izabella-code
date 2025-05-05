@@ -42,10 +42,7 @@ export const locale = {
     copyPath: 'パスをコピー',
     copyPrompt: 'プロンプトをコピー',
     backLink: 'バックリンク',
-    copyAll: '全てコピー',
-    storage: 'ストレージ',
-    openStorageLocation: 'ストレージの場所を開く',
-    changeStorageLocation: 'ストレージの場所を変更'
+    copyAll: '全てコピー'
   },
   en: {
     app: 'ChatZen',
@@ -90,9 +87,6 @@ export const locale = {
     copyPath: 'Copy Path',
     copyPrompt: 'Copy as Prompt',
     backLink: 'Back Links',
-    copyAll: 'Copy All',
-    storage: 'Storage',
-    openStorageLocation: 'Open Storage Location',
-    changeStorageLocation: 'Change Storage Location'
+    copyAll: 'Copy All'
   }
 }
