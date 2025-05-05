@@ -14,7 +14,11 @@ export const handleInit = async (
 ): Promise<{ title: string; messages: Array<Message> }> => {
   await waitForTools()
 
-  const messages = await getMessages(threadId)
-  const thread = await getThread(threadId)
-  return { messages, title: thread?.title }
+  if (threadId) {
+    const messages = await getMessages(threadId)
+    const thread = await getThread(threadId)
+    return { messages, title: thread?.title }
+  } else {
+    return { messages: [], title: '' }
+  }
 }
