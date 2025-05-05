@@ -4,8 +4,72 @@
 
 - ChatZenはMCP(Model Context Protocol)に対応したLLMチャットクライアントです
 - OpenAI、Claude、Gemini、Deepseekに対応しています
+- ファイルシステムベースのMarkdownストレージを使用
 
 ![Screenshot](./docs/screenshot.png)
+
+## 機能
+
+- 軽量で高速なチャットインターフェース
+- マークダウン形式でのチャット履歴保存
+- スレッドとメッセージの全文検索機能
+- 複数のLLMモデルとツール使用のサポート
+
+## ストレージシステム
+
+Chat Zenはファイルシステムベースの**Markdownストレージ**を使用しています。このストレージシステムは以下の操作を提供します：
+- スレッドの作成・取得・更新・削除
+- メッセージの作成・取得
+- スレッドとメッセージの全文検索
+
+### Markdownストレージの構造
+
+```
+userData/
+  threads/
+    {thread_id}/
+      metadata.json  # タイトル、作成日時などのメタデータ
+      messages/
+        {timestamp}_{role}_{uuid}.md  # 各メッセージをファイルとして保存
+```
+
+Markdownストレージの主な利点：
+- ファイルシステムベースの検索を活用できる
+- 外部ツールやエディタでの編集が容易
+- バージョン管理システム（Git等）と連携しやすい
+- 人間が読み書きしやすいテキスト形式
+
+### メッセージファイル形式
+
+各メッセージファイルはYAMLフロントマターを含むMarkdown形式で保存されています：
+
+```markdown
+---
+id: 1234-5678
+threadId: abcd-efgh
+role: user
+createdAt: 2023-01-01T12:00:00.000Z
+updatedAt: 2023-01-01T12:00:00.000Z
+---
+
+こんにちは、世界！
+```
+
+ツールメッセージの場合は追加のメタデータと空の本文になります：
+
+```markdown
+---
+id: 8765-4321
+threadId: abcd-efgh
+role: tool
+toolName: calculator
+toolReq: "1 + 1"
+toolRes: "2"
+createdAt: 2023-01-01T12:05:00.000Z
+updatedAt: 2023-01-01T12:05:00.000Z
+---
+
+```
 
 ## Settings
 
