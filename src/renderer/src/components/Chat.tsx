@@ -20,9 +20,9 @@ export type Message = {
   toolName?: string
   toolReq?: string
   toolRes?: string
-  tool_name?: string  // 後方互換性のため
-  tool_req?: string   // 後方互換性のため
-  tool_res?: string   // 後方互換性のため
+  tool_name?: string // 後方互換性のため
+  tool_req?: string // 後方互換性のため
+  tool_res?: string // 後方互換性のため
   open?: boolean
 }
 

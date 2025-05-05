@@ -8,9 +8,9 @@ export type Message = {
   toolName?: string
   toolReq?: string
   toolRes?: string
-  tool_name?: string  // 後方互換性のため
-  tool_req?: string   // 後方互換性のため
-  tool_res?: string   // 後方互換性のため
+  tool_name?: string // 後方互換性のため
+  tool_req?: string // 後方互換性のため
+  tool_res?: string // 後方互換性のため
   open?: boolean
 }
 
@@ -66,7 +66,9 @@ function Messages({
                     {(message.toolRes || message.tool_res) && (
                       <div className="tool-response">
                         <p>Response</p>
-                        <code className="tool-response-code">{message.toolRes || message.tool_res}</code>
+                        <code className="tool-response-code">
+                          {message.toolRes || message.tool_res}
+                        </code>
                       </div>
                     )}
                   </>
