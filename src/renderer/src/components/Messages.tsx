@@ -5,9 +5,12 @@ import remarkGfm from 'remark-gfm'
 export type Message = {
   role: 'user' | 'assistant' | 'tool'
   content?: string
-  tool_name?: string
-  tool_req?: string
-  tool_res?: string
+  toolName?: string
+  toolReq?: string
+  toolRes?: string
+  tool_name?: string // 後方互換性のため
+  tool_req?: string // 後方互換性のため
+  tool_res?: string // 後方互換性のため
   open?: boolean
 }
 
@@ -37,7 +40,7 @@ function Messages({
           <div
             key={
               message.role === 'tool'
-                ? `${message.tool_name}-${message.tool_req}-${i}`
+                ? `${message.toolName || message.tool_name}-${message.toolReq || message.tool_req}-${i}`
                 : `${message.content}-${i}`
             }
             className={`prompt prompt-${message.role}`}
@@ -48,7 +51,7 @@ function Messages({
                 <div className="tool-name">
                   <div className="tool-name-text">
                     <FiTool color="#444" />
-                    <p>{message.tool_name}</p>
+                    <p>{message.toolName || message.tool_name}</p>
                   </div>
                   <button aria-label={`close-tool-${i}`} onClick={() => handleToolClick(i)}>
                     {message.open ? <FiChevronUp color="#444" /> : <FiChevronDown color="#444" />}
@@ -58,12 +61,14 @@ function Messages({
                   <>
                     <div className="tool-args">
                       <p>Request</p>
-                      <pre className="tool-args-code">{message.tool_req}</pre>
+                      <pre className="tool-args-code">{message.toolReq || message.tool_req}</pre>
                     </div>
-                    {message.tool_res && (
+                    {(message.toolRes || message.tool_res) && (
                       <div className="tool-response">
                         <p>Response</p>
-                        <code className="tool-response-code">{message.tool_res}</code>
+                        <code className="tool-response-code">
+                          {message.toolRes || message.tool_res}
+                        </code>
                       </div>
                     )}
                   </>

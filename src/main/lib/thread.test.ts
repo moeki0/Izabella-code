@@ -1,138 +1,88 @@
-import { describe, expect, it, vi } from 'vitest'
-import { searchThread, getThreads, deleteThread, getThread } from './thread'
+import { describe, it, expect, vi } from 'vitest'
+import { searchThread, getThreads, getThread, deleteThread } from './thread'
 
-vi.mock('./database', () => ({
-  database: vi.fn().mockResolvedValue({
-    prepare: vi.fn().mockImplementation((sql) => {
-      // Mock for all queries
-      const allMock = vi.fn().mockImplementation(() => {
-        if (typeof sql === 'string' && sql.includes('WHERE t.title LIKE')) {
-          return [
+// getStorage関数をモック化
+vi.mock('./storage', () => ({
+  getStorage: vi.fn().mockResolvedValue({
+    searchThread: vi.fn().mockResolvedValue({
+      threads: [
+        {
+          id: 'thread-1',
+          title: 'Test Thread 1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          messages: [
             {
-              thread_id: 'search-1',
-              thread_title: 'Test Thread',
-              thread_created_at: '2025-05-01T00:00:00.000Z',
-              message_id: '1',
-              message_content: 'Hello Test',
-              message_role: 'user',
-              message_created_at: '2025-05-01T00:00:00.000Z'
+              id: 'message-1',
+              threadId: 'thread-1',
+              role: 'user',
+              content: 'Hello world',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
             }
           ]
         }
-        return [
-          {
-            thread_id: 'thread-1',
-            thread_title: 'Thread 1',
-            thread_created_at: '2025-05-01T00:00:00.000Z',
-            message_id: '1',
-            message_content: 'Hello',
-            message_role: 'user',
-            message_created_at: '2025-05-01T00:00:00.000Z'
-          },
-          {
-            thread_id: 'thread-1',
-            thread_title: 'Thread 1',
-            thread_created_at: '2025-05-01T00:00:00.000Z',
-            message_id: '2',
-            message_content: 'Hi there!',
-            message_role: 'assistant',
-            message_created_at: '2025-05-01T00:00:00.000Z'
-          }
-        ]
-      })
-
-      // Mock for get queries
-      const getMock = vi.fn().mockImplementation(() => {
-        if (typeof sql === 'string' && sql.includes('COUNT')) {
-          return { count: 10 } // Mock pagination count
-        }
-        return {
+      ],
+      total: 1,
+      totalPages: 1
+    }),
+    getThreads: vi.fn().mockResolvedValue({
+      threads: [
+        {
           id: 'thread-1',
-          title: 'Thread 1',
-          created_at: '2025-05-01T00:00:00.000Z',
-          updated_at: '2025-05-01T00:00:00.000Z'
+          title: 'Test Thread 1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          messages: [
+            {
+              id: 'message-1',
+              threadId: 'thread-1',
+              role: 'user',
+              content: 'Hello world',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
+          ]
         }
-      })
-
-      return {
-        all: allMock,
-        run: vi.fn(),
-        get: getMock
-      }
-    })
-  })
+      ],
+      total: 1,
+      totalPages: 1
+    }),
+    getThread: vi.fn().mockResolvedValue({
+      id: 'thread-1',
+      title: 'Test Thread 1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }),
+    deleteThread: vi.fn().mockResolvedValue(undefined)
+  }),
+  Thread: {},
+  ThreadsWithPagination: {}
 }))
 
 describe('thread', () => {
   describe('searchThread', () => {
     it('指定した検索クエリにマッチするスレッドとそのメッセージを取得できること', async () => {
-      const result = await searchThread('test')
-      expect(result.threads).toHaveLength(1)
-      expect(result.threads[0]).toEqual(
-        expect.objectContaining({
-          id: 'thread-1',
-          title: 'Thread 1',
-          created_at: '2025-05-01T00:00:00.000Z',
-          messages: [
-            {
-              id: '1',
-              content: 'Hello',
-              role: 'user',
-              created_at: '2025-05-01T00:00:00.000Z'
-            },
-            {
-              content: 'Hi there!',
-              created_at: '2025-05-01T00:00:00.000Z',
-              id: '2',
-              role: 'assistant'
-            }
-          ]
-        })
-      )
-      expect(result.total).toBeDefined()
-      expect(result.totalPages).toBeDefined()
+      const result = await searchThread('test query', 1, 10)
+      expect(result.threads.length).toBe(1)
+      expect(result.threads[0].id).toBe('thread-1')
+      expect(result.threads[0].messages[0].content).toBe('Hello world')
     })
   })
 
   describe('getThreads', () => {
     it('全てのスレッドとそのメッセージを取得できること', async () => {
-      const result = await getThreads()
-      expect(result.threads).toHaveLength(1)
-      expect(result.threads[0]).toEqual(
-        expect.objectContaining({
-          id: 'thread-1',
-          title: 'Thread 1',
-          created_at: '2025-05-01T00:00:00.000Z',
-          messages: [
-            {
-              id: '1',
-              content: 'Hello',
-              role: 'user',
-              created_at: '2025-05-01T00:00:00.000Z'
-            },
-            {
-              id: '2',
-              content: 'Hi there!',
-              role: 'assistant',
-              created_at: '2025-05-01T00:00:00.000Z'
-            }
-          ]
-        })
-      )
-      expect(result.total).toBeDefined()
-      expect(result.totalPages).toBeDefined()
+      const result = await getThreads(1, 10)
+      expect(result.threads.length).toBe(1)
+      expect(result.threads[0].id).toBe('thread-1')
     })
   })
 
   describe('getThread', () => {
     it('指定したIDのスレッドを取得できること', async () => {
       const thread = await getThread('thread-1')
-      expect(thread).toEqual({
-        id: 'thread-1',
-        title: 'Thread 1',
-        created_at: '2025-05-01T00:00:00.000Z',
-        updated_at: '2025-05-01T00:00:00.000Z'
-      })
+      expect(thread.id).toBe('thread-1')
+      expect(thread.title).toBe('Test Thread 1')
     })
   })
 
