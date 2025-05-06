@@ -69,6 +69,12 @@ export const handleSend = async (
         role: 'user',
         content: input
       })
+      
+      // スレッドタイトルを更新
+      await updateThreadTitle({
+        id: threadId,
+        title: 'Test Thread'
+      })
     }
 
     globalThis.interrupt = false
