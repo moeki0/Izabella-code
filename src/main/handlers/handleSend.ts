@@ -1,10 +1,9 @@
-import { agent, chat, titleAgent, tools } from '../lib/llm'
-import { z } from 'zod'
+import { agent, chat } from '../lib/llm'
 import { mainWindow } from '..'
-import { createMessage, getMessages } from '../lib/message'
+import { createMessage } from '../lib/message'
 import { getOrCreateThread, updateThreadTitle } from '../lib/thread'
 import { store } from '../lib/store'
-import pickBy from 'lodash/pickBy'
+import { saveToKnowledgeBase } from '../lib/vectorStoreTools'
 
 // ツール実行の承認待ちを管理するPromise
 let toolApprovalResolver: ((approved: boolean) => void) | null = null
@@ -42,19 +41,9 @@ export const handleSend = async (
     const assistants = store.get('assistants') as Array<Assistant>
     const currentAssistantName = store.get('assistant')
     const assistant = assistants?.find((a) => a.name === currentAssistantName)
-    const availableTools =
-      assistant && assistant.tools.length > 0
-        ? pickBy(tools, (_, key) => {
-            return (
-              assistant.tools.filter((tool) => {
-                return key.match(new RegExp(tool))
-              }).length > 0
-            )
-          })
-        : tools
 
     const stream = await chat(
-      await agent(assistant ? assistant.instructions : '', availableTools),
+      await agent(assistant ? assistant.instructions : ''),
       input,
       resourceId,
       threadId
@@ -69,6 +58,32 @@ export const handleSend = async (
         role: 'user',
         content: input
       })
+
+      // スレッドタイトルを更新
+      await updateThreadTitle({
+        id: threadId,
+        title: 'Test Thread'
+      })
+
+      // ユーザー入力を自動的にナレッジベースに保存
+      try {
+        if (input && input.length > 10) {
+          // 十分な長さがある場合のみ保存
+          // ユニークなID生成
+          const id = `user-input-${Date.now()}`
+
+          // ナレッジベースに保存
+          await saveToKnowledgeBase({
+            indexName: 'knowledge',
+            text: input,
+            id: id,
+            similarityThreshold: 0.9 // ユーザー入力はより厳密にマッチングする
+          })
+        }
+      } catch (error) {
+        // エラーを表示するが処理は継続
+        console.error('Knowledge base storage error for user input:', error)
+      }
     }
 
     globalThis.interrupt = false
@@ -96,6 +111,8 @@ export const handleSend = async (
       }
       if (chunk.type === 'tool-result') {
         mainWindow.webContents.send('tool-result', chunk)
+
+        // メッセージ履歴に保存
         await createMessage({
           threadId,
           role: 'tool',
@@ -103,6 +120,41 @@ export const handleSend = async (
           toolReq: JSON.stringify(chunk.args),
           toolRes: JSON.stringify(chunk.result)
         })
+
+        try {
+          // ツール実行結果を自動的にナレッジベースに保存
+          const toolName = chunk.toolName
+          const toolResult = chunk.result
+
+          // 保存する価値のある結果かを判断（シンプルな例）
+          const shouldStore =
+            // 以下の値やメソッドが存在する場合は保存しない
+            toolName !== 'knowledge-search-and-upsert' &&
+            toolName !== 'knowledge-search' &&
+            toolName !== 'knowledge-delete' &&
+            toolResult &&
+            typeof toolResult === 'object'
+
+          if (shouldStore) {
+            // 結果の内容をテキスト化
+            const textContent = JSON.stringify(toolResult, null, 2)
+
+            // ユニークなID生成（ツール名とタイムスタンプの組み合わせ）
+            const id = `tool-result-${toolName}-${Date.now()}`
+
+            // ナレッジベースに保存
+            await saveToKnowledgeBase({
+              indexName: 'knowledge',
+              text: textContent,
+              id: id,
+              metadata: { toolName, timestamp: Date.now() },
+              similarityThreshold: 0.85
+            })
+          }
+        } catch (error) {
+          // エラーを表示するが処理は継続
+          console.error('Knowledge base storage error:', error)
+        }
       }
       if (chunk.type === 'source') {
         const newSource = chunk.source
@@ -152,6 +204,27 @@ export const handleSend = async (
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
+
+          // AIの応答を自動的にナレッジベースに保存
+          try {
+            if (content && content.length > 20) {
+              // 十分な長さがある場合のみ保存
+              // ユニークなID生成
+              const id = `assistant-response-${Date.now()}`
+
+              // ナレッジベースに保存
+              await saveToKnowledgeBase({
+                indexName: 'knowledge',
+                text: content,
+                id: id,
+                metadata: { type: 'assistant_response', timestamp: Date.now() },
+                similarityThreshold: 0.85
+              })
+            }
+          } catch (error) {
+            // エラーを表示するが処理は継続
+            console.error('Knowledge base storage error for assistant response:', error)
+          }
         }
         content = ''
         sourcesArray = []
@@ -172,24 +245,29 @@ export const handleSend = async (
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
+
+          // AIの最終応答を自動的にナレッジベースに保存
+          try {
+            if (content && content.length > 20) {
+              // 十分な長さがある場合のみ保存
+              // ユニークなID生成
+              const id = `assistant-final-response-${Date.now()}`
+
+              // ナレッジベースに保存
+              await saveToKnowledgeBase({
+                indexName: 'knowledge',
+                text: content,
+                id: id,
+                metadata: { type: 'assistant_final_response', timestamp: Date.now() },
+                similarityThreshold: 0.85
+              })
+            }
+          } catch (error) {
+            // エラーを表示するが処理は継続
+            console.error('Knowledge base storage error for assistant final response:', error)
+          }
         }
       }
-    }
-
-    const title = await titleAgent()
-    const messages = await getMessages(threadId)
-    const titleStream = await title.stream(`${messages.map((m) => m.content)}`, {
-      output: z.object({
-        title: z.string()
-      })
-    })
-    let titleResult = ''
-    for await (const chunk of titleStream.partialObjectStream) {
-      mainWindow.webContents.send('title', chunk.title)
-      titleResult = chunk.title
-    }
-    if (titleResult) {
-      await updateThreadTitle({ id: threadId, title: titleResult })
     }
   } catch (e) {
     mainWindow.webContents.send('error', typeof e === 'string' ? e : String(e))

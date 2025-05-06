@@ -1,3 +1,4 @@
+import orderBy from 'lodash/orderBy'
 import { FiChevronDown, FiChevronUp, FiTool } from 'react-icons/fi'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -34,7 +35,7 @@ function Messages({
   return (
     <div className="messages" data-testid="messages" onScroll={onScroll}>
       <div className="messages-inner">
-        {messages.map((message, i) => (
+        {orderBy(messages, ['created_at']).map((message, i) => (
           <div
             key={
               message.role === 'tool'
@@ -49,7 +50,7 @@ function Messages({
                 <div className="tool-name">
                   <div className="tool-name-text">
                     <FiTool color="#444" />
-                    <p>{message.tool_name}</p>
+                    <div>{message.tool_name}</div>
                   </div>
                   <button aria-label={`close-tool-${i}`} onClick={() => handleToolClick(i)}>
                     {message.open ? <FiChevronUp color="#444" /> : <FiChevronDown color="#444" />}
@@ -58,12 +59,12 @@ function Messages({
                 {message.open && (
                   <>
                     <div className="tool-args">
-                      <p>Request</p>
+                      <div>Request</div>
                       <pre className="tool-args-code">{message.tool_req}</pre>
                     </div>
                     {message.tool_res && (
                       <div className="tool-response">
-                        <p>Response</p>
+                        <div>Response</div>
                         <code className="tool-response-code">{message.tool_res}</code>
                       </div>
                     )}

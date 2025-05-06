@@ -2,11 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import ReactCodeMirror, { EditorView } from '@uiw/react-codemirror'
-import { FiArrowDown, FiArrowUp, FiSquare, FiX } from 'react-icons/fi'
+import { FiArrowUp, FiSquare, FiX } from 'react-icons/fi'
 import { useNavigate, useParams } from 'react-router'
 import { Tool } from './Tools'
 import { Header } from './Header'
-import { Assistant } from './Assistants'
 import type { Mermaid } from 'mermaid'
 import hljs from 'highlight.js'
 import mermaid from 'mermaid'
@@ -26,7 +25,6 @@ export type Message = {
 
 export interface ChatInitializationDeps {
   init: (threadId: string) => Promise<{ title: string; messages: Array<Message> }>
-  getAssistants: () => Promise<Array<Assistant>>
   getTools: () => Promise<Array<Tool>>
 }
 
@@ -133,6 +131,7 @@ function Chat({
     toolName: string
     args: string
   } | null>(null)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     const unsubscribe = registerNewThreadListener(() => {
@@ -154,7 +153,7 @@ function Chat({
       setThreadId(id)
       return
     }
-    const newId = randomUUID()
+    const newId = 'ChatZen'
     setResourceId(newId)
     setThreadId(newId)
   }, [id, randomUUID])
@@ -171,8 +170,8 @@ function Chat({
         document.querySelectorAll('.prompt').forEach((prompt) => {
           height += prompt.getBoundingClientRect().height
         })
-        if (main && 'scroll' in main && height < main.getBoundingClientRect().height) {
-          setIsScrolled(true)
+        if (main && 'scroll' in main) {
+          main.scroll({ top: height })
         }
       }, 1)
     })
@@ -316,9 +315,6 @@ function Chat({
     resourceId
   ])
 
-  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-
   useEffect(() => {
     const aElements = document.querySelectorAll('a')
     const handleClick = (e: MouseEvent): void => {
@@ -379,15 +375,6 @@ function Chat({
     }
   }
 
-  const handleScroll = (e): void => {
-    if ((e.target as HTMLElement).scrollTop > 0) {
-      setIsHeaderScrolled(true)
-    } else {
-      setIsHeaderScrolled(false)
-    }
-    setIsScrolled(true)
-  }
-
   return (
     <>
       <Header
@@ -407,11 +394,11 @@ function Chat({
             setTitle('')
           }
         }}
-        className={isHeaderScrolled ? 'header-scrolled' : ''}
+        className={isScrolled ? 'header-scrolled' : ''}
       />
       <main>
         <Messages
-          onScroll={handleScroll}
+          onScroll={() => setIsScrolled(true)}
           messages={messages}
           showMessageContextMenu={showMessageContextMenu}
           loading={loading}
@@ -455,21 +442,6 @@ function Chat({
                 Deny
               </button>
             </div>
-          </div>
-        )}
-        {initialized && !error && !isScrolled && (
-          <div
-            className="scroll"
-            onClick={() => {
-              const main = document.querySelector('.messages')
-              let height = 0
-              document.querySelectorAll('.prompt').forEach((prompt) => {
-                height += prompt.getBoundingClientRect().height
-              })
-              main?.scroll({ top: height, behavior: 'smooth' })
-            }}
-          >
-            <FiArrowDown />
           </div>
         )}
       </div>

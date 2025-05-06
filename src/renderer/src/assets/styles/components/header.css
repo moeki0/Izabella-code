@@ -26,6 +26,13 @@ header {
   gap: 4px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
 header h1 {
   font-size: 12px;
   margin: 0;

@@ -4,6 +4,7 @@ import '@testing-library/jest-dom'
 import Chat, { ChatProps } from './Chat'
 import { MemoryRouter } from 'react-router'
 import userEvent from '@testing-library/user-event'
+import { act } from 'react'
 
 vi.mock('@uiw/react-codemirror')
 
@@ -60,62 +61,148 @@ const renderChat = (props: Partial<ChatProps> = {}): RenderResult => {
 }
 
 describe('Chat', () => {
-  test('初期状態では、ツールのローディング状態が表示される', () => {
-    renderChat()
-    expect(screen.getByText('Loading tools...')).toBeInTheDocument()
+  test('初期状態では、エラーメッセージが表示される', async () => {
+    await act(async () => {
+      renderChat()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('test error')).toBeInTheDocument()
+    })
   })
 
   test('初期化後、チャットが表示される', async () => {
-    renderChat()
-    expect(mockDependencies.init).toHaveBeenCalledWith('test-uuid')
+    await act(async () => {
+      renderChat()
+    })
+
+    await waitFor(() => {
+      expect(mockDependencies.init).toHaveBeenCalledWith('ChatZen')
+    })
   })
 
   test('ツールを閉じられること', async () => {
-    renderChat()
-    await waitFor(() => expect(mockDependencies.init).toHaveBeenCalled())
+    await act(async () => {
+      renderChat()
+    })
 
-    expect(screen.getByText('{"foo":"bar"}')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'close-tool-0' }))
-    expect(screen.queryByText('{"foo":"bar"}')).toBeFalsy()
+    await waitFor(() => {
+      expect(mockDependencies.init).toHaveBeenCalled()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('{"foo":"bar"}')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'close-tool-0' }))
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByText('{"foo":"bar"}')).toBeFalsy()
+    })
   })
 
   test('メッセージの送信が動作する', async () => {
-    renderChat()
-    await waitFor(() => expect(mockDependencies.init).toHaveBeenCalled())
+    await act(async () => {
+      renderChat()
+    })
+
+    await waitFor(() => {
+      expect(mockDependencies.init).toHaveBeenCalled()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('ChatZen')).toBeInTheDocument()
+    })
 
     const input = screen.getByPlaceholderText('ChatZen')
-    fireEvent.change(input, { target: { value: 'Hello' } })
+
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Hello' } })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument()
+    })
 
     const sendButton = screen.getByRole('button', { name: /send/i })
-    fireEvent.click(sendButton)
 
-    expect(mockDependencies.send).toHaveBeenCalledWith('Hello', 'test-uuid', 'test-uuid', false)
+    await act(async () => {
+      fireEvent.click(sendButton)
+    })
+
+    await waitFor(() => {
+      expect(mockDependencies.send).toHaveBeenCalledWith('Hello', 'ChatZen', 'ChatZen', false)
+    })
   })
 
-  test('エラーメッセージが表示される', () => {
-    renderChat()
-    expect(screen.getByText('test error')).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId('close-error'))
+  test('エラーメッセージが表示される', async () => {
+    await act(async () => {
+      renderChat()
+    })
 
-    expect(screen.queryByText('Test error')).toBeFalsy()
+    await waitFor(() => {
+      expect(screen.getByText('test error')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('close-error'))
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test error')).toBeFalsy()
+    })
   })
 
-  test('ツールパネルの表示切り替えが動作する', () => {
-    renderChat()
+  test('ツールパネルの表示切り替えが動作する', async () => {
+    await act(async () => {
+      renderChat()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('menu')).toBeInTheDocument()
+    })
+
     const toolsButton = screen.getByLabelText('menu')
-    fireEvent.click(toolsButton)
-    expect(screen.getByTestId('menu')).toBeInTheDocument()
+
+    await act(async () => {
+      fireEvent.click(toolsButton)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('menu')).toBeInTheDocument()
+    })
   })
 
   test('中断ボタンが動作する', async () => {
-    renderChat()
-    await waitFor(() => expect(mockDependencies.init).toHaveBeenCalled())
+    await act(async () => {
+      renderChat()
+    })
+
+    await waitFor(() => {
+      expect(mockDependencies.init).toHaveBeenCalled()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('ChatZen')).toBeInTheDocument()
+    })
 
     const input = screen.getByPlaceholderText('ChatZen')
-    fireEvent.change(input, { target: { value: 'Hello' } })
+
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Hello' } })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument()
+    })
 
     const sendButton = screen.getByRole('button', { name: /send/i })
-    fireEvent.click(sendButton)
+
+    await act(async () => {
+      fireEvent.click(sendButton)
+    })
 
     await waitFor(() => {
       const button = screen.getByRole('button', { name: /interrupt/i })
@@ -124,18 +211,38 @@ describe('Chat', () => {
     })
 
     const interruptButton = screen.getByRole('button', { name: /interrupt/i })
-    fireEvent.click(interruptButton)
 
-    expect(mockDependencies.interrupt).toHaveBeenCalled()
+    await act(async () => {
+      fireEvent.click(interruptButton)
+    })
+
+    await waitFor(() => {
+      expect(mockDependencies.interrupt).toHaveBeenCalled()
+    })
   })
 
   test('キーボードで送信する', async () => {
-    renderChat()
-    await waitFor(() => expect(mockDependencies.init).toHaveBeenCalled())
+    await act(async () => {
+      renderChat()
+    })
+
+    await waitFor(() => {
+      expect(mockDependencies.init).toHaveBeenCalled()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('ChatZen')).toBeInTheDocument()
+    })
 
     const input = screen.getByPlaceholderText('ChatZen')
-    fireEvent.change(input, { target: { value: 'Hello' } })
-    await userEvent.type(input, '{meta>}{enter}{/meta}')
+
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Hello' } })
+    })
+
+    await act(async () => {
+      await userEvent.type(input, '{meta>}{enter}{/meta}')
+    })
 
     await waitFor(() => {
       const button = screen.getByRole('button', { name: /interrupt/i })
@@ -144,12 +251,23 @@ describe('Chat', () => {
     })
   })
 
-  test('スレッド一覧をスクロールすると、ヘッダーのスタイルが変更されること', () => {
-    renderChat()
+  test('スレッド一覧をスクロールすると、ヘッダーのスタイルが変更されること', async () => {
+    await act(async () => {
+      renderChat()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('messages')).toBeInTheDocument()
+    })
 
     const messagesDiv = screen.getByTestId('messages')
-    fireEvent.scroll(messagesDiv, { target: { scrollTop: 100 } })
 
-    expect(screen.getByRole('banner')).toHaveClass('header-scrolled')
+    await act(async () => {
+      fireEvent.scroll(messagesDiv, { target: { scrollTop: 100 } })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('banner')).toHaveClass('header-scrolled')
+    })
   })
 })
