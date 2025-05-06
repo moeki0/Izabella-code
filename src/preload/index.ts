@@ -62,7 +62,42 @@ contextBridge.exposeInMainWorld('electron', {
       if (validChannels.includes(channel)) {
         ipcRenderer.send(channel, ...args)
       }
+    },
+    on: (channel: string, callback: (...args: unknown[]) => void) => {
+      const validChannels = [
+        'stream',
+        'tool-call',
+        'step-finish',
+        'finish',
+        'error',
+        'tool-result',
+        'title',
+        'search-threads-result',
+        'new-thread',
+        'retry',
+        'source'
+      ]
+      if (validChannels.includes(channel)) {
+        ipcRenderer.on(channel, (_, ...args) => callback(...args))
+      }
+    },
+    removeAllListeners: (channel: string) => {
+      const validChannels = [
+        'stream',
+        'tool-call',
+        'step-finish',
+        'finish',
+        'error',
+        'tool-result',
+        'title',
+        'search-threads-result',
+        'new-thread',
+        'retry',
+        'source'
+      ]
+      if (validChannels.includes(channel)) {
+        ipcRenderer.removeAllListeners(channel)
+      }
     }
-    // ...existing code...
   }
 })

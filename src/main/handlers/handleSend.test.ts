@@ -87,7 +87,8 @@ describe('handleSend', () => {
     expect(createMessage).toHaveBeenCalledWith({
       threadId: 'thread-1',
       role: 'assistant',
-      content: 'Hello'
+      content: 'Hello',
+      sources: undefined
     })
 
     expect(titleAgent).toHaveBeenCalled()

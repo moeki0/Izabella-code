@@ -7,6 +7,7 @@ export type Message = {
   tool_name?: string
   tool_req?: string
   tool_res?: string
+  sources?: string
 }
 
 export const getMessages = async (threadId): Promise<Array<Message>> => {
@@ -21,6 +22,7 @@ export const createMessage = async (params: {
   toolName?: string
   toolReq?: string
   toolRes?: string
+  sources?: string
 }): Promise<void> => {
   const db = await database()
   if (params.role === 'tool') {
@@ -36,6 +38,12 @@ export const createMessage = async (params: {
         params.toolReq,
         params.toolRes
       )
+  } else if (params.role === 'assistant' && params.sources) {
+    await db
+      .prepare(
+        'INSERT INTO messages (id, thread_id, role, content, sources, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+      )
+      .run(randomUUID(), params.threadId, params.role, params.content, params.sources)
   } else {
     await db
       .prepare(

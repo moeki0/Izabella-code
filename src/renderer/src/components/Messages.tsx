@@ -8,6 +8,7 @@ export type Message = {
   tool_name?: string
   tool_req?: string
   tool_res?: string
+  sources?: string
   open?: boolean
 }
 
@@ -71,7 +72,90 @@ function Messages({
               </div>
             )}
             {message.role === 'assistant' && (
-              <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
+              <>
+                <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
+                {message.sources && (
+                  <div className="source-info">
+                    <div className="source-info-content">
+                      {(() => {
+                        try {
+                          const sourceStr = message.sources
+                          if (!sourceStr) {
+                            return null
+                          }
+
+                          let sourceData
+                          try {
+                            sourceData = JSON.parse(sourceStr)
+                          } catch {
+                            return <div className="source-item">{sourceStr}</div>
+                          }
+
+                          if (Array.isArray(sourceData)) {
+                            const uniqueUrls = new Set()
+
+                            const renderedSources = sourceData
+                              .map((source, index) => {
+                                if (!source) return null
+
+                                const url = source.url
+
+                                const title = source.title
+
+                                if (url) {
+                                  if (uniqueUrls.has(url)) {
+                                    return null
+                                  }
+
+                                  uniqueUrls.add(url)
+                                }
+
+                                if (url) {
+                                  let domain = ''
+                                  try {
+                                    const urlObj = new URL(url)
+                                    domain = urlObj.hostname.replace(/^www\./, '')
+                                  } catch (e) {
+                                    console.warn(e)
+                                  }
+
+                                  return (
+                                    <a
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="source-item"
+                                      key={`source-${index}`}
+                                    >
+                                      <span className="source-domain">{domain}</span>
+                                      <span className="source-title">{title}</span>
+                                    </a>
+                                  )
+                                } else if (title) {
+                                  return (
+                                    <div className="source-item" key={`source-${index}`}>
+                                      {title}
+                                    </div>
+                                  )
+                                }
+                                return null
+                              })
+                              .filter(Boolean)
+
+                            if (renderedSources.length > 0) {
+                              return renderedSources
+                            }
+                          }
+                          return <div className="source-error">Unknown source format</div>
+                        } catch (error) {
+                          console.error('Error rendering sources:', error)
+                          return <div className="source-error">Invalid source format</div>
+                        }
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             {message.role === 'user' && (
               <div className="prompt-user-bubble">

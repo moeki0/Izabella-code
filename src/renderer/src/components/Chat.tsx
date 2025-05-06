@@ -20,6 +20,7 @@ export type Message = {
   tool_name?: string
   tool_req?: string
   tool_res?: string
+  sources?: string
   open?: boolean
 }
 
@@ -45,6 +46,9 @@ export interface ChatEventDeps {
   registerTitleListener: (callback: (chunk: string) => void) => () => void
   registerNewThreadListener: (callback: () => void) => () => void
   registerRetryListener: (callback: (error: unknown) => void) => () => void
+  registerSourceListener: (
+    callback: (content: { sources: Array<Record<string, unknown>>; isPartial: boolean }) => void
+  ) => () => void
 }
 
 export interface ChatUtilityDeps {
@@ -74,6 +78,9 @@ export interface ChatProps {
   registerTitleListener: (callback: (chunk: string) => void) => () => void
   registerNewThreadListener: (callback: () => void) => () => void
   registerRetryListener: (callback: (error) => void) => () => void
+  registerSourceListener: (
+    callback: (content: { sources: Array<Record<string, unknown>>; isPartial: boolean }) => void
+  ) => () => void
   showMessageContextMenu: (text: string) => void
   mermaidInit: typeof mermaid.initialize
   mermaidRun: typeof mermaid.run
@@ -98,6 +105,7 @@ function Chat({
   registerTitleListener,
   registerNewThreadListener,
   registerRetryListener,
+  registerSourceListener,
   showMessageContextMenu,
   mermaidInit,
   mermaidRun,
@@ -119,6 +127,8 @@ function Chat({
   const { id } = useParams()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentSources, setCurrentSources] = useState<Array<Record<string, unknown>>>([])
   const [pendingTool, setPendingTool] = useState<{
     toolName: string
     args: string
@@ -257,6 +267,24 @@ function Chat({
       setTitle(chunk)
     })
 
+    const unsubscribeSource = registerSourceListener((content) => {
+      setCurrentSources(content.sources)
+
+      if (!content.isPartial) {
+        setMessages((prev) => {
+          return prev.map((message, i) => {
+            if (i === prev.length - 1 && message.role === 'assistant') {
+              return {
+                ...message,
+                sources: JSON.stringify(content.sources)
+              }
+            }
+            return message
+          })
+        })
+      }
+    })
+
     return () => {
       unsubscribeStream()
       unsubscribeToolCall()
@@ -266,6 +294,7 @@ function Chat({
       unsubscribeToolResult()
       unsubscribeTitle()
       unsubscribeRetry()
+      unsubscribeSource()
     }
   }, [
     messages,
@@ -282,6 +311,7 @@ function Chat({
     registerToolResultListener,
     registerTitleListener,
     registerRetryListener,
+    registerSourceListener,
     send,
     resourceId
   ])

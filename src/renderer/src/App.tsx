@@ -49,6 +49,12 @@ const chatProps = {
     window.electron.ipcRenderer.on('new', callback)
     return () => window.electron.ipcRenderer.removeAllListeners('new')
   },
+  registerSourceListener: (
+    callback: (content: { sources: Array<Record<string, unknown>>; isPartial: boolean }) => void
+  ) => {
+    window.electron.ipcRenderer.on('source', (_, content) => callback(content))
+    return () => window.electron.ipcRenderer.removeAllListeners('source')
+  },
   showMessageContextMenu: (text: string) => {
     window.electron.ipcRenderer.send('show-message-context-menu', text)
   },
