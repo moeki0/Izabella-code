@@ -12,7 +12,9 @@ export type Message = {
 
 export const getMessages = async (threadId): Promise<Array<Message>> => {
   const db = await database()
-  return await db.prepare('SELECT * FROM messages WHERE thread_id = ? LIMIT 100').all(threadId)
+  return await db
+    .prepare('SELECT * FROM messages WHERE thread_id = ? ORDER BY created_at DESC LIMIT 100')
+    .all(threadId)
 }
 
 export const createMessage = async (params: {

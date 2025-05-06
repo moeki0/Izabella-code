@@ -1,3 +1,4 @@
+import orderBy from 'lodash/orderBy'
 import { FiChevronDown, FiChevronUp, FiTool } from 'react-icons/fi'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -34,7 +35,7 @@ function Messages({
   return (
     <div className="messages" data-testid="messages" onScroll={onScroll}>
       <div className="messages-inner">
-        {messages.map((message, i) => (
+        {orderBy(messages, ['created_at']).map((message, i) => (
           <div
             key={
               message.role === 'tool'

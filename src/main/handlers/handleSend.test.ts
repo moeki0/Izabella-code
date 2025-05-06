@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { handleSend } from './handleSend'
-import { agent, chat, titleAgent } from '../lib/llm'
+import { agent, chat } from '../lib/llm'
 import { createMessage } from '../lib/message'
 import { getOrCreateThread, updateThreadTitle } from '../lib/thread'
 import { mainWindow } from '..'
@@ -17,7 +17,6 @@ vi.mock('../lib/store', () => ({
 vi.mock('../lib/llm', () => ({
   agent: vi.fn(),
   chat: vi.fn(),
-  titleAgent: vi.fn(),
   tools: {}
 }))
 
@@ -61,15 +60,9 @@ describe('handleSend', () => {
         { type: 'finish' }
       ]
     }
-    const mockTitle = {
-      stream: vi.fn().mockResolvedValue({
-        partialObjectStream: [{ title: 'Test Thread' }]
-      })
-    }
 
     vi.mocked(agent).mockResolvedValue(mockAgent as Agent)
     vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
-    vi.mocked(titleAgent).mockResolvedValue(mockTitle as unknown as Agent)
 
     await handleSend(null, 'Hello', 'resource-1', 'thread-1', false)
 
@@ -91,7 +84,6 @@ describe('handleSend', () => {
       sources: undefined
     })
 
-    expect(titleAgent).toHaveBeenCalled()
     expect(updateThreadTitle).toHaveBeenCalledWith({
       id: 'thread-1',
       title: 'Test Thread'
@@ -111,15 +103,9 @@ describe('handleSend', () => {
         { type: 'finish' }
       ]
     }
-    const mockTitle = {
-      stream: vi.fn().mockResolvedValue({
-        partialObjectStream: [{ title: 'Test Thread' }]
-      })
-    }
 
     vi.mocked(agent).mockResolvedValue(mockAgent as Agent)
     vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
-    vi.mocked(titleAgent).mockResolvedValue(mockTitle as unknown as Agent)
 
     await handleSend(null, [{ role: 'user', content: 'Hello' }], 'resource-1', 'thread-1', false)
 

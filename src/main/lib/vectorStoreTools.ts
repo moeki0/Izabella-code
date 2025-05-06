@@ -98,13 +98,12 @@ export const vectorSearchAndUpsert: unknown = createTool({
   }),
   description:
     'Search for similar information in the knowledge database and update if match found, otherwise insert as new',
-  execute: async ({ context: { text, id, similarityThreshold, indexName } }) => {
+  execute: async ({ context: { text, id, similarityThreshold } }) => {
     // 新しい再利用可能な関数を使用
     return saveToKnowledgeBase({
       text,
       id,
-      similarityThreshold,
-      indexName
+      similarityThreshold
     })
   }
 })
@@ -112,7 +111,6 @@ export const vectorSearchAndUpsert: unknown = createTool({
 export const vectorSearch: unknown = createTool({
   id: 'knowledge-search',
   inputSchema: z.object({
-    indexName: z.string().describe('The name of the knowledge index to use'),
     query: z.string().describe('The query text to search for'),
     limit: z.number().min(1).default(5).describe('Number of results to return')
   }),
@@ -139,7 +137,6 @@ export const vectorSearch: unknown = createTool({
 export const vectorDelete: unknown = createTool({
   id: 'knowledge-delete',
   inputSchema: z.object({
-    indexName: z.string().describe('The name of the knowledge index to use'),
     ids: z.array(z.string()).describe('The IDs of the entries to delete')
   }),
   description: 'Delete information from the knowledge database by ID',
