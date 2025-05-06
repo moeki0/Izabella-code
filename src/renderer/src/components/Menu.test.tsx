@@ -9,10 +9,6 @@ vi.mock('./Tools', () => ({
   Tools: () => <div data-testid="tools-component">Tools Component</div>
 }))
 
-vi.mock('./Assistants', () => ({
-  Assistants: () => <div data-testid="assistants-component">Assistants Component</div>
-}))
-
 vi.mock('./Models', () => ({
   Models: () => <div data-testid="models-component">Models Component</div>
 }))
@@ -41,22 +37,9 @@ describe('Menu', () => {
     expect(screen.getByTestId('tools-component')).toBeInTheDocument()
   })
 
-  it('Assistantsタブをクリックするとそのタブが選択されること', async () => {
-    render(<Menu isOpen={true} getTools={mockGetTools} />)
-
-    // Assistantsタブをクリック
-    const assistantsTab = screen.getByText('Assistants')
-    await userEvent.click(assistantsTab)
-
-    // Assistantsタブが選択されていることを確認
-    expect(assistantsTab.className).toContain('menu-header-item-active')
-
-    // Assistantsコンポーネントが表示されていることを確認
-    expect(screen.getByTestId('assistants-component')).toBeInTheDocument()
-
-    // 他のコンポーネントが表示されていないことを確認
-    expect(screen.queryByTestId('tools-component')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('models-component')).not.toBeInTheDocument()
+  // Assistantsタブは削除されたためテストをスキップ
+  it.skip('Assistantsタブをクリックするとそのタブが選択されること', async () => {
+    // テストは将来的に修正または削除予定
   })
 
   it('Modelsタブをクリックするとそのタブが選択されること', async () => {
@@ -74,15 +57,14 @@ describe('Menu', () => {
 
     // 他のコンポーネントが表示されていないことを確認
     expect(screen.queryByTestId('tools-component')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('assistants-component')).not.toBeInTheDocument()
   })
 
   it('タブを切り替えた後、再度Toolsタブに戻れること', async () => {
     render(<Menu isOpen={true} getTools={mockGetTools} />)
 
-    // 一度Assistantsタブへ切り替え
-    const assistantsTab = screen.getByText('Assistants')
-    await userEvent.click(assistantsTab)
+    // 一度Modelsタブへ切り替え
+    const modelsTab = screen.getByText('Models')
+    await userEvent.click(modelsTab)
 
     // Toolsタブへ戻る
     const toolsTab = screen.getByText('Tools')
@@ -95,7 +77,6 @@ describe('Menu', () => {
     expect(screen.getByTestId('tools-component')).toBeInTheDocument()
 
     // 他のコンポーネントが表示されていないことを確認
-    expect(screen.queryByTestId('assistants-component')).not.toBeInTheDocument()
     expect(screen.queryByTestId('models-component')).not.toBeInTheDocument()
   })
 
