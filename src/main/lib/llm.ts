@@ -80,11 +80,11 @@ export const agent = async (instructions = ''): Promise<Agent> => {
   const modelName = (store.get('model') || '') as string
   let currentTools = tools
   if (modelName.includes('gpt')) {
+    currentTools = {}
     currentTools.web_search_preview = openai.tools.webSearchPreview({
       searchContextSize: 'high'
     })
   }
-  currentTools = Object.keys(currentTools).length > 0 ? currentTools : tools
   return new Agent({
     name: 'Assistant',
     instructions:
