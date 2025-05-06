@@ -82,7 +82,6 @@
   max-width: 800px;
   justify-self: center;
   display: flex;
-  align-items: end;
 }
 
 .send {

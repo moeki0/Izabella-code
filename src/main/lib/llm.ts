@@ -1,6 +1,6 @@
 import { shellPathSync } from 'shell-path'
 import { MCPConfiguration } from '@mastra/mcp'
-import { Agent, ToolsInput } from '@mastra/core/agent'
+import { Agent } from '@mastra/core/agent'
 import { openai } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { store } from './store'
@@ -8,6 +8,8 @@ import { LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
 import { deepseek } from '@ai-sdk/deepseek'
 import log from 'electron-log/main'
+import { vectorSearchAndUpsert, vectorSearch, vectorDelete } from './vectorStoreTools'
+import { knowledgeInstructions } from './knowledgeInstructions'
 import { memory } from './memory'
 
 log.initialize()
@@ -38,7 +40,19 @@ export const initializeMCP = async (): Promise<void> => {
   mcp = new MCPConfiguration({
     servers: avairableServers || {}
   })
-  tools = await mcp.getTools()
+
+  // Get MCP tools
+  const mcpTools = await mcp.getTools()
+
+  // Add knowledge tools
+  const knowledgeTools = {
+    'knowledge-search-and-upsert': vectorSearchAndUpsert,
+    'knowledge-search': vectorSearch,
+    'knowledge-delete': vectorDelete
+  }
+
+  // Combine MCP tools with knowledge tools
+  tools = { ...mcpTools, ...knowledgeTools }
 }
 
 const model = (): LanguageModel | LanguageModel => {
@@ -62,33 +76,16 @@ const model = (): LanguageModel | LanguageModel => {
   return model
 }
 
-export const agent = async (
-  instructions = '',
-  availableTools: Array<unknown> = tools
-): Promise<Agent> => {
-  const modelName = (store.get('model') || '') as string
-  let currentTools = availableTools as unknown as ToolsInput
-  if (modelName.includes('gpt')) {
-    currentTools.web_search_preview = openai.tools.webSearchPreview({
-      searchContextSize: 'high'
-    })
-  }
-  currentTools = Object.keys(currentTools).length > 0 ? currentTools : tools
+export const agent = async (instructions = ''): Promise<Agent> => {
   return new Agent({
     name: 'Assistant',
-    instructions: instructions + ((store.get('instructions') as string) || 'You help users.'),
-    model: model(),
-    tools: currentTools,
-    memory
-  })
-}
-
-export const titleAgent = async (): Promise<Agent> => {
-  return new Agent({
-    name: 'titleAgent',
     instructions:
-      'Please give a title to this exchange between ASSISTANT and USER. Please use the language of the input.',
-    model: model()
+      instructions +
+      knowledgeInstructions +
+      ((store.get('instructions') as string) || 'You help users.'),
+    model: model(),
+    tools,
+    memory
   })
 }
 

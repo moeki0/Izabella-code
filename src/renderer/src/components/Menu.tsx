@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Tool, Tools } from './Tools'
-import { Assistants } from './Assistants'
 import { Models } from './Models'
 
 type Menu = 'tools' | 'assistants' | 'models'
@@ -29,12 +28,6 @@ function Menu({
             Tools
           </div>
           <div
-            className={`menu-header-item ${current === 'assistants' ? 'menu-header-item-active' : ''}`}
-            onClick={() => setCurrent('assistants')}
-          >
-            Assistants
-          </div>
-          <div
             className={`menu-header-item ${current === 'models' ? 'menu-header-item-active' : ''}`}
             onClick={() => setCurrent('models')}
           >
@@ -43,7 +36,6 @@ function Menu({
         </div>
         <div>
           {current === 'tools' && <Tools getTools={getTools} />}
-          {current === 'assistants' && <Assistants />}
           {current === 'models' && <Models />}
         </div>
       </div>
