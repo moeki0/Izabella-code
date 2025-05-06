@@ -18,6 +18,8 @@ vi.mock('./database', () => ({
           thread_id: 'thread-1',
           role: 'assistant',
           content: 'Hi there!',
+          source:
+            '{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}',
           created_at: '2025-05-01T00:00:00.000Z',
           updated_at: '2025-05-01T00:00:00.000Z'
         },
@@ -50,7 +52,9 @@ describe('message', () => {
       expect(messages[1]).toEqual(
         expect.objectContaining({
           role: 'assistant',
-          content: 'Hi there!'
+          content: 'Hi there!',
+          source:
+            '{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}'
         })
       )
       expect(messages[2]).toEqual(
@@ -93,7 +97,7 @@ describe('message', () => {
       expect(message.content).toBeUndefined()
     })
 
-    it('tool_name, tool_req, tool_res は任意であること', () => {
+    it('tool_name, tool_req, tool_res, source は任意であること', () => {
       const message: Message = {
         role: 'assistant',
         content: 'test'
@@ -101,6 +105,19 @@ describe('message', () => {
       expect(message.tool_name).toBeUndefined()
       expect(message.tool_req).toBeUndefined()
       expect(message.tool_res).toBeUndefined()
+      expect(message.source).toBeUndefined()
+    })
+
+    it('source はassistantメッセージに設定できること', () => {
+      const message: Message = {
+        role: 'assistant',
+        content: 'test with source',
+        source:
+          '{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}'
+      }
+      expect(message.source).toBe(
+        '{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}'
+      )
     })
   })
 })

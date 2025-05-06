@@ -1,6 +1,6 @@
 import { shellPathSync } from 'shell-path'
 import { MCPConfiguration } from '@mastra/mcp'
-import { Agent } from '@mastra/core/agent'
+import { Agent, ToolsInput } from '@mastra/core/agent'
 import { openai } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { store } from './store'
@@ -46,13 +46,15 @@ const model = (): LanguageModel | LanguageModel => {
   let model
   if (modelName.includes('gpt')) {
     process.env.OPENAI_API_KEY = store.get('apiKeys.openai') as string
-    model = openai(modelName)
+    model = openai.responses(modelName)
   } else if (modelName.includes('claude')) {
     process.env.ANTHROPIC_API_KEY = store.get('apiKeys.anthropic') as string
     model = anthropic(modelName)
   } else if (modelName.includes('gemini')) {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-    model = google(modelName)
+    model = google(modelName, {
+      useSearchGrounding: true
+    })
   } else if (modelName.includes('deepseek')) {
     process.env.DEEPSEEK_API_KEY = store.get('apiKeys.deepseek') as string
     model = deepseek(modelName)
@@ -64,11 +66,19 @@ export const agent = async (
   instructions = '',
   availableTools: Array<unknown> = tools
 ): Promise<Agent> => {
+  const modelName = (store.get('model') || '') as string
+  let currentTools = availableTools as unknown as ToolsInput
+  if (modelName.includes('gpt')) {
+    currentTools.web_search_preview = openai.tools.webSearchPreview({
+      searchContextSize: 'high'
+    })
+  }
+  currentTools = Object.keys(currentTools).length > 0 ? currentTools : tools
   return new Agent({
     name: 'Assistant',
     instructions: instructions + ((store.get('instructions') as string) || 'You help users.'),
     model: model(),
-    tools: Object.keys(availableTools).length > 0 ? availableTools : tools,
+    tools: currentTools,
     memory
   })
 }

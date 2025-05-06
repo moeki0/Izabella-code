@@ -61,6 +61,7 @@ export const handleSend = async (
     )
 
     let content = ''
+    let sourcesArray: Array<Record<string, unknown>> = []
     if (!isRetry) {
       await getOrCreateThread(threadId)
       await createMessage({
@@ -103,6 +104,34 @@ export const handleSend = async (
           toolRes: JSON.stringify(chunk.result)
         })
       }
+      if (chunk.type === 'source') {
+        const newSource = chunk.source
+
+        const getSourceUrl = (source): string | null => {
+          if (typeof source === 'string' && /^https?:\/\//.test(source)) return source
+          if (source && typeof source === 'object') {
+            return (
+              source.url ||
+              (source.source && source.source.url) ||
+              (source.metadata && source.metadata.url)
+            )
+          }
+          return null
+        }
+        const newSourceUrl = getSourceUrl(newSource)
+
+        let isDuplicate = false
+        if (newSourceUrl) {
+          isDuplicate = sourcesArray.some((existingSource) => {
+            const existingUrl = getSourceUrl(existingSource)
+            return existingUrl && existingUrl === newSourceUrl
+          })
+        }
+
+        if (!isDuplicate) {
+          sourcesArray.push(newSource)
+        }
+      }
       if (chunk.type === 'text-delta') {
         mainWindow.webContents.send('stream', chunk.textDelta)
         content += chunk.textDelta
@@ -110,21 +139,38 @@ export const handleSend = async (
       if (chunk.type === 'step-finish') {
         mainWindow.webContents.send('step-finish')
         if (content.length > 0) {
+          if (sourcesArray.length > 0) {
+            mainWindow.webContents.send('source', {
+              sources: sourcesArray,
+              isPartial: false
+            })
+          }
+
           await createMessage({
             threadId,
             role: 'assistant',
-            content
+            content,
+            sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
         }
         content = ''
+        sourcesArray = []
       }
       if (chunk.type === 'finish') {
         mainWindow.webContents.send('finish')
         if (content.length > 0) {
+          if (sourcesArray.length > 0) {
+            mainWindow.webContents.send('source', {
+              sources: sourcesArray,
+              isPartial: false
+            })
+          }
+
           await createMessage({
             threadId,
             role: 'assistant',
-            content
+            content,
+            sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
         }
       }

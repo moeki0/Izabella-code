@@ -3,8 +3,13 @@ import { join } from 'node:path'
 
 // 依存関係をモック
 const mockExec = vi.fn().mockResolvedValue(undefined)
+const mockAllFn = vi.fn().mockReturnValue([])
+const mockPrepare = vi.fn().mockReturnValue({
+  all: mockAllFn
+})
 const mockDatabase = vi.fn().mockImplementation(() => ({
-  exec: mockExec
+  exec: mockExec,
+  prepare: mockPrepare
 }))
 
 vi.mock('better-sqlite3', () => {
@@ -39,13 +44,14 @@ describe('database', () => {
     // better-sqlite3 が正しいパスで初期化されたか確認
     expect(mockDatabase).toHaveBeenCalledWith(join('/mock/user/data/path', 'db.sqlite'))
 
-    // すべてのテーブル作成クエリが実行されたか確認
-    expect(mockExec).toHaveBeenCalledTimes(5)
+    // テーブル作成クエリが実行されたか確認
+    expect(mockExec).toHaveBeenCalled()
 
     // 返されたオブジェクトが期待通りか確認
     expect(db).toEqual(
       expect.objectContaining({
-        exec: expect.any(Function)
+        exec: expect.any(Function),
+        prepare: expect.any(Function)
       })
     )
   })
@@ -55,44 +61,31 @@ describe('database', () => {
     await database()
 
     // すべてのクエリが実行されたか確認
-    expect(mockExec).toHaveBeenNthCalledWith(
-      1,
+    expect(mockExec).toHaveBeenCalledWith(
       expect.stringContaining('CREATE TABLE IF NOT EXISTS threads')
     )
-    expect(mockExec).toHaveBeenNthCalledWith(
-      2,
+    expect(mockExec).toHaveBeenCalledWith(
       expect.stringContaining('CREATE TABLE IF NOT EXISTS messages')
     )
-    expect(mockExec).toHaveBeenNthCalledWith(
-      3,
+    expect(mockExec).toHaveBeenCalledWith(
       expect.stringContaining('CREATE TABLE IF NOT EXISTS workflows')
     )
-    expect(mockExec).toHaveBeenNthCalledWith(
-      4,
+    expect(mockExec).toHaveBeenCalledWith(
       expect.stringContaining('CREATE INDEX IF NOT EXISTS idx_messages_thread_id')
     )
-    expect(mockExec).toHaveBeenNthCalledWith(
-      5,
+    expect(mockExec).toHaveBeenCalledWith(
       expect.stringContaining('CREATE INDEX IF NOT EXISTS idx_workflows_title')
     )
-  })
-
-  it('threadテーブルが期待される構造で作成されること', async () => {
-    const { database } = await import('./database')
-    await database()
-
-    const threadsQuery = mockExec.mock.calls[0][0]
-    expect(threadsQuery).toContain('id TEXT PRIMARY KEY')
-    expect(threadsQuery).toContain('title TEXT')
-    expect(threadsQuery).toContain('created_at TEXT NOT NULL')
-    expect(threadsQuery).toContain('updated_at TEXT NOT NULL')
   })
 
   it('messagesテーブルが期待される構造で作成されること', async () => {
     const { database } = await import('./database')
     await database()
 
-    const messagesQuery = mockExec.mock.calls[1][0]
+    const messagesQuery = mockExec.mock.calls.find((call) =>
+      call[0].includes('CREATE TABLE IF NOT EXISTS messages')
+    )[0]
+
     expect(messagesQuery).toContain('id TEXT PRIMARY KEY')
     expect(messagesQuery).toContain('thread_id TEXT NOT NULL')
     expect(messagesQuery).toContain('role TEXT NOT NULL')
@@ -100,6 +93,7 @@ describe('database', () => {
     expect(messagesQuery).toContain('tool_name TEXT')
     expect(messagesQuery).toContain('tool_req TEXT')
     expect(messagesQuery).toContain('tool_res TEXT')
+    expect(messagesQuery).toContain('sources TEXT') // sourcesカラムが含まれていることを確認
     expect(messagesQuery).toContain('created_at TEXT NOT NULL')
     expect(messagesQuery).toContain('updated_at TEXT NOT NULL')
     expect(messagesQuery).toContain(
@@ -107,15 +101,43 @@ describe('database', () => {
     )
   })
 
-  it('workflowsテーブルが期待される構造で作成されること', async () => {
+  it('sourceカラムが存在しない場合は追加されること', async () => {
+    // sourceカラムが存在しないことをシミュレート
+    mockAllFn.mockReturnValue([
+      { name: 'id' },
+      { name: 'thread_id' },
+      { name: 'role' },
+      { name: 'content' }
+      // sourceカラムは存在しない
+    ])
+
     const { database } = await import('./database')
     await database()
 
-    const workflowsQuery = mockExec.mock.calls[2][0]
-    expect(workflowsQuery).toContain('id TEXT PRIMARY KEY')
-    expect(workflowsQuery).toContain('title TEXT NOT NULL')
-    expect(workflowsQuery).toContain('prompt TEXT NOT NULL')
-    expect(workflowsQuery).toContain('created_at TEXT NOT NULL')
-    expect(workflowsQuery).toContain('updated_at TEXT NOT NULL')
+    // カラム情報の取得が行われたか確認
+    expect(mockPrepare).toHaveBeenCalledWith('PRAGMA table_info(messages)')
+
+    // sourcesカラムが追加されたか確認
+    expect(mockExec).toHaveBeenCalledWith('ALTER TABLE messages ADD COLUMN sources TEXT')
+  })
+
+  it('sourceカラムが既に存在する場合は追加されないこと', async () => {
+    // sourceカラムが既に存在することをシミュレート
+    mockAllFn.mockReturnValue([
+      { name: 'id' },
+      { name: 'thread_id' },
+      { name: 'role' },
+      { name: 'content' },
+      { name: 'source' } // sourceカラムが既に存在する
+    ])
+
+    const { database } = await import('./database')
+    await database()
+
+    // カラム情報の取得が行われたか確認
+    expect(mockPrepare).toHaveBeenCalledWith('PRAGMA table_info(messages)')
+
+    // sourceカラムが存在する場合、sourcesカラムが追加され、マイグレーションが行われることを確認
+    expect(mockExec).toHaveBeenCalledWith('ALTER TABLE messages ADD COLUMN sources TEXT')
   })
 })

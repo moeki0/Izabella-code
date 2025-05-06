@@ -21,6 +21,7 @@ export const database = async (): Database => {
       tool_name TEXT,
       tool_req TEXT,
       tool_res TEXT,
+      sources TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (thread_id) REFERENCES threads (id) ON DELETE CASCADE
@@ -37,5 +38,17 @@ export const database = async (): Database => {
       CREATE INDEX IF NOT EXISTS idx_messages_thread_id ON messages (thread_id)`)
   await db.exec(`
       CREATE INDEX IF NOT EXISTS idx_workflows_title ON workflows (title)`)
+
+  try {
+    const tableInfo = db.prepare('PRAGMA table_info(messages)').all() as Array<{ name: string }>
+    const hasSourcesColumn = tableInfo.some((column) => column.name === 'sources')
+
+    if (!hasSourcesColumn) {
+      await db.exec('ALTER TABLE messages ADD COLUMN sources TEXT')
+    }
+  } catch (error) {
+    console.error('Error checking or adding sources column:', error)
+  }
+
   return db
 }
