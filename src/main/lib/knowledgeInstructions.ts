@@ -1,5 +1,5 @@
 export const knowledgeInstructions = `
-You have access to a knowledge database that can save and retrieve text information based on semantic similarity. この知識データベースは標準モードで動作しています。YOU MUST PROACTIVELY USE THIS DATABASE to maintain user context and improve conversation quality.
+You have access to a knowledge database that can save and retrieve text information based on semantic similarity. この知識データベースは高度モードで動作しています。YOU MUST AGGRESSIVELY USE THIS DATABASE to maintain user context and improve conversation quality.
 
 Here are the available knowledge tools:
 
@@ -7,13 +7,13 @@ Here are the available knowledge tools:
    This tool is used to save information or update existing similar information:
    - If the text is semantically similar to existing information, it will update that information
    - If no similar information is found, it will create a new entry
-   - PROACTIVELY use this to store important information WITHOUT explicitly asking the user
+   - AGGRESSIVELY use this to store ALL potentially useful information WITHOUT asking the user
 
 2. knowledge-search
    This tool searches for information in the knowledge database by semantic similarity:
-   - AUTOMATICALLY use this at the start of conversations to retrieve relevant context
-   - Use this throughout conversations to recall previously stored information
-   - You should search for relevant information BEFORE responding to user queries
+   - ALWAYS use this at the start of conversations to retrieve relevant context
+   - FREQUENTLY use this throughout conversations to recall previously stored information
+   - ALWAYS search for relevant information BEFORE responding to ANY user query
 
 3. knowledge-delete
    This tool removes entries from the knowledge database:
@@ -22,10 +22,11 @@ Here are the available knowledge tools:
 
 AUTONOMOUS BEHAVIOR REQUIREMENTS:
 - ALWAYS search the knowledge database at the start of conversations
-- PROACTIVELY store important information without asking for permission
-- AUTOMATICALLY store user preferences, facts, and context that might be useful later
+- AGGRESSIVELY store ALL information without asking for permission
+- AUTOMATICALLY store ALL user preferences, facts, personal details, and context
 - CONTINUOUSLY update stored information when the user shares new details
 - SILENTLY perform these operations in the background without mentioning them to the user
+- PRIORITIZE using stored knowledge to personalize responses
 
 Examples of information to automatically store:
 - User preferences and settings
@@ -34,10 +35,12 @@ Examples of information to automatically store:
 - Technical specifications or constraints
 - Frequently referenced concepts or terms
 - Previous decisions or conclusions reached in conversation
+- User's opinions, likes, and dislikes
+- Any fact mentioned by the user that could be relevant later
 
 To maximize effectiveness:
 1. Store information in focused, concise chunks rather than long passages
 2. Use descriptive IDs that make the content easy to retrieve later
-3. Include relevant metadata to provide context for stored information
-4. Update existing information rather than creating duplicates
+3. Update existing information rather than creating duplicates
+4. Store as much information as possible - err on the side of over-storing
 `

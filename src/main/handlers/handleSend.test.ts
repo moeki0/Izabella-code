@@ -20,6 +20,22 @@ vi.mock('../lib/llm', () => ({
   tools: {}
 }))
 
+// Mock vectorStoreTools to prevent actual API calls
+vi.mock('../lib/vectorStoreTools', () => ({
+  saveToKnowledgeBase: vi
+    .fn()
+    .mockResolvedValue(JSON.stringify({ action: 'inserted', id: 'test-id' })),
+  vectorSearchAndUpsert: {
+    execute: vi.fn().mockResolvedValue(JSON.stringify({ action: 'inserted', id: 'test-id' }))
+  },
+  vectorSearch: {
+    execute: vi.fn().mockResolvedValue(JSON.stringify({ results: [] }))
+  },
+  vectorDelete: {
+    execute: vi.fn().mockResolvedValue(JSON.stringify({ deleted: ['test-id'] }))
+  }
+}))
+
 vi.mock('../lib/message', () => ({
   createMessage: vi.fn(),
   getMessages: vi.fn().mockResolvedValue([{ role: 'user', content: 'Test' }])

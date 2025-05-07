@@ -66,9 +66,7 @@ const model = (): LanguageModel | LanguageModel => {
     model = anthropic(modelName)
   } else if (modelName.includes('gemini')) {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-    model = google(modelName, {
-      useSearchGrounding: true
-    })
+    model = google(modelName)
   } else if (modelName.includes('deepseek')) {
     process.env.DEEPSEEK_API_KEY = store.get('apiKeys.deepseek') as string
     model = deepseek(modelName)

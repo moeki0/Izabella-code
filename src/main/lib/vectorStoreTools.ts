@@ -1,15 +1,14 @@
 import { createTool } from '@mastra/core'
 import { z } from 'zod'
-import { SqliteVectorStore } from './vectorStore'
+import { HnswVectorStore } from './hnswVectorStore'
 import { store } from './store'
-import { TextMetadata } from './vectorStore'
 
-let knowledgeStore: SqliteVectorStore | null = null
+let knowledgeStore: HnswVectorStore | null = null
 
-const getKnowledgeStore = (): SqliteVectorStore => {
+const getKnowledgeStore = (): HnswVectorStore => {
   if (!knowledgeStore) {
     const openaiApiKey = store.get('apiKeys.openai') as string
-    knowledgeStore = new SqliteVectorStore(openaiApiKey)
+    knowledgeStore = new HnswVectorStore(openaiApiKey)
   }
   return knowledgeStore
 }
@@ -18,7 +17,6 @@ const getKnowledgeStore = (): SqliteVectorStore => {
 export interface KnowledgeSearchAndUpsertParams {
   text: string
   id: string
-  metadata?: Record<string, unknown>
   similarityThreshold?: number
   indexName?: string
 }
@@ -31,52 +29,29 @@ export interface KnowledgeOperationResult {
 }
 
 // ナレッジベースに情報を保存する再利用可能な関数
-export async function saveToKnowledgeBase(
-  params: KnowledgeSearchAndUpsertParams
-): Promise<KnowledgeOperationResult> {
+export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams): Promise<string> {
   try {
-    const { text, id, metadata = {}, similarityThreshold = 0.85 } = params
+    const { text, id, similarityThreshold = 0.5 } = params
 
     const knowledgeStore = getKnowledgeStore()
 
-    // 類似コンテンツの検索
     const searchResults = await knowledgeStore.search(text, 1)
 
-    // 類似コンテンツが見つかった場合は更新
-    if (searchResults.length > 0) {
-      const existingMetadata = searchResults[0].metadata
+    if (searchResults.length > 0 && searchResults[0]._similarity > similarityThreshold) {
+      await knowledgeStore.upsertTexts([text], [id])
 
-      // 結果が十分に類似しているか同じIDを持つ場合、そのエントリを更新
-      if (existingMetadata.id === id || similarityThreshold <= 0.5) {
-        const fullMetadata: TextMetadata = {
-          id,
-          text: existingMetadata.text,
-          ...metadata
-        }
-
-        await knowledgeStore.upsertTexts([text], [fullMetadata])
-
-        return {
-          action: 'updated',
-          id: id,
-          originalId: existingMetadata.id
-        }
-      }
+      return JSON.stringify({
+        action: 'updated',
+        id: id
+      })
     }
 
-    // 新しいエントリを挿入
-    const fullMetadata: TextMetadata = {
-      id,
-      text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-      ...metadata
-    }
+    await knowledgeStore.addTexts([text], [id])
 
-    await knowledgeStore.addTexts([text], [fullMetadata])
-
-    return {
+    return JSON.stringify({
       action: 'inserted',
       id: id
-    }
+    })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     throw new Error(`Failed to perform vector operation: ${errorMessage}`)
@@ -93,7 +68,7 @@ export const vectorSearchAndUpsert: unknown = createTool({
       .number()
       .min(0)
       .max(1)
-      .default(0.85)
+      .default(0.5)
       .describe('Similarity threshold for matching (0-1)')
   }),
   description:
@@ -120,12 +95,14 @@ export const vectorSearch: unknown = createTool({
       const knowledgeStore = getKnowledgeStore()
       const results = await knowledgeStore.search(query, limit)
 
-      return {
+      return JSON.stringify({
         results: results.map((result) => ({
           content: result.pageContent,
-          metadata: result.metadata
+          id: result.id,
+          // 類似度も含める（LLMがより良い判断をするために）
+          similarity: result._similarity
         }))
-      }
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       throw new Error(`Failed to perform vector search: ${errorMessage}`)
@@ -145,9 +122,9 @@ export const vectorDelete: unknown = createTool({
       const knowledgeStore = getKnowledgeStore()
       await knowledgeStore.deleteByIds(ids)
 
-      return {
+      return JSON.stringify({
         deleted: ids
-      }
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       throw new Error(`Failed to delete vectors: ${errorMessage}`)
