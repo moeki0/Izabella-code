@@ -9,6 +9,7 @@ import { vectorSearchAndUpsert, vectorSearch, vectorDelete } from './vectorStore
 import { knowledgeInstructions } from './knowledgeInstructions'
 import { webSearchInstructions } from './webSearchInstructions'
 import { memory } from './memory'
+import { systemInstructions } from './systemInstructions'
 
 log.initialize()
 
@@ -68,17 +69,13 @@ const model = (): LanguageModel => {
   }
 }
 
-export const agent = async (instructions = ''): Promise<Agent> => {
+export const agent = async (): Promise<Agent> => {
   const useSearchGrounding = store.get('useSearchGrounding') !== false
 
   // Determine which instructions to use based on search grounding state
   const agentInstructions = useSearchGrounding
-    ? instructions +
-      webSearchInstructions +
-      ((store.get('instructions') as string) || 'You help users.')
-    : instructions +
-      knowledgeInstructions +
-      ((store.get('instructions') as string) || 'You help users.')
+    ? webSearchInstructions + systemInstructions
+    : knowledgeInstructions + systemInstructions
 
   return new Agent({
     name: 'Assistant',
