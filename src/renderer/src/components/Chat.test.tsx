@@ -8,6 +8,20 @@ import { act } from 'react'
 
 vi.mock('@uiw/react-codemirror')
 
+// window.electronをモック
+window.electron = {
+  ipcRenderer: {
+    invoke: vi.fn().mockResolvedValue(true),
+    on: vi.fn()
+  }
+}
+
+// window.apiをモック
+window.api = {
+  getConfig: vi.fn().mockResolvedValue(true),
+  setConfig: vi.fn().mockResolvedValue(true)
+}
+
 const mockDependencies = {
   init: vi.fn().mockResolvedValue({
     title: 'Test Chat',

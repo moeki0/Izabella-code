@@ -9,7 +9,7 @@
   border-radius: 10px;
   width: 300px;
   z-index: 10;
-  padding: 20px;
+  padding: 10px;
   animation: slideInFromRight 0.1s ease-in-out;
   display: flex;
   flex-direction: column;
