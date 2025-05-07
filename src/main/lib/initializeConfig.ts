@@ -7,8 +7,7 @@ const initialize = (name: string, value): void => {
 }
 
 export const initializeConfig = (): void => {
-  initialize('instructions', '')
-  initialize('apiKeys', { google: '' })
+  initialize('apiKeys', { google: '', openai: '' })
   initialize('mcpServers', [])
   initialize('maxSteps', 10)
   initialize('tokenLimit', 127000)
