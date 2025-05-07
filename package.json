@@ -38,6 +38,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@electron/rebuild": "^4.0.1",
     "@formatjs/intl": "^3.1.6",
+    "@langchain/core": "^0.3.53",
     "@langchain/openai": "^0.0.20",
     "@mastra/core": "^0.8.3",
     "@mastra/mcp": "^0.3.10",
