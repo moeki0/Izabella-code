@@ -118,7 +118,7 @@ export const handleSend = async (
               indexName: 'knowledge',
               text: textContent,
               id: id,
-              similarityThreshold: 0.5
+              similarityThreshold: 0.7
             })
           }
         } catch (error) {

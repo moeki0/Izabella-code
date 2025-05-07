@@ -31,7 +31,7 @@ export interface KnowledgeOperationResult {
 // ナレッジベースに情報を保存する再利用可能な関数
 export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams): Promise<string> {
   try {
-    const { text, id, similarityThreshold = 0.5 } = params
+    const { text, id, similarityThreshold = 0.7 } = params
 
     const knowledgeStore = getKnowledgeStore()
 
