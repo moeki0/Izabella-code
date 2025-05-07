@@ -36,12 +36,7 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
     const currentAssistantName = store.get('assistant')
     const assistant = assistants?.find((a) => a.name === currentAssistantName)
 
-    const stream = await chat(
-      await agent(assistant ? assistant.instructions : ''),
-      input,
-      resourceId,
-      threadId
-    )
+    const stream = await chat(await agent(), input, resourceId, threadId)
 
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
@@ -94,6 +89,7 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
             toolName !== 'knowledge-search-and-upsert' &&
             toolName !== 'knowledge-search' &&
             toolName !== 'knowledge-delete' &&
+            toolName !== 'message_search' &&
             toolResult &&
             typeof toolResult === 'object'
 

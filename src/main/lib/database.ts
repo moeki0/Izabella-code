@@ -46,8 +46,77 @@ export const database = async (): Database => {
     if (!hasSourcesColumn) {
       await db.exec('ALTER TABLE messages ADD COLUMN sources TEXT')
     }
+
+    const ftsExists =
+      db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='messages_fts'").all()
+        .length > 0
+
+    if (ftsExists) {
+      try {
+        await db.exec(`DROP TABLE IF EXISTS messages_fts`)
+      } catch (error) {
+        console.error('Error dropping FTS table:', error)
+      }
+    }
+
+    await db.exec(`
+      CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+        id UNINDEXED, content, tool_req, tool_res,
+        tokenize='unicode61'
+      )
+    `)
+
+    const hasTriggers =
+      db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='trigger' AND name='messages_ai_insert'"
+        )
+        .all().length > 0
+
+    if (hasTriggers) {
+      try {
+        await db.exec(`DROP TRIGGER IF EXISTS messages_ai_insert`)
+        await db.exec(`DROP TRIGGER IF EXISTS messages_ad_delete`)
+        await db.exec(`DROP TRIGGER IF EXISTS messages_au_update`)
+      } catch (error) {
+        console.error('Error dropping triggers:', error)
+      }
+    }
+
+    await db.exec(`
+      CREATE TRIGGER IF NOT EXISTS messages_ai_insert AFTER INSERT ON messages
+      BEGIN
+        INSERT INTO messages_fts(id, content, tool_req, tool_res)
+        VALUES (new.id, new.content, new.tool_req, new.tool_res);
+      END
+    `)
+
+    await db.exec(`
+      CREATE TRIGGER IF NOT EXISTS messages_ad_delete AFTER DELETE ON messages
+      BEGIN
+        DELETE FROM messages_fts WHERE id = old.id;
+      END
+    `)
+
+    await db.exec(`
+      CREATE TRIGGER IF NOT EXISTS messages_au_update AFTER UPDATE ON messages
+      BEGIN
+        DELETE FROM messages_fts WHERE id = old.id;
+        INSERT INTO messages_fts(id, content, tool_req, tool_res)
+        VALUES (new.id, new.content, new.tool_req, new.tool_res);
+      END
+    `)
+
+    try {
+      await db.exec(`
+        INSERT INTO messages_fts(id, content, tool_req, tool_res)
+        SELECT id, content, tool_req, tool_res FROM messages
+      `)
+    } catch (error) {
+      console.error('Error populating FTS table:', error)
+    }
   } catch (error) {
-    console.error('Error checking or adding sources column:', error)
+    console.error('Error setting up database:', error)
   }
 
   return db
