@@ -1,7 +1,7 @@
 import { agent, chat } from '../lib/llm'
 import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
-import { getOrCreateThread, updateThreadTitle } from '../lib/thread'
+import { getOrCreateThread } from '../lib/thread'
 import { store } from '../lib/store'
 import { saveToKnowledgeBase } from '../lib/vectorStoreTools'
 
@@ -30,13 +30,7 @@ export type Assistant = {
   autoApprove: boolean
 }
 
-export const handleSend = async (
-  _,
-  input,
-  resourceId,
-  threadId,
-  isRetry: boolean
-): Promise<void> => {
+export const handleSend = async (_, input, resourceId, threadId): Promise<void> => {
   try {
     const assistants = store.get('assistants') as Array<Assistant>
     const currentAssistantName = store.get('assistant')
@@ -51,19 +45,12 @@ export const handleSend = async (
 
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
-    if (!isRetry) {
-      await getOrCreateThread(threadId)
-      await createMessage({
-        threadId,
-        role: 'user',
-        content: input
-      })
-
-      await updateThreadTitle({
-        id: threadId,
-        title: 'Test Thread'
-      })
-    }
+    await getOrCreateThread(threadId)
+    await createMessage({
+      threadId,
+      role: 'user',
+      content: input
+    })
 
     globalThis.interrupt = false
 
