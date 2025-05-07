@@ -1,6 +1,6 @@
 {
   "name": "chat-zen",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "description": "Lightweight LLM Chat application for MacOS 💬",
   "main": "./out/main/index.js",
   "author": "example.com",
