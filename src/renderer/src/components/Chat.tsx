@@ -11,6 +11,7 @@ import hljs from 'highlight.js'
 import mermaid from 'mermaid'
 import Messages from './Messages'
 import { Menu } from './Menu'
+import { WebSearchToggle } from './WebSearchToggle'
 import 'highlight.js/styles/dracula.css'
 
 export type Message = {
@@ -458,21 +459,26 @@ function Chat({
             onKeyDown={handleKeyDown}
             placeholder="Ask anything"
           />
-          <button
-            className="send"
-            onClick={() => {
-              if (running) {
-                interrupt()
-                setRunning(false)
-              } else {
-                sendMessage()
+          <div className="user-footer">
+            <WebSearchToggle />
+            <button
+              className="send"
+              onClick={() => {
+                if (running) {
+                  interrupt()
+                  setRunning(false)
+                } else {
+                  sendMessage()
+                }
+              }}
+              aria-label={running ? 'interrupt' : 'send'}
+              disabled={
+                !initialized || (!running && input.replaceAll(/[\s\n\r]+/g, '').length === 0)
               }
-            }}
-            aria-label={running ? 'interrupt' : 'send'}
-            disabled={!initialized || (!running && input.replaceAll(/[\s\n\r]+/g, '').length === 0)}
-          >
-            {running ? <FiSquare color="white" /> : <FiArrowUp color="white" />}
-          </button>
+            >
+              {running ? <FiSquare color="white" /> : <FiArrowUp color="white" />}
+            </button>
+          </div>
         </div>
       </div>
     </>

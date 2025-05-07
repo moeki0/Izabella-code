@@ -59,7 +59,7 @@ export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams
 }
 
 export const vectorSearchAndUpsert: unknown = createTool({
-  id: 'knowledge-search-and-upsert',
+  id: 'knowledge_search_and_upsert',
   inputSchema: z.object({
     indexName: z.string().describe('The name of the knowledge index to use'),
     text: z.string().describe('The text content to search for or store'),
@@ -84,7 +84,7 @@ export const vectorSearchAndUpsert: unknown = createTool({
 })
 
 export const vectorSearch: unknown = createTool({
-  id: 'knowledge-search',
+  id: 'knowledge_search',
   inputSchema: z.object({
     query: z.string().describe('The query text to search for'),
     limit: z.number().min(1).default(5).describe('Number of results to return')
@@ -112,7 +112,7 @@ export const vectorSearch: unknown = createTool({
 
 // Knowledge delete tool
 export const vectorDelete: unknown = createTool({
-  id: 'knowledge-delete',
+  id: 'knowledge_delete',
   inputSchema: z.object({
     ids: z.array(z.string()).describe('The IDs of the entries to delete')
   }),

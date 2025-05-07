@@ -1,15 +1,13 @@
 import { shellPathSync } from 'shell-path'
 import { MCPConfiguration } from '@mastra/mcp'
 import { Agent } from '@mastra/core/agent'
-import { openai } from '@ai-sdk/openai'
-import { anthropic } from '@ai-sdk/anthropic'
 import { store } from './store'
 import { LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
-import { deepseek } from '@ai-sdk/deepseek'
 import log from 'electron-log/main'
 import { vectorSearchAndUpsert, vectorSearch, vectorDelete } from './vectorStoreTools'
 import { knowledgeInstructions } from './knowledgeInstructions'
+import { webSearchInstructions } from './webSearchInstructions'
 import { memory } from './memory'
 
 log.initialize()
@@ -55,42 +53,38 @@ export const initializeMCP = async (): Promise<void> => {
   tools = { ...mcpTools, ...knowledgeTools }
 }
 
-const model = (): LanguageModel | LanguageModel => {
-  const modelName = (store.get('model') || '') as string
-  let model
-  if (modelName.includes('gpt')) {
-    process.env.OPENAI_API_KEY = store.get('apiKeys.openai') as string
-    model = openai.responses(modelName)
-  } else if (modelName.includes('claude')) {
-    process.env.ANTHROPIC_API_KEY = store.get('apiKeys.anthropic') as string
-    model = anthropic(modelName)
-  } else if (modelName.includes('gemini')) {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-    model = google(modelName)
-  } else if (modelName.includes('deepseek')) {
-    process.env.DEEPSEEK_API_KEY = store.get('apiKeys.deepseek') as string
-    model = deepseek(modelName)
+const model = (): LanguageModel => {
+  const modelName = 'gemini-2.5-flash-preview-04-17'
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
+
+  const useSearchGrounding = store.get('useSearchGrounding') !== false
+
+  if (useSearchGrounding) {
+    return google(modelName, {
+      useSearchGrounding
+    })
+  } else {
+    return google(modelName)
   }
-  return model
 }
 
 export const agent = async (instructions = ''): Promise<Agent> => {
-  const modelName = (store.get('model') || '') as string
-  let currentTools = tools
-  if (modelName.includes('gpt')) {
-    currentTools = {}
-    currentTools.web_search_preview = openai.tools.webSearchPreview({
-      searchContextSize: 'high'
-    })
-  }
+  const useSearchGrounding = store.get('useSearchGrounding') !== false
+
+  // Determine which instructions to use based on search grounding state
+  const agentInstructions = useSearchGrounding
+    ? instructions +
+      webSearchInstructions +
+      ((store.get('instructions') as string) || 'You help users.')
+    : instructions +
+      knowledgeInstructions +
+      ((store.get('instructions') as string) || 'You help users.')
+
   return new Agent({
     name: 'Assistant',
-    instructions:
-      instructions +
-      knowledgeInstructions +
-      ((store.get('instructions') as string) || 'You help users.'),
+    instructions: agentInstructions,
     model: model(),
-    tools: currentTools,
+    tools,
     memory
   })
 }
