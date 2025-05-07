@@ -15,5 +15,11 @@ export const memory = new Memory({
   vector: new LibSQLVector({
     connectionUrl: `file:${join(app.getPath('userData'), 'memory.db')}`
   }),
-  processors: [new TokenLimiter((store.get('tokenLimit') as number) || 127000)]
+  processors: [new TokenLimiter((store.get('tokenLimit') as number) || 127000)],
+  options: {
+    workingMemory: {
+      enabled: true,
+      use: 'tool-call'
+    }
+  }
 })

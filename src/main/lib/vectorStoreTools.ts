@@ -68,7 +68,7 @@ export const vectorSearchAndUpsert: unknown = createTool({
       .number()
       .min(0)
       .max(1)
-      .default(0.5)
+      .default(0.7)
       .describe('Similarity threshold for matching (0-1)')
   }),
   description:
