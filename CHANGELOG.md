@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.0.0-alpha.5
+
+### 変更点
+
+- モデルを簡略化しGeminiのgroundingのON/OFFを切り替えられるよう変更
+- HNSWのベクトル管理へ移行
+
 ## v1.0.0-alpha.4
 
 ### 変更点
