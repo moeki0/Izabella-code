@@ -59,31 +59,10 @@ export const handleSend = async (
         content: input
       })
 
-      // スレッドタイトルを更新
       await updateThreadTitle({
         id: threadId,
         title: 'Test Thread'
       })
-
-      // ユーザー入力を自動的にナレッジベースに保存
-      try {
-        if (input && input.length > 10) {
-          // 十分な長さがある場合のみ保存
-          // ユニークなID生成
-          const id = `user-input-${Date.now()}`
-
-          // ナレッジベースに保存
-          await saveToKnowledgeBase({
-            indexName: 'knowledge',
-            text: input,
-            id: id,
-            similarityThreshold: 0.9 // ユーザー入力はより厳密にマッチングする
-          })
-        }
-      } catch (error) {
-        // エラーを表示するが処理は継続
-        console.error('Knowledge base storage error for user input:', error)
-      }
     }
 
     globalThis.interrupt = false
@@ -112,7 +91,6 @@ export const handleSend = async (
       if (chunk.type === 'tool-result') {
         mainWindow.webContents.send('tool-result', chunk)
 
-        // メッセージ履歴に保存
         await createMessage({
           threadId,
           role: 'tool',
@@ -122,13 +100,10 @@ export const handleSend = async (
         })
 
         try {
-          // ツール実行結果を自動的にナレッジベースに保存
           const toolName = chunk.toolName
           const toolResult = chunk.result
 
-          // 保存する価値のある結果かを判断（シンプルな例）
           const shouldStore =
-            // 以下の値やメソッドが存在する場合は保存しない
             toolName !== 'knowledge-search-and-upsert' &&
             toolName !== 'knowledge-search' &&
             toolName !== 'knowledge-delete' &&
@@ -136,23 +111,17 @@ export const handleSend = async (
             typeof toolResult === 'object'
 
           if (shouldStore) {
-            // 結果の内容をテキスト化
             const textContent = JSON.stringify(toolResult, null, 2)
-
-            // ユニークなID生成（ツール名とタイムスタンプの組み合わせ）
             const id = `tool-result-${toolName}-${Date.now()}`
 
-            // ナレッジベースに保存
             await saveToKnowledgeBase({
               indexName: 'knowledge',
               text: textContent,
               id: id,
-              metadata: { toolName, timestamp: Date.now() },
-              similarityThreshold: 0.85
+              similarityThreshold: 0.5
             })
           }
         } catch (error) {
-          // エラーを表示するが処理は継続
           console.error('Knowledge base storage error:', error)
         }
       }
@@ -204,27 +173,6 @@ export const handleSend = async (
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
-
-          // AIの応答を自動的にナレッジベースに保存
-          try {
-            if (content && content.length > 20) {
-              // 十分な長さがある場合のみ保存
-              // ユニークなID生成
-              const id = `assistant-response-${Date.now()}`
-
-              // ナレッジベースに保存
-              await saveToKnowledgeBase({
-                indexName: 'knowledge',
-                text: content,
-                id: id,
-                metadata: { type: 'assistant_response', timestamp: Date.now() },
-                similarityThreshold: 0.85
-              })
-            }
-          } catch (error) {
-            // エラーを表示するが処理は継続
-            console.error('Knowledge base storage error for assistant response:', error)
-          }
         }
         content = ''
         sourcesArray = []
@@ -245,27 +193,6 @@ export const handleSend = async (
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
-
-          // AIの最終応答を自動的にナレッジベースに保存
-          try {
-            if (content && content.length > 20) {
-              // 十分な長さがある場合のみ保存
-              // ユニークなID生成
-              const id = `assistant-final-response-${Date.now()}`
-
-              // ナレッジベースに保存
-              await saveToKnowledgeBase({
-                indexName: 'knowledge',
-                text: content,
-                id: id,
-                metadata: { type: 'assistant_final_response', timestamp: Date.now() },
-                similarityThreshold: 0.85
-              })
-            }
-          } catch (error) {
-            // エラーを表示するが処理は継続
-            console.error('Knowledge base storage error for assistant final response:', error)
-          }
         }
       }
     }

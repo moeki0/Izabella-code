@@ -51,6 +51,7 @@
     "electron-updater": "^6.3.9",
     "fix-path": "^4.0.0",
     "highlightjs": "^9.16.2",
+    "hnswlib-node": "^3.0.0",
     "langchain": "^0.3.24",
     "lodash": "^4.17.21",
     "marked": "^15.0.11",
