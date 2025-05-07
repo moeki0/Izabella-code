@@ -2,8 +2,7 @@
 
 # ChatZen(α)
 
-- ChatZenはMCP(Model Context Protocol)に対応したLLMチャットクライアントです
-- OpenAI、Claude、Gemini、Deepseekに対応しています
+- ChatZenは長期記憶を持つモードレスなチャットクライアントです
 
 ![Screenshot](./docs/screenshot.png)
 
@@ -13,44 +12,11 @@
 
 ```json
 {
-  "model": "gpt-4o-mini",
-  "assistant": "Deep Research",
-  "models": ["gpt-4o-mini", "deepseek-chat", "gemini-2.5-flash-preview-04-17"],
   "maxSteps": 32,
   "instructions": "You help user.",
-  "assistants": [
-    {
-      "name": "Deep Research",
-      "instructions": "BraveSeachとFetchでページにアクセスすることを繰り返してあらゆる情報を集めて結果を長文のレポートでまとめてください。",
-      "tools": [
-        "brave-search_brave_web_search",
-        "fetch_fetch",
-        "cosense-mcp-server_search_pages",
-        "cosense-mcp-server_list_pages",
-        "cosense-mcp-server_list_search_pages"
-      ],
-      "autoApprove": true
-    },
-    {
-      "name": "ノートアシスタント",
-      "instructions": "/Users/username/Noteの下にMarkdownファイルがあるのでユーザーの指示に従いそのファイル群を読み書きしてください。"
-    },
-    {
-      "name": "ChatZen Development",
-      "instructions": "/Users/username/Development/chat-zenのコードを調べてユーザーの指示に従ってコーディングしてください。必要に応じてライブラリの仕様を参照してください。",
-      "tools": ["claude_code_.+", "mastra-docs", "electron-docs"]
-    },
-    {
-      "name": "Deep GitHub",
-      "instructions": "GitHubリポジトリのコードをgithub_search_codeのツール利用を何回も繰り返すことでじっくりと調査してください。それを元にユーザーの質問に答えてください",
-      "tools": ["github_search_code", "github_get_file_contents", "github_search_repositories"]
-    }
-  ],
   "apiKeys": {
     "openai": "***",
-    "anthropic": "***",
-    "google": "***",
-    "deepseek": "***"
+    "google": "***"
   },
   "mcpServers": {
     "electron-docs": {
