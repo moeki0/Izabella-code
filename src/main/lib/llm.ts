@@ -6,6 +6,7 @@ import { LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
 import log from 'electron-log/main'
 import { vectorSearchAndUpsert, vectorSearch, vectorDelete } from './vectorStoreTools'
+import { messageSearch } from './messageSearchTool'
 import { knowledgeInstructions } from './knowledgeInstructions'
 import { webSearchInstructions } from './webSearchInstructions'
 import { memory } from './memory'
@@ -50,8 +51,13 @@ export const initializeMCP = async (): Promise<void> => {
     'knowledge-delete': vectorDelete
   }
 
-  // Combine MCP tools with knowledge tools
-  tools = { ...mcpTools, ...knowledgeTools }
+  // Add message search tool
+  const messageTools = {
+    message_search: messageSearch
+  }
+
+  // Combine MCP tools with knowledge tools and message tools
+  tools = { ...mcpTools, ...knowledgeTools, ...messageTools }
 }
 
 const model = (): LanguageModel => {

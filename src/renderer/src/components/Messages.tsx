@@ -65,7 +65,9 @@ function Messages({
                     {message.tool_res && (
                       <div className="tool-response">
                         <div>Response</div>
-                        <code className="tool-response-code">{message.tool_res}</code>
+                        <code className="tool-response-code">
+                          {message.tool_res.slice(0, 1000)}
+                        </code>
                       </div>
                     )}
                   </>

@@ -10,11 +10,98 @@ export type Message = {
   sources?: string
 }
 
-export const getMessages = async (threadId): Promise<Array<Message>> => {
+export type MessageWithId = Message & {
+  id: string
+  thread_id: string
+  created_at: string
+  updated_at: string
+}
+
+export type MessagesWithPagination = {
+  messages: Array<MessageWithId>
+  total: number
+  totalPages: number
+}
+
+export const getMessages = async (threadId: string): Promise<Array<Message>> => {
   const db = await database()
   return await db
     .prepare('SELECT * FROM messages WHERE thread_id = ? ORDER BY created_at DESC LIMIT 100')
     .all(threadId)
+}
+
+export type SearchMessagesParams = {
+  query?: string
+  threadId?: string
+  role?: 'user' | 'assistant' | 'tool'
+  startTime?: string
+  endTime?: string
+  page?: number
+  itemsPerPage?: number
+}
+
+export const searchMessages = async (
+  params: SearchMessagesParams
+): Promise<MessagesWithPagination> => {
+  const db = await database()
+  const { query = '', threadId, role, startTime, endTime, page = 1, itemsPerPage = 20 } = params
+
+  const whereConditions: Array<string> = []
+  const whereParams: Array<string> = []
+
+  if (query) {
+    whereConditions.push(`(id IN (
+      SELECT id FROM messages_fts 
+      WHERE messages_fts MATCH ?
+    ))`)
+    whereParams.push(`${query}*`)
+  }
+
+  if (threadId) {
+    whereConditions.push('thread_id = ?')
+    whereParams.push(threadId)
+  }
+
+  if (role) {
+    whereConditions.push('role = ?')
+    whereParams.push(role)
+  }
+
+  if (startTime) {
+    const utcStartTime = new Date(startTime).toISOString()
+    whereConditions.push('datetime(created_at) >= datetime(?)')
+    whereParams.push(utcStartTime)
+  }
+
+  if (endTime) {
+    const utcEndTime = new Date(endTime).toISOString()
+    whereConditions.push('datetime(created_at) <= datetime(?)')
+    whereParams.push(utcEndTime)
+  }
+
+  const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+
+  const countSql = `SELECT COUNT(*) as count FROM messages ${whereClause}`
+  const countResult = await db.prepare(countSql).get(...whereParams)
+
+  const total = countResult.count
+  const totalPages = Math.ceil(total / itemsPerPage)
+  const offset = (page - 1) * itemsPerPage
+
+  const querySql = `
+    SELECT * FROM messages
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT ? OFFSET ?
+  `
+
+  const messages = await db.prepare(querySql).all(...whereParams, itemsPerPage, offset)
+
+  return {
+    messages,
+    total,
+    totalPages
+  }
 }
 
 export const createMessage = async (params: {
