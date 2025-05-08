@@ -12,8 +12,6 @@
 
 ```json
 {
-  "maxSteps": 32,
-  "instructions": "You help user.",
   "apiKeys": {
     "openai": "***",
     "google": "***"
@@ -66,7 +64,6 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "***"
       }
     }
-  },
-  "tokenLimit": 127000
+  }
 }
 ```

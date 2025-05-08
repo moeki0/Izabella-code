@@ -1,14 +1,21 @@
 header {
   -webkit-app-region: drag;
-  height: 50px;
-  min-height: 50px;
+  height: 36px;
+  min-height: 36px;
   width: 100%;
   top: 0;
+  position: fixed;
+  left: 0;
+  z-index: 200;
   padding: 0 12px;
   justify-content: space-between;
   padding-left: 100px;
   display: flex;
   align-items: center;
+  background: rgba(256, 256, 256, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 1px 0 2px 1px rgba(0, 0, 0, 0.07);
 }
 
 .header-scrolled {

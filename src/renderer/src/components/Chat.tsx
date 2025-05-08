@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import ReactCodeMirror, { EditorView } from '@uiw/react-codemirror'
-import { FiArrowUp, FiSquare, FiX } from 'react-icons/fi'
+import { FiX } from 'react-icons/fi'
 import { useNavigate } from 'react-router'
 import { Tool } from './Tools'
 import { Header } from './Header'
@@ -10,8 +10,6 @@ import type { Mermaid } from 'mermaid'
 import hljs from 'highlight.js'
 import mermaid from 'mermaid'
 import Messages from './Messages'
-import { Menu } from './Menu'
-import { WebSearchToggle } from './WebSearchToggle'
 import 'highlight.js/styles/dracula.css'
 
 export type Message = {
@@ -76,7 +74,7 @@ export interface ChatProps {
   ) => () => void
   registerTitleListener: (callback: (chunk: string) => void) => () => void
   registerNewThreadListener: (callback: () => void) => () => void
-  registerRetryListener: (callback: (error) => void) => () => void
+  registerRetryListener: (callback: (error: unknown) => void) => () => void
   registerSourceListener: (
     callback: (content: { sources: Array<Record<string, unknown>>; isPartial: boolean }) => void
   ) => () => void
@@ -91,9 +89,7 @@ export interface ChatProps {
 function Chat({
   init,
   send,
-  getTools,
   link,
-  interrupt,
   registerStreamListener,
   registerToolCallListener,
   registerStepFinishListener,
@@ -150,13 +146,16 @@ function Chat({
       setTitle(title)
       setTimeout(() => {
         hljs.highlightAll()
-        const main = document.querySelector('.messages')!
-        let height = 0
-        document.querySelectorAll('.prompt').forEach((prompt) => {
-          height += prompt.getBoundingClientRect().height
-        })
-        if (main && 'scroll' in main) {
-          main.scroll({ top: height })
+        try {
+          const messagesElement = document.querySelector('.messages')
+          if (messagesElement) {
+            const height = messagesElement.getBoundingClientRect().height
+            window.scroll({
+              top: height - window.innerHeight + 400
+            })
+          }
+        } catch (e) {
+          console.warn(e)
         }
       }, 1)
     })
@@ -166,12 +165,12 @@ function Chat({
     const unsubscribeStream = registerStreamListener((chunk) => {
       setLoading(false)
       setMessages((prev) => {
-        if (prev[prev.length - 1].role !== 'assistant') {
+        if (prev.length === 0 || prev[prev.length - 1].role !== 'assistant') {
           prev = [...prev, { role: 'assistant', content: '' }]
         }
         return prev.map((message, i) => {
           if (i === prev.length - 1) {
-            return { ...message, content: message.content + chunk }
+            return { ...message, content: (message.content || '') + chunk }
           }
           return message
         })
@@ -324,16 +323,22 @@ function Chat({
     const lastPrompt = document.querySelector('.prompt:last-child')
     setLoading(true)
     setRunning(true)
-    if (lastPrompt)
+    if (lastPrompt) {
       setTimeout(() => {
-        const main = document.querySelector('.messages')
-        if (main && 'scroll' in main) {
-          main.scroll({
-            top: main.scrollTop + lastPrompt.getBoundingClientRect().bottom - 54,
-            behavior: 'smooth'
-          })
+        try {
+          const messagesInnerElement = document.querySelector('.messages-inner')
+          if (messagesInnerElement) {
+            const height = messagesInnerElement.getBoundingClientRect().height
+            window.scroll({
+              top: height - 54,
+              behavior: 'smooth'
+            })
+          }
+        } catch (e) {
+          console.warn(e)
         }
       }, 1)
+    }
   }, [send, input])
 
   const handleToolClick = (i: number): void => {
@@ -347,7 +352,7 @@ function Chat({
     })
   }
 
-  const handleKeyDown = async (e): Promise<void> => {
+  const handleKeyDown = async (e: React.KeyboardEvent): Promise<void> => {
     if (
       e.metaKey &&
       e.key === 'Enter' &&
@@ -358,36 +363,49 @@ function Chat({
     }
   }
 
+  useEffect(() => {
+    window.addEventListener('scroll', () => {
+      setIsScrolled(true)
+    })
+  }, [])
+
   return (
     <>
-      <Header
-        title={title}
-        startedAt={startedAt!}
-        isMenuOpen={isMenuOpen}
-        setIsMenuOpen={setIsMenuOpen}
-        className={isScrolled ? 'header-scrolled' : ''}
-      />
       <main>
+        <Header
+          title={title}
+          startedAt={startedAt!}
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          className={isScrolled ? 'header-scrolled' : ''}
+        />
         <Messages
-          onScroll={() => setIsScrolled(true)}
           messages={messages}
           showMessageContextMenu={showMessageContextMenu}
           loading={loading}
           handleToolClick={handleToolClick}
         />
-        <Menu isOpen={isMenuOpen} getTools={getTools} />
+        <div className="user-container">
+          <div className="user">
+            <ReactCodeMirror
+              value={input}
+              autoFocus={true}
+              extensions={[
+                markdown({ base: markdownLanguage, codeLanguages: languages }),
+                EditorView.lineWrapping
+              ]}
+              onChange={(value) => setInput(value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask anything"
+            />
+          </div>
+        </div>
       </main>
       <div className="banner">
-        {!initialized && (
-          <div className="tool-loading">
-            <div className="tool-loader"></div>
-            <div className="tool-loading-text">Loading tools...</div>
-          </div>
-        )}
         {error && (
           <div className="error">
             <div className="error-text">{error}</div>
-            <FiX color="white" data-testid="close-error" onClick={() => setError(null)} />
+            <FiX color="white" data-testid="close-error" onClick={() => setError(null)} size={20} />
           </div>
         )}
         {pendingTool && (
@@ -398,58 +416,23 @@ function Chat({
             <div className="tool-confirmation-buttons">
               <button
                 onClick={() => {
-                  approveToolCall(true)
-                  setPendingTool(null)
-                }}
-              >
-                Approve
-              </button>
-              <button
-                onClick={() => {
                   approveToolCall(false)
                   setPendingTool(null)
                 }}
               >
-                Deny
+                No
+              </button>
+              <button
+                onClick={() => {
+                  approveToolCall(true)
+                  setPendingTool(null)
+                }}
+              >
+                Yes
               </button>
             </div>
           </div>
         )}
-      </div>
-      <div className="user-container">
-        <div className="user">
-          <ReactCodeMirror
-            value={input}
-            autoFocus={true}
-            extensions={[
-              markdown({ base: markdownLanguage, codeLanguages: languages }),
-              EditorView.lineWrapping
-            ]}
-            onChange={(value) => setInput(value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask anything"
-          />
-          <div className="user-footer">
-            <WebSearchToggle />
-            <button
-              className="send"
-              onClick={() => {
-                if (running) {
-                  interrupt()
-                  setRunning(false)
-                } else {
-                  sendMessage()
-                }
-              }}
-              aria-label={running ? 'interrupt' : 'send'}
-              disabled={
-                !initialized || (!running && input.replaceAll(/[\s\n\r]+/g, '').length === 0)
-              }
-            >
-              {running ? <FiSquare color="white" /> : <FiArrowUp color="white" />}
-            </button>
-          </div>
-        </div>
       </div>
     </>
   )

@@ -7,7 +7,7 @@
 }
 
 .cm-activeLine {
-  background-color: white !important;
+  background: none !important;
 }
 
 .cm-scroller {
@@ -22,8 +22,13 @@
   height: auto !important;
   min-height: 29px;
   max-height: 300px;
+  background: none;
 }
 
 .cm-placeholder {
   color: #ccc !important;
+}
+
+.cm-line {
+  background-color: none;
 }

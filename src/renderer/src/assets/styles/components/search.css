@@ -22,9 +22,9 @@
 .error {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   justify-self: center;
-  margin-bottom: 50px;
+  margin-bottom: 10px;
   border: 1px solid #ddd;
   padding: 10px;
   border-radius: 6px;
@@ -35,7 +35,7 @@
 }
 
 .error-text {
-  font-size: 11px;
+  font-size: 14px;
   text-wrap: nowrap;
   max-width: 300px;
   width: 100%;
