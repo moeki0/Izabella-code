@@ -9,10 +9,13 @@ import { vectorSearchAndUpsert, vectorSearch, vectorDelete } from './vectorStore
 import { messageSearch } from './messageSearchTool'
 import { knowledgeInstructions } from './knowledgeInstructions'
 import { webSearchInstructions } from './webSearchInstructions'
-import { memory } from './memory'
 import { systemInstructions } from './systemInstructions'
 import { generateObject } from 'ai'
 import { z } from 'zod'
+import { getMessages } from './message'
+import { updateWorkingMemoryTool } from './workingMemoryTool'
+import { readWorkingMemory } from './workingMemory'
+import { TokenLimiter } from '@mastra/memory/processors'
 
 log.initialize()
 
@@ -31,9 +34,7 @@ let tools
 const detectSearchNeed = async (input: string): Promise<boolean> => {
   try {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-
     const model = google('gemini-2.0-flash-lite')
-
     const result = await generateObject({
       model,
       schema: z.object({
@@ -41,13 +42,12 @@ const detectSearchNeed = async (input: string): Promise<boolean> => {
       }),
       temperature: 0,
       prompt: `
-    You are a system that determines if web search is needed.
-    For user questions, return search: true if recent information, news, fact checking, or data is required.
-    Return search: false if the user requests to read or write external information.
-    User question: ${input}`
+You are a system that determines if web search is needed.
+For user questions, return search: true if recent information, news, fact checking, or data is required.
+Return search: false if the user requests to read or write external information.
+User question: ${input}`
     })
-
-    return JSON.stringify(result, null, 2).search as unknown as boolean
+    return result.object.search as unknown as boolean
   } catch {
     return false
   }
@@ -67,16 +67,19 @@ export const initializeMCP = async (): Promise<void> => {
   mcp = new MCPConfiguration({
     servers: avairableServers || {}
   })
-  const mcpTools = await mcp.getTools()
   const knowledgeTools = {
-    'knowledge-search-and-upsert': vectorSearchAndUpsert,
-    'knowledge-search': vectorSearch,
-    'knowledge-delete': vectorDelete
+    knowledge_search_and_upsert: vectorSearchAndUpsert,
+    knowledge_search: vectorSearch,
+    knowledge_delete: vectorDelete
   }
   const messageTools = {
     message_search: messageSearch
   }
-  tools = { ...mcpTools, ...knowledgeTools, ...messageTools }
+  const workingMemoryTools = {
+    update_working_memory: updateWorkingMemoryTool
+  }
+  const mcpTools = await mcp.getTools()
+  tools = { ...mcpTools, ...knowledgeTools, ...messageTools, ...workingMemoryTools }
 }
 
 const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
@@ -94,25 +97,64 @@ const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
 
 export const agent = async (input: string): Promise<Agent> => {
   const useSearchGrounding = await detectSearchNeed(input)
+  const workingMemoryContent = await readWorkingMemory()
+  const workingMemoryInstructions = `
+# Working Memory
+${workingMemoryContent}
 
-  // Determine which instructions to use based on search grounding state
-  const agentInstructions = useSearchGrounding
+You have access to the working memory tool:
+Use 'update_working_memory' tool with content: "new content"' to update the working memory content
+
+You should use working memory to maintain important information about the user and their projects.
+Update the working memory when you learn new important information about the user's projects,
+tasks, decisions, locations, concepts, people, or events.
+`
+  const baseInstructions = useSearchGrounding
     ? webSearchInstructions + systemInstructions
     : knowledgeInstructions + systemInstructions
+
+  const agentInstructions = baseInstructions + workingMemoryInstructions
+
+  const mode = await model(useSearchGrounding)
 
   return new Agent({
     name: 'Assistant',
     instructions: agentInstructions,
-    model: await model(useSearchGrounding),
-    tools,
-    memory
+    model: mode,
+    tools
   })
 }
 
+export const formatMessageForLLM = (message: {
+  role: string
+  content?: string
+  tool_name?: string
+  tool_req?: string
+  tool_res?: string
+}): MessageType | null => {
+  if (message.role === 'tool') {
+    return null
+  }
+  return {
+    role: message.role === 'user' ? 'user' : 'assistant',
+    content: message.content || ''
+  }
+}
+
 export const chat = async (agent: Agent, input: string): Promise<StreamReturn> => {
-  return await agent.stream(input, {
+  const recentMessages = await getMessages()
+  const formattedMessages = recentMessages
+    .reverse()
+    .map(formatMessageForLLM)
+    .filter((message): message is MessageType => message !== null)
+
+  formattedMessages.push({ role: 'user', content: input })
+
+  const limitedMessages = new TokenLimiter(254000).process(formattedMessages)
+
+  return await agent.stream(limitedMessages, {
     toolChoice: 'auto',
-    maxSteps: Number(store.get('maxSteps') || 10),
+    maxSteps: 10,
     resourceId: 'ChatZen',
     threadId: 'ChatZen'
   })
