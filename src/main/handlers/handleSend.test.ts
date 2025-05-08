@@ -6,9 +6,20 @@ import { mainWindow } from '..'
 import { Agent } from '@mastra/core/agent'
 import { StreamReturn } from '@mastra/core'
 
+// Googleのモックを追加
+vi.mock('@ai-sdk/google', () => ({
+  google: vi.fn().mockImplementation(() => ({
+    generate: vi.fn().mockResolvedValue({
+      message: {
+        content: 'ツール'
+      }
+    })
+  }))
+}))
+
 vi.mock('../lib/store', () => ({
   store: {
-    get: vi.fn(),
+    get: vi.fn().mockReturnValue(false), // デフォルト値を設定
     set: vi.fn()
   }
 }))
@@ -81,6 +92,7 @@ describe('handleSend', () => {
 
     await handleSend(null, 'Hello')
 
+    expect(agent).toHaveBeenCalled()
     expect(chat).toHaveBeenCalledWith(mockAgent, 'Hello')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('stream', 'Hello')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('step-finish')

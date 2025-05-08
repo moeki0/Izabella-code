@@ -19,14 +19,12 @@ function Messages({
   messages,
   showMessageContextMenu,
   loading,
-  handleToolClick,
-  onScroll
+  handleToolClick
 }: {
   messages: Array<Message>
   showMessageContextMenu: (text: string) => void
   loading: boolean
   handleToolClick: (id: number) => void
-  onScroll: (e) => void
 }): React.JSX.Element {
   const handleContextMenu = (e, text): void => {
     e.preventDefault()
@@ -38,7 +36,7 @@ function Messages({
   }
 
   return (
-    <div className="messages" data-testid="messages" onScroll={onScroll}>
+    <div className="messages" data-testid="messages">
       <div className="messages-inner">
         {orderBy(messages, ['created_at']).map((message, i) => (
           <div

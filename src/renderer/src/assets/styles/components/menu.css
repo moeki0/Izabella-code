@@ -1,28 +1,20 @@
-.menu-wrapper {
-  padding: 10px;
-}
-
 .menu {
   overflow-y: scroll;
   height: 100%;
-  border: 1px solid #dedede;
-  border-radius: 10px;
-  width: 300px;
+  background-color: #efefef;
+  width: 320px;
   z-index: 10;
   padding: 10px;
-  animation: slideInFromRight 0.1s ease-in-out;
-  display: flex;
-  flex-direction: column;
   gap: 20px;
+  background: rgba(220, 220, 220, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .menu-header {
   display: flex;
-  justify-content: center;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  background-color: #efefef;
-  font-size: 12px;
+  justify-content: right;
 }
 
 .menu-header-item {

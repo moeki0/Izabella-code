@@ -28,7 +28,7 @@ export type Assistant = {
 
 export const handleSend = async (_, input): Promise<void> => {
   try {
-    const stream = await chat(await agent(), input)
+    const stream = await chat(await agent(input), input)
 
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
@@ -37,7 +37,7 @@ export const handleSend = async (_, input): Promise<void> => {
       content: input
     })
 
-    globalThis.interrupt = false
+    globalThis.Interrupt = false
 
     for await (const chunk of stream.fullStream) {
       if (chunk.type === 'error') {
@@ -167,6 +167,8 @@ export const handleSend = async (_, input): Promise<void> => {
       }
     }
   } catch (e) {
-    mainWindow.webContents.send('error', typeof e === 'string' ? e : String(e))
+    if (e !== 'Interrupt') {
+      mainWindow.webContents.send('error', typeof e === 'string' ? e : String(e))
+    }
   }
 }

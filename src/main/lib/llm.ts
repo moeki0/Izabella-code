@@ -11,6 +11,8 @@ import { knowledgeInstructions } from './knowledgeInstructions'
 import { webSearchInstructions } from './webSearchInstructions'
 import { memory } from './memory'
 import { systemInstructions } from './systemInstructions'
+import { generateObject } from 'ai'
+import { z } from 'zod'
 
 log.initialize()
 
@@ -26,6 +28,31 @@ process.env.PATH =
 let mcp
 let tools
 
+const detectSearchNeed = async (input: string): Promise<boolean> => {
+  try {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
+
+    const model = google('gemini-2.0-flash-lite')
+
+    const result = await generateObject({
+      model,
+      schema: z.object({
+        search: z.boolean()
+      }),
+      temperature: 0,
+      prompt: `
+    You are a system that determines if web search is needed.
+    For user questions, return search: true if recent information, news, fact checking, or data is required.
+    Return search: false if the user requests to read or write external information.
+    User question: ${input}`
+    })
+
+    return JSON.stringify(result, null, 2).search as unknown as boolean
+  } catch {
+    return false
+  }
+}
+
 export const initializeMCP = async (): Promise<void> => {
   const avairableServers = {}
   const serverConfig = store.get('mcpServers') as object
@@ -40,31 +67,21 @@ export const initializeMCP = async (): Promise<void> => {
   mcp = new MCPConfiguration({
     servers: avairableServers || {}
   })
-
-  // Get MCP tools
   const mcpTools = await mcp.getTools()
-
-  // Add knowledge tools
   const knowledgeTools = {
     'knowledge-search-and-upsert': vectorSearchAndUpsert,
     'knowledge-search': vectorSearch,
     'knowledge-delete': vectorDelete
   }
-
-  // Add message search tool
   const messageTools = {
     message_search: messageSearch
   }
-
-  // Combine MCP tools with knowledge tools and message tools
   tools = { ...mcpTools, ...knowledgeTools, ...messageTools }
 }
 
-const model = (): LanguageModel => {
+const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
   const modelName = 'gemini-2.5-flash-preview-04-17'
   process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-
-  const useSearchGrounding = store.get('useSearchGrounding') !== false
 
   if (useSearchGrounding) {
     return google(modelName, {
@@ -75,8 +92,8 @@ const model = (): LanguageModel => {
   }
 }
 
-export const agent = async (): Promise<Agent> => {
-  const useSearchGrounding = store.get('useSearchGrounding') !== false
+export const agent = async (input: string): Promise<Agent> => {
+  const useSearchGrounding = await detectSearchNeed(input)
 
   // Determine which instructions to use based on search grounding state
   const agentInstructions = useSearchGrounding
@@ -86,7 +103,7 @@ export const agent = async (): Promise<Agent> => {
   return new Agent({
     name: 'Assistant',
     instructions: agentInstructions,
-    model: model(),
+    model: await model(useSearchGrounding),
     tools,
     memory
   })
