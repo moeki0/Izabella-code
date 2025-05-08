@@ -1,25 +1,10 @@
-import { Memory } from '@mastra/memory'
-import { LibSQLStore } from '@mastra/core/storage/libsql'
-import { LibSQLVector } from '@mastra/core/vector/libsql'
-import { join } from 'node:path'
 import { app } from 'electron'
-import { TokenLimiter } from '@mastra/memory/processors'
+import { join } from 'node:path'
+import { promises as fs } from 'fs'
 
-export const memory = new Memory({
-  storage: new LibSQLStore({
-    config: {
-      url: `file:${join(app.getPath('userData'), 'memory.db')}`
-    }
-  }),
-  vector: new LibSQLVector({
-    connectionUrl: `file:${join(app.getPath('userData'), 'memory.db')}`
-  }),
-  processors: [new TokenLimiter(127000)],
-  options: {
-    workingMemory: {
-      enabled: true,
-      use: 'tool-call',
-      template: `
+const WORKING_MEMORY_PATH = join(app.getPath('userData'), 'working-memory.md')
+
+const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 # User Information
 - **Environment**: Local ChatZen instance
 - **Working Memory Status**: ON
@@ -59,6 +44,20 @@ export const memory = new Memory({
 # Other:
 - [Other important information not classified above]
 `
-    }
+
+export const ensureWorkingMemoryExists = async (): Promise<void> => {
+  try {
+    await fs.access(WORKING_MEMORY_PATH)
+  } catch {
+    await fs.writeFile(WORKING_MEMORY_PATH, DEFAULT_WORKING_MEMORY_TEMPLATE)
   }
-})
+}
+
+export const readWorkingMemory = async (): Promise<string> => {
+  await ensureWorkingMemoryExists()
+  return await fs.readFile(WORKING_MEMORY_PATH, 'utf-8')
+}
+
+export const updateWorkingMemory = async (content: string): Promise<void> => {
+  await fs.writeFile(WORKING_MEMORY_PATH, content)
+}

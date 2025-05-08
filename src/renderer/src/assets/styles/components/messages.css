@@ -118,7 +118,7 @@ main {
 
 .tool-confirmation {
   position: fixed;
-  bottom: 130px;
+  bottom: 70px;
   left: 50%;
   transform: translateX(-50%);
   background: white;
