@@ -1,21 +1,17 @@
 import { agent, chat } from '../lib/llm'
 import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
-import { getOrCreateThread } from '../lib/thread'
 import { store } from '../lib/store'
 import { saveToKnowledgeBase } from '../lib/vectorStoreTools'
 
-// ツール実行の承認待ちを管理するPromise
 let toolApprovalResolver: ((approved: boolean) => void) | null = null
 
-// ツール実行の承認を待つ関数
 const waitForToolApproval = (): Promise<boolean> => {
   return new Promise((resolve) => {
     toolApprovalResolver = resolve
   })
 }
 
-// ツール実行の承認ハンドラー
 export const handleToolApproval = async (approved: boolean): Promise<void> => {
   if (toolApprovalResolver) {
     toolApprovalResolver(approved)
@@ -30,19 +26,13 @@ export type Assistant = {
   autoApprove: boolean
 }
 
-export const handleSend = async (_, input, resourceId, threadId): Promise<void> => {
+export const handleSend = async (_, input): Promise<void> => {
   try {
-    const assistants = store.get('assistants') as Array<Assistant>
-    const currentAssistantName = store.get('assistant')
-    const assistant = assistants?.find((a) => a.name === currentAssistantName)
-
-    const stream = await chat(await agent(), input, resourceId, threadId)
+    const stream = await chat(await agent(), input)
 
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
-    await getOrCreateThread(threadId)
     await createMessage({
-      threadId,
       role: 'user',
       content: input
     })
@@ -52,7 +42,6 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
     for await (const chunk of stream.fullStream) {
       if (chunk.type === 'error') {
         await createMessage({
-          threadId,
           role: 'tool',
           toolName: 'Error',
           toolRes: String(chunk.error)
@@ -64,8 +53,9 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
         throw 'Interrupt'
       }
       if (chunk.type === 'tool-call') {
-        mainWindow.webContents.send('tool-call', chunk, !assistant?.autoApprove)
-        const approved = assistant?.autoApprove ? true : await waitForToolApproval()
+        const autoApprove = store.get('autoApprove') !== false
+        mainWindow.webContents.send('tool-call', chunk, autoApprove)
+        const approved = autoApprove ? true : await waitForToolApproval()
         if (!approved) {
           throw 'ToolRejected'
         }
@@ -74,7 +64,6 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
         mainWindow.webContents.send('tool-result', chunk)
 
         await createMessage({
-          threadId,
           role: 'tool',
           toolName: chunk.toolName,
           toolReq: JSON.stringify(chunk.args),
@@ -101,7 +90,7 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
               indexName: 'knowledge',
               text: textContent,
               id: id,
-              similarityThreshold: 0.7
+              similarityThreshold: 0.85
             })
           }
         } catch (error) {
@@ -151,7 +140,6 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
           }
 
           await createMessage({
-            threadId,
             role: 'assistant',
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
@@ -171,7 +159,6 @@ export const handleSend = async (_, input, resourceId, threadId): Promise<void> 
           }
 
           await createMessage({
-            threadId,
             role: 'assistant',
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined

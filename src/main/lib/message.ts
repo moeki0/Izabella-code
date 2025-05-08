@@ -12,7 +12,6 @@ export type Message = {
 
 export type MessageWithId = Message & {
   id: string
-  thread_id: string
   created_at: string
   updated_at: string
 }
@@ -23,16 +22,13 @@ export type MessagesWithPagination = {
   totalPages: number
 }
 
-export const getMessages = async (threadId: string): Promise<Array<Message>> => {
+export const getMessages = async (): Promise<Array<Message>> => {
   const db = await database()
-  return await db
-    .prepare('SELECT * FROM messages WHERE thread_id = ? ORDER BY created_at DESC LIMIT 100')
-    .all(threadId)
+  return await db.prepare('SELECT * FROM messages ORDER BY created_at DESC LIMIT 40').all()
 }
 
 export type SearchMessagesParams = {
   query?: string
-  threadId?: string
   role?: 'user' | 'assistant' | 'tool'
   startTime?: string
   endTime?: string
@@ -44,22 +40,26 @@ export const searchMessages = async (
   params: SearchMessagesParams
 ): Promise<MessagesWithPagination> => {
   const db = await database()
-  const { query = '', threadId, role, startTime, endTime, page = 1, itemsPerPage = 20 } = params
+  const { query = '', role, startTime, endTime, page = 1, itemsPerPage = 20 } = params
 
   const whereConditions: Array<string> = []
-  const whereParams: Array<string> = []
+  const whereParams: Array<string | number> = []
 
+  // For content search using FTS5
+  let ftsFilter = ''
   if (query) {
-    whereConditions.push(`(id IN (
-      SELECT id FROM messages_fts 
-      WHERE messages_fts MATCH ?
-    ))`)
+    ftsFilter = `
+      id IN (
+        SELECT id FROM messages_fts
+        WHERE messages_fts MATCH ?
+      )
+    `
     whereParams.push(`${query}*`)
   }
 
-  if (threadId) {
-    whereConditions.push('thread_id = ?')
-    whereParams.push(threadId)
+  // Add FTS condition first if it exists
+  if (ftsFilter) {
+    whereConditions.push(ftsFilter)
   }
 
   if (role) {
@@ -105,7 +105,6 @@ export const searchMessages = async (
 }
 
 export const createMessage = async (params: {
-  threadId: string
   role: 'user' | 'assistant' | 'tool'
   content?: string
   toolName?: string
@@ -117,27 +116,20 @@ export const createMessage = async (params: {
   if (params.role === 'tool') {
     await db
       .prepare(
-        'INSERT INTO messages (id, thread_id, role, tool_name, tool_req, tool_res, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+        'INSERT INTO messages (id, role, tool_name, tool_req, tool_res, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
       )
-      .run(
-        randomUUID(),
-        params.threadId,
-        params.role,
-        params.toolName,
-        params.toolReq,
-        params.toolRes
-      )
+      .run(randomUUID(), params.role, params.toolName, params.toolReq, params.toolRes)
   } else if (params.role === 'assistant' && params.sources) {
     await db
       .prepare(
-        'INSERT INTO messages (id, thread_id, role, content, sources, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+        'INSERT INTO messages (id, role, content, sources, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
       )
-      .run(randomUUID(), params.threadId, params.role, params.content, params.sources)
+      .run(randomUUID(), params.role, params.content, params.sources)
   } else {
     await db
       .prepare(
-        'INSERT INTO messages (id, thread_id, role, content, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+        'INSERT INTO messages (id, role, content, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
       )
-      .run(randomUUID(), params.threadId, params.role, params.content)
+      .run(randomUUID(), params.role, params.content)
   }
 }

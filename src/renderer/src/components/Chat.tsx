@@ -3,7 +3,7 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import ReactCodeMirror, { EditorView } from '@uiw/react-codemirror'
 import { FiArrowUp, FiSquare, FiX } from 'react-icons/fi'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate } from 'react-router'
 import { Tool } from './Tools'
 import { Header } from './Header'
 import type { Mermaid } from 'mermaid'
@@ -25,7 +25,7 @@ export type Message = {
 }
 
 export interface ChatInitializationDeps {
-  init: (threadId: string) => Promise<{ title: string; messages: Array<Message> }>
+  init: () => Promise<{ title: string; messages: Array<Message> }>
   getTools: () => Promise<Array<Tool>>
 }
 
@@ -94,7 +94,6 @@ function Chat({
   getTools,
   link,
   interrupt,
-  randomUUID,
   registerStreamListener,
   registerToolCallListener,
   registerStepFinishListener,
@@ -109,8 +108,7 @@ function Chat({
   mermaidInit,
   mermaidRun,
   highlightAll,
-  approveToolCall,
-  setComponentId
+  approveToolCall
 }: ChatProps): React.JSX.Element {
   const navigate = useNavigate()
 
@@ -119,11 +117,8 @@ function Chat({
   const [title, setTitle] = useState('')
   const [startedAt, setStartedAt] = useState<Date | null>(new Date())
   const [loading, setLoading] = useState(false)
-  const [resourceId, setResourceId] = useState('')
-  const [threadId, setThreadId] = useState('')
   const [running, setRunning] = useState(false)
   const [initialized, setInitialized] = useState(false)
-  const { id } = useParams()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -149,18 +144,7 @@ function Chat({
   }, [mermaidInit, mermaidRun])
 
   useEffect(() => {
-    if (id) {
-      setResourceId(id)
-      setThreadId(id)
-      return
-    }
-    const newId = 'ChatZen'
-    setResourceId(newId)
-    setThreadId(newId)
-  }, [id, randomUUID])
-
-  useEffect(() => {
-    init(threadId).then(({ title, messages: m }) => {
+    init('ChatZen').then(({ title, messages: m }) => {
       setInitialized(true)
       setMessages(m)
       setTitle(title)
@@ -176,7 +160,7 @@ function Chat({
         }
       }, 1)
     })
-  }, [init, threadId])
+  }, [init])
 
   useEffect(() => {
     const unsubscribeStream = registerStreamListener((chunk) => {
@@ -229,8 +213,8 @@ function Chat({
       setMessages((pre) => [...pre, { role: 'tool', tool_name: 'Error', tool_res: String(error) }])
       send(
         `This error occurred on the previous run. Please avoid this and continue processing:${error}\n${lastUserMessage.content}`,
-        resourceId,
-        threadId,
+        'ChatZen',
+        'ChatZen',
         true
       )
       return
@@ -300,7 +284,6 @@ function Chat({
     messages,
     navigate,
     setMessages,
-    threadId,
     title,
     highlightAll,
     registerStreamListener,
@@ -312,8 +295,7 @@ function Chat({
     registerTitleListener,
     registerRetryListener,
     registerSourceListener,
-    send,
-    resourceId
+    send
   ])
 
   useEffect(() => {
@@ -336,7 +318,7 @@ function Chat({
   }, [messages, link])
 
   const sendMessage = useCallback((): void => {
-    send(input, resourceId, threadId, false)
+    send(input, 'ChatZen', 'ChatZen', false)
     setInput('')
     setMessages((pre) => [...pre, { role: 'user', content: input }])
     const lastPrompt = document.querySelector('.prompt:last-child')
@@ -352,7 +334,7 @@ function Chat({
           })
         }
       }, 1)
-  }, [send, resourceId, threadId, input])
+  }, [send, input])
 
   const handleToolClick = (i: number): void => {
     setMessages((prev) => {
@@ -383,18 +365,6 @@ function Chat({
         startedAt={startedAt!}
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
-        onThreadList={() => {
-          navigate('/threads')
-        }}
-        onNewThread={() => {
-          setInput('')
-          if (id) {
-            navigate('/')
-          } else {
-            setComponentId && setComponentId(new Date().toISOString())
-            setTitle('')
-          }
-        }}
         className={isScrolled ? 'header-scrolled' : ''}
       />
       <main>

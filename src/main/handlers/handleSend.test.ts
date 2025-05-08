@@ -79,20 +79,18 @@ describe('handleSend', () => {
     vi.mocked(agent).mockResolvedValue(mockAgent as Agent)
     vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
 
-    await handleSend(null, 'Hello', 'resource-1', 'thread-1')
+    await handleSend(null, 'Hello')
 
-    expect(chat).toHaveBeenCalledWith(mockAgent, 'Hello', 'resource-1', 'thread-1')
+    expect(chat).toHaveBeenCalledWith(mockAgent, 'Hello')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('stream', 'Hello')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('step-finish')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('finish')
 
     expect(createMessage).toHaveBeenCalledWith({
-      threadId: 'thread-1',
       role: 'user',
       content: 'Hello'
     })
     expect(createMessage).toHaveBeenCalledWith({
-      threadId: 'thread-1',
       role: 'assistant',
       content: 'Hello',
       sources: undefined
@@ -116,10 +114,9 @@ describe('handleSend', () => {
     vi.mocked(agent).mockResolvedValue(mockAgent as Agent)
     vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
 
-    await handleSend(null, [{ role: 'user', content: 'Hello' }], 'resource-1', 'thread-1')
+    await handleSend(null, [{ role: 'user', content: 'Hello' }])
 
     expect(createMessage).toHaveBeenCalledWith({
-      threadId: 'thread-1',
       role: 'tool',
       toolName: 'test-tool',
       toolReq: JSON.stringify({ test: true }),
@@ -131,7 +128,7 @@ describe('handleSend', () => {
     const error = new Error('Test error')
     vi.mocked(chat).mockRejectedValue(error)
 
-    await handleSend(null, [{ role: 'user', content: 'Hello' }], 'resource-1', 'thread-1')
+    await handleSend(null, [{ role: 'user', content: 'Hello' }])
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('error', 'Error: Test error')
   })

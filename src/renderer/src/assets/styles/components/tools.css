@@ -127,6 +127,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  z-index: 100;
   justify-self: center;
   margin-bottom: 50px;
   border: 1px solid #ddd;
@@ -148,5 +149,5 @@
   border-radius: 50%;
   background: black;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  animation: l1 2s infinite cubic-bezier(0.3, 1, 0, 1);
+  animation: l1 4s infinite cubic-bezier(0.3, 1, 0, 1);
 }

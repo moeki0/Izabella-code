@@ -5,10 +5,7 @@ import { handleSend } from './handlers/handleSend'
 import { handleToolsGet } from './handlers/handleToolsGet'
 import { handleLink } from './handlers/handleLink'
 import { handleInterrupt } from './handlers/handleInterrupt'
-import { handleThreadGet } from './handlers/handleThreadGet'
-import { handleThreadsSearch } from './handlers/handleThreadsSearch'
 import { createWindow } from './lib/createWindow'
-import { handleThreadContextMenu } from './handlers/handleThreadContextMenu'
 import { handleMessageContextMenu } from './handlers/handleMessageContextMenu'
 import { updateElectronApp } from 'update-electron-app'
 import { store } from './lib/store'
@@ -32,16 +29,13 @@ app.whenReady().then(async () => {
   mainWindow = await createWindow()
 
   ipcMain.on('show-message-context-menu', handleMessageContextMenu)
-  ipcMain.on('show-thread-context-menu', handleThreadContextMenu)
   ipcMain.handle('link', handleLink)
   ipcMain.handle('get-tools', handleToolsGet)
   ipcMain.handle('init', handleInit)
-  ipcMain.handle('get-threads', (_, params) => handleThreadGet(params))
   ipcMain.handle('interrupt', handleInterrupt)
   ipcMain.handle('send', handleSend)
   ipcMain.handle('set-config', (_, name, input) => store.set(name, input))
   ipcMain.handle('get-config', (_, name) => store.get(name))
-  ipcMain.handle('search-threads', (_, params) => handleThreadsSearch(_, params))
   ipcMain.on('tool-approval', async (_, approved) => {
     await handleToolApproval(approved)
   })

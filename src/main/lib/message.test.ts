@@ -46,7 +46,7 @@ describe('message', () => {
     })
 
     it('指定されたthread_idのメッセージを全て取得できること', async () => {
-      const messages = await getMessages('thread-1')
+      const messages = await getMessages()
       expect(messages).toHaveLength(3)
       expect(messages[0]).toEqual(
         expect.objectContaining({
@@ -168,14 +168,13 @@ describe('message', () => {
       })
     })
 
-    it('スレッドID、ロール、時間範囲に基づいてフィルタリングすること', async () => {
+    it('ロール、時間範囲に基づいてフィルタリングすること', async () => {
       const mockCount = { count: 1 }
       mockDb.get.mockResolvedValue(mockCount)
 
       const mockMessages = [
         {
           id: '1',
-          thread_id: 'thread1',
           role: 'user',
           content: 'Hello world',
           created_at: '2023-05-01T00:00:00Z',
@@ -185,7 +184,6 @@ describe('message', () => {
       mockDb.all.mockResolvedValue(mockMessages)
 
       const params: SearchMessagesParams = {
-        threadId: 'thread1',
         role: 'user',
         startTime: '2023-01-01T00:00:00Z',
         endTime: '2023-12-31T23:59:59Z',
@@ -196,7 +194,6 @@ describe('message', () => {
       const result = await searchMessages(params)
 
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('WHERE'))
-      expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('thread_id = ?'))
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('role = ?'))
       expect(mockDb.prepare).toHaveBeenCalledWith(
         expect.stringContaining('datetime(created_at) >= datetime(?)')
@@ -270,18 +267,18 @@ describe('message', () => {
       expect(message.tool_name).toBeUndefined()
       expect(message.tool_req).toBeUndefined()
       expect(message.tool_res).toBeUndefined()
-      expect(message.source).toBeUndefined()
+      expect(message.sources).toBeUndefined()
     })
 
     it('source はassistantメッセージに設定できること', () => {
       const message: Message = {
         role: 'assistant',
         content: 'test with source',
-        source:
-          '{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}'
+        sources:
+          '[{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}]'
       }
-      expect(message.source).toBe(
-        '{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}'
+      expect(message.sources).toBe(
+        '[{"sourceType":"url","id":"f8ZpaamF4NEgLsIU","url":"https://example.com","title":"Example"}]'
       )
     })
   })

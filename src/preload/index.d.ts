@@ -10,17 +10,11 @@ interface ThreadsWithPagination {
 }
 
 interface API {
-  init: (threadId: string) => Promise<{ title: string; messages: Array<Message> }>
+  init: () => Promise<{ title: string; messages: Array<Message> }>
   getTools: () => Promise<Array<Tool>>
   interrupt: () => Promise<void>
   link: (url: string) => Promise<void>
-  getThreads: (params?: { page?: number; itemsPerPage?: number }) => Promise<ThreadsWithPagination>
   send: (input: string, resourceId: string, threadId: string, isRetry: boolean) => Promise<void>
-  searchThreads: (params: {
-    query: string
-    page?: number
-    itemsPerPage?: number
-  }) => Promise<ThreadsWithPagination>
   getConfig: (name: string) => Promise<unknown>
   setConfig: (name: string, input: unknown) => Promise<void>
 }
