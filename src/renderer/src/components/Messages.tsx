@@ -32,6 +32,11 @@ function Messages({
     e.preventDefault()
     showMessageContextMenu(text)
   }
+
+  if (messages.length === 0) {
+    return <></>
+  }
+
   return (
     <div className="messages" data-testid="messages" onScroll={onScroll}>
       <div className="messages-inner">

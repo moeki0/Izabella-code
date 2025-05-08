@@ -9,7 +9,6 @@ export const messageSearch: unknown = createTool({
       .string()
       .optional()
       .describe('検索するテキスト（メッセージ内容、ツールリクエスト、ツールレスポンスから検索）'),
-    threadId: z.string().optional().describe('特定のスレッドIDでフィルタリング'),
     role: z
       .enum(['user', 'assistant', 'tool'])
       .optional()
@@ -24,7 +23,6 @@ export const messageSearch: unknown = createTool({
     try {
       const params: SearchMessagesParams = {
         query: context.query,
-        threadId: context.threadId,
         role: context.role,
         startTime: context.startTime,
         endTime: context.endTime,
@@ -37,7 +35,6 @@ export const messageSearch: unknown = createTool({
       return JSON.stringify({
         messages: result.messages.map((msg) => ({
           id: msg.id,
-          thread_id: msg.thread_id,
           role: msg.role,
           content: msg.content?.slice(0, 400) || null,
           tool_name: msg.tool_name || null,

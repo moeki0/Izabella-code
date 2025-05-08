@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { Thread } from '../main/lib/thread'
 import { Message } from '../main/lib/message'
 
 export type Tool = {
@@ -9,27 +8,12 @@ export type Tool = {
 }
 
 const api = {
-  init: (threadId: string): Promise<{ message: Array<Message>; title: string }> =>
-    ipcRenderer.invoke('init', threadId),
+  init: (): Promise<{ message: Array<Message>; title: string }> => ipcRenderer.invoke('init'),
   getTools: (): Promise<Array<Tool>> => ipcRenderer.invoke('get-tools'),
   link: (url: string): Promise<void> => ipcRenderer.invoke('link', url),
   interrupt: (): Promise<void> => ipcRenderer.invoke('interrupt'),
-  getThreads: (params?: {
-    page?: number
-    itemsPerPage?: number
-  }): Promise<{
-    threads: Array<Thread>
-    total: number
-    totalPages: number
-  }> => ipcRenderer.invoke('get-threads', params),
   send: (input: string, resourceId: string, threadId: string, isRetry: boolean): Promise<void> =>
     ipcRenderer.invoke('send', input, resourceId, threadId, isRetry),
-  searchThreads: (params: {
-    query: string
-    page?: number
-    itemsPerPage?: number
-  }): Promise<{ threads: Array<Thread>; total: number; totalPages: number }> =>
-    ipcRenderer.invoke('search-threads', params),
   getConfig: (name: string): Promise<string> => ipcRenderer.invoke('get-config', name),
   setConfig: (name: string, input: unknown): Promise<void> =>
     ipcRenderer.invoke('set-config', name, input)

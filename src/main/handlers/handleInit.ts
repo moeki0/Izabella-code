@@ -1,6 +1,5 @@
 import { tools } from '../lib/llm'
 import { getMessages, Message } from '../lib/message'
-import { getThread } from '../lib/thread'
 
 const waitForTools = async (): Promise<void> => {
   while (!tools) {
@@ -8,13 +7,12 @@ const waitForTools = async (): Promise<void> => {
   }
 }
 
-export const handleInit = async (
-  _,
-  threadId
-): Promise<{ title: string; messages: Array<Message> }> => {
+export const handleInit = async (): Promise<{ messages: Array<Message> }> => {
   await waitForTools()
 
-  const messages = await getMessages(threadId)
-  const thread = await getThread(threadId)
-  return { messages, title: thread?.title }
+  const messages = await getMessages()
+
+  return {
+    messages
+  }
 }

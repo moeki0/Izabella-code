@@ -92,17 +92,12 @@ export const agent = async (): Promise<Agent> => {
   })
 }
 
-export const chat = async (
-  agent: Agent,
-  input: string,
-  resourceId: string,
-  threadId: string
-): Promise<StreamReturn> => {
+export const chat = async (agent: Agent, input: string): Promise<StreamReturn> => {
   return await agent.stream(input, {
     toolChoice: 'auto',
     maxSteps: Number(store.get('maxSteps') || 10),
-    resourceId,
-    threadId
+    resourceId: 'ChatZen',
+    threadId: 'ChatZen'
   })
 }
 

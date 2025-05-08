@@ -10,7 +10,6 @@ describe('messageSearchTool', () => {
   const mockMessages = [
     {
       id: '1',
-      thread_id: 'thread-1',
       role: 'user',
       content: 'こんにちは',
       created_at: '2023-01-01T00:00:00Z',
@@ -18,7 +17,6 @@ describe('messageSearchTool', () => {
     },
     {
       id: '2',
-      thread_id: 'thread-1',
       role: 'assistant',
       content: 'どうぞよろしくお願いします',
       created_at: '2023-01-01T00:01:00Z',
@@ -57,7 +55,6 @@ describe('messageSearchTool', () => {
     expect(parsedResult).toEqual({
       messages: mockMessages.map((msg) => ({
         id: msg.id,
-        thread_id: msg.thread_id,
         role: msg.role,
         content: msg.content || null,
         tool_name: msg.tool_name || null,
@@ -73,7 +70,6 @@ describe('messageSearchTool', () => {
 
   it('複数のフィルタリングパラメータを使って検索できること', async () => {
     const context = {
-      threadId: 'thread-1',
       role: 'user',
       startTime: '2023-01-01T00:00:00Z',
       endTime: '2023-01-01T23:59:59Z',
@@ -85,7 +81,6 @@ describe('messageSearchTool', () => {
     await messageSearch.execute({ context })
 
     expect(messageModule.searchMessages).toHaveBeenCalledWith({
-      threadId: 'thread-1',
       role: 'user',
       startTime: '2023-01-01T00:00:00Z',
       endTime: '2023-01-01T23:59:59Z',
