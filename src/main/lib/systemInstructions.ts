@@ -5,5 +5,9 @@ export const systemInstructions = async (): Promise<string> => {
   return `
 # Working Memory
 ${workingMemoryContent}
+
+# Markdown Syntax
+* GitHub Flavored Markdown
+* Mermaid
 `
 }

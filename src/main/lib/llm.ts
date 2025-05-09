@@ -43,8 +43,8 @@ const detectSearchNeed = async (input: string): Promise<boolean> => {
       temperature: 0,
       prompt: `
 You are a system that determines if web search is needed.
+Return search: false (default) if the user requests to read or write external information (files, codes).
 For user questions, return search: true if recent information, news, fact checking, or data is required.
-Return search: false if the user requests to read or write external information.
 User question: ${input}`
     })
     return result.object.search as unknown as boolean

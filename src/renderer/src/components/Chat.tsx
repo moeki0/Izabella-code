@@ -133,19 +133,16 @@ function Chat({
   }, [navigate, registerNewThreadListener])
 
   useEffect(() => {
-    mermaidInit({ startOnLoad: false })
-    mermaidRun({
-      querySelector: '.language-mermaid'
-    })
-  }, [mermaidInit, mermaidRun])
-
-  useEffect(() => {
     init('ChatZen').then(({ title, messages: m }) => {
       setInitialized(true)
       setMessages(m)
       setTitle(title)
       setTimeout(() => {
         hljs.highlightAll()
+        mermaidInit({ startOnLoad: false })
+        mermaidRun({
+          querySelector: '.language-mermaid'
+        })
         try {
           const messagesElement = document.querySelector('.messages')
           if (messagesElement) {

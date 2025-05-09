@@ -58,6 +58,11 @@ main {
   max-width: 100%;
 }
 
+.language-mermaid {
+  background-color: white !important;
+  border: 1px solid #ddd;
+}
+
 .prompt-assistant pre code {
   min-width: 200px;
   background-color: #0a1031;
