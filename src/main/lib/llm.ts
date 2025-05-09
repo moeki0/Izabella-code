@@ -143,6 +143,7 @@ export const chat = async (agent: Agent, input: string): Promise<StreamReturn> =
   const limitedMessages = new TokenLimiter(254000).process(formattedMessages)
 
   return await agent.stream(limitedMessages, {
+    instructions: await systemInstructions(),
     toolChoice: 'auto',
     maxSteps: 10
   })

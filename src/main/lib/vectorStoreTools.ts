@@ -72,9 +72,9 @@ export const vectorSearchAndUpsert: unknown = createTool({
       .describe('Similarity threshold for matching (0-1)')
   }),
   description:
-    'Search for similar information in the knowledge database and update if match found, otherwise insert as new',
+    'Search for similar information in the knowledge database and update if match found, otherwise insert as new. Please actively use this when encountering unknown information in user conversations',
   execute: async ({ context: { text, id, similarityThreshold } }) => {
-    // 新しい再利用可能な関数を使用
+    // Use the reusable function
     return saveToKnowledgeBase({
       text,
       id,

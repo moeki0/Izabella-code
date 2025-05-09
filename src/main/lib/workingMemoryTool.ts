@@ -28,7 +28,8 @@ export const updateWorkingMemoryTool: unknown = createTool({
   inputSchema: z.object({
     content: z.string().describe('The new content for the working memory')
   }),
-  description: 'Get or update the working memory content',
+  description:
+    'Get or update the working memory content. Please actively use this when there is unknown information in conversations with users',
   execute: async ({ context }) => {
     try {
       const result = await workingMemoryUpdate({ content: context.content })
