@@ -1,12 +1,12 @@
 {
-  "name": "chat-zen",
+  "name": "izabella",
   "version": "1.0.0-alpha.7",
   "description": "Lightweight LLM Chat application for MacOS 💬",
   "main": "./out/main/index.js",
   "author": "example.com",
-  "homepage": "https://github.com/kawakamidev/ChatZen",
+  "homepage": "https://github.com/kawakamidev/Izabella",
   "repository": {
-    "url": "https://github.com/kawakamidev/ChatZen"
+    "url": "https://github.com/kawakamidev/Izabella"
   },
   "scripts": {
     "format": "prettier --write .",

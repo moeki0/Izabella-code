@@ -1,5 +1,5 @@
-appId: org.kawakami.chatzen
-productName: ChatZen
+appId: org.kawakami.izabella
+productName: Izabella
 directories:
   buildResources: build
 files:
@@ -22,5 +22,5 @@ npmRebuild: false
 publish:
   provider: github
   owner: kawakamidev
-  repo: ChatZen
+  repo: Izabella
   releaseType: draft

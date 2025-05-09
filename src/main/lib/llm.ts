@@ -7,15 +7,15 @@ import { google } from '@ai-sdk/google'
 import log from 'electron-log/main'
 import { vectorSearchAndUpsert, vectorSearch, vectorDelete } from './vectorStoreTools'
 import { messageSearch } from './messageSearchTool'
-import { knowledgeInstructions } from './knowledgeInstructions'
-import { webSearchInstructions } from './webSearchInstructions'
-import { systemInstructions } from './systemInstructions'
+import { knowledgeInstructions } from '../instructions/knowledgeInstructions'
+import { webSearchInstructions } from '../instructions/webSearchInstructions'
+import { systemInstructions } from '../instructions/systemInstructions'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 import { getMessages } from './message'
 import { updateWorkingMemoryTool } from './workingMemoryTool'
 import { TokenLimiter } from '@mastra/memory/processors'
-import { workingMemoryInstructions } from './workingMemoryInstructions'
+import { workingMemoryInstructions } from '../instructions/workingMemoryInstructions'
 
 log.initialize()
 
@@ -144,9 +144,7 @@ export const chat = async (agent: Agent, input: string): Promise<StreamReturn> =
 
   return await agent.stream(limitedMessages, {
     toolChoice: 'auto',
-    maxSteps: 10,
-    resourceId: 'ChatZen',
-    threadId: 'ChatZen'
+    maxSteps: 10
   })
 }
 

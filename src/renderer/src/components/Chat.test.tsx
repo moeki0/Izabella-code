@@ -94,7 +94,7 @@ describe('Chat', () => {
     })
 
     await waitFor(() => {
-      expect(mockDependencies.init).toHaveBeenCalledWith('ChatZen')
+      expect(mockDependencies.init).toHaveBeenCalledWith('Izabella')
     })
   })
 
@@ -130,10 +130,10 @@ describe('Chat', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('ChatZen')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Izabella')).toBeInTheDocument()
     })
 
-    const input = screen.getByPlaceholderText('ChatZen')
+    const input = screen.getByPlaceholderText('Izabella')
 
     await act(async () => {
       fireEvent.change(input, { target: { value: 'Hello' } })
@@ -146,7 +146,7 @@ describe('Chat', () => {
     })
 
     await waitFor(() => {
-      expect(mockDependencies.send).toHaveBeenCalledWith('Hello', 'ChatZen', 'ChatZen', false)
+      expect(mockDependencies.send).toHaveBeenCalledWith('Hello', false)
     })
   })
 
@@ -198,10 +198,10 @@ describe('Chat', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('ChatZen')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Izabella')).toBeInTheDocument()
     })
 
-    const input = screen.getByPlaceholderText('ChatZen')
+    const input = screen.getByPlaceholderText('Izabella')
 
     await act(async () => {
       fireEvent.change(input, { target: { value: 'Hello' } })
@@ -240,10 +240,10 @@ describe('Chat', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('ChatZen')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Izabella')).toBeInTheDocument()
     })
 
-    const input = screen.getByPlaceholderText('ChatZen')
+    const input = screen.getByPlaceholderText('Izabella')
 
     await act(async () => {
       fireEvent.change(input, { target: { value: 'Hello' } })

@@ -122,14 +122,14 @@ describe('locale', () => {
 
   it('特定のキーが適切に翻訳されていることを確認', () => {
     // 日本語
-    expect(locale.ja.app).toBe('ChatZen')
+    expect(locale.ja.app).toBe('Izabella')
     expect(locale.ja.file).toBe('ファイル')
     expect(locale.ja.edit).toBe('編集')
     expect(locale.ja.view).toBe('表示')
     expect(locale.ja.help).toBe('ヘルプ')
 
     // 英語
-    expect(locale.en.app).toBe('ChatZen')
+    expect(locale.en.app).toBe('Izabella')
     expect(locale.en.file).toBe('File')
     expect(locale.en.edit).toBe('Edit')
     expect(locale.en.view).toBe('View')

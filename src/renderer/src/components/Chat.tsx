@@ -13,6 +13,7 @@ import Messages from './Messages'
 import 'highlight.js/styles/dracula.css'
 
 export type Message = {
+  id?: string
   role: 'user' | 'assistant' | 'tool'
   content?: string
   tool_name?: string
@@ -28,7 +29,7 @@ export interface ChatInitializationDeps {
 }
 
 export interface ChatCommunicationDeps {
-  send: (input: string, resourceId: string, threadId: string, isRetry: boolean) => void
+  send: (input: string, isRetry: boolean) => void
   link: (href: string) => void
   interrupt: () => void
 }
@@ -56,8 +57,8 @@ export interface ChatUtilityDeps {
 }
 
 export interface ChatProps {
-  init: (threadId: string) => Promise<{ title: string; messages: Array<Message> }>
-  send: (input: string, resourceId: string, threadId: string, isRetry: boolean) => void
+  init: () => Promise<{ title: string; messages: Array<Message> }>
+  send: (input: string, isRetry: boolean) => void
   getTools: () => Promise<Array<Tool>>
   link: (href: string) => void
   interrupt: () => void
@@ -140,10 +141,9 @@ function Chat({
     }
 
     // Add message deleted listener if ipcRenderer is available (in real app, not in tests)
-    const removeMessageDeletedListener =
-      window.electron?.ipcRenderer?.on ?
-      window.electron.ipcRenderer.on('message-deleted', handleMessageDeleted) :
-      undefined
+    const removeMessageDeletedListener = window.electron?.ipcRenderer?.on
+      ? window.electron.ipcRenderer.on('message-deleted', handleMessageDeleted)
+      : undefined
 
     return () => {
       unsubscribe()
@@ -154,7 +154,7 @@ function Chat({
   }, [navigate, registerNewThreadListener])
 
   useEffect(() => {
-    init('ChatZen').then(({ title, messages: m }) => {
+    init().then(({ title, messages: m }) => {
       setInitialized(true)
       setMessages(m)
       setTitle(title)
@@ -195,8 +195,10 @@ function Chat({
       })
     })
 
-    const unsubscribeToolCall = registerToolCallListener((content) => {
-      setPendingTool(content)
+    const unsubscribeToolCall = registerToolCallListener((content, pending = true) => {
+      if (pending) {
+        setPendingTool(content)
+      }
       setMessages((prev) => {
         return [
           ...prev,
@@ -228,8 +230,6 @@ function Chat({
       setMessages((pre) => [...pre, { role: 'tool', tool_name: 'Error', tool_res: String(error) }])
       send(
         `This error occurred on the previous run. Please avoid this and continue processing:${error}\n${lastUserMessage.content}`,
-        'ChatZen',
-        'ChatZen',
         true
       )
       return
@@ -333,7 +333,7 @@ function Chat({
   }, [messages, link])
 
   const sendMessage = useCallback((): void => {
-    send(input, 'ChatZen', 'ChatZen', false)
+    send(input, false)
     setInput('')
     setMessages((pre) => [...pre, { role: 'user', content: input }])
     const lastPrompt = document.querySelector('.prompt:last-child')

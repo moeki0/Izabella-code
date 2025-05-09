@@ -14,7 +14,7 @@ interface API {
   getTools: () => Promise<Array<Tool>>
   interrupt: () => Promise<void>
   link: (url: string) => Promise<void>
-  send: (input: string, resourceId: string, threadId: string, isRetry: boolean) => Promise<void>
+  send: (input: string, isRetry: boolean) => Promise<void>
   getConfig: (name: string) => Promise<unknown>
   setConfig: (name: string, input: unknown) => Promise<void>
   deleteMessage: (messageId: string) => Promise<void>

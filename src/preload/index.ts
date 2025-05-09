@@ -12,8 +12,8 @@ const api = {
   getTools: (): Promise<Array<Tool>> => ipcRenderer.invoke('get-tools'),
   link: (url: string): Promise<void> => ipcRenderer.invoke('link', url),
   interrupt: (): Promise<void> => ipcRenderer.invoke('interrupt'),
-  send: (input: string, resourceId: string, threadId: string, isRetry: boolean): Promise<void> =>
-    ipcRenderer.invoke('send', input, resourceId, threadId, isRetry),
+  send: (input: string, isRetry: boolean): Promise<void> =>
+    ipcRenderer.invoke('send', input, isRetry),
   getConfig: (name: string): Promise<string> => ipcRenderer.invoke('get-config', name),
   setConfig: (name: string, input: unknown): Promise<void> =>
     ipcRenderer.invoke('set-config', name, input),

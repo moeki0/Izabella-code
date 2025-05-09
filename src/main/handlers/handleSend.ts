@@ -40,11 +40,6 @@ export const handleSend = async (_, input): Promise<void> => {
 
     for await (const chunk of stream.fullStream) {
       if (chunk.type === 'error') {
-        await createMessage({
-          role: 'tool',
-          toolName: 'Error',
-          toolRes: String(chunk.error)
-        })
         throw chunk.error
       }
       if (globalThis.interrupt) {
@@ -52,10 +47,21 @@ export const handleSend = async (_, input): Promise<void> => {
         throw 'Interrupt'
       }
       if (chunk.type === 'tool-call') {
-        mainWindow.webContents.send('tool-call', chunk)
-        const approved = await waitForToolApproval()
-        if (!approved) {
-          throw 'ToolRejected'
+        if (
+          ![
+            'knowledge_search_and_upsert',
+            'knowledge_search',
+            'update_working_memory',
+            'message_search'
+          ].includes(chunk.toolName)
+        ) {
+          mainWindow.webContents.send('tool-call', chunk)
+          const approved = await waitForToolApproval()
+          if (!approved) {
+            throw 'ToolRejected'
+          }
+        } else {
+          mainWindow.webContents.send('tool-call', chunk, false)
         }
       }
       if (chunk.type === 'tool-result') {
