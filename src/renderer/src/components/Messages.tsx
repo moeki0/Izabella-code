@@ -4,6 +4,7 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 export type Message = {
+  id?: string
   role: 'user' | 'assistant' | 'tool'
   content?: string
   tool_name?: string
@@ -23,14 +24,14 @@ function Messages({
   handleToolClick
 }: {
   messages: Array<Message>
-  showMessageContextMenu: (text: string, isAssistantMessage?: boolean) => void
+  showMessageContextMenu: (text: string, messageId?: string, isAssistantMessage?: boolean) => void
   loading: boolean
   running: boolean
   handleToolClick: (id: number) => void
 }): React.JSX.Element {
-  const handleContextMenu = (e, text, isAssistantMessage = false): void => {
+  const handleContextMenu = (e, text, messageId, isAssistantMessage = false): void => {
     e.preventDefault()
-    showMessageContextMenu(text, isAssistantMessage && running)
+    showMessageContextMenu(text, messageId, isAssistantMessage && running)
   }
 
   if (messages.length === 0) {
@@ -49,7 +50,7 @@ function Messages({
             }
             className={`prompt prompt-${message.role}`}
             onContextMenu={(e) =>
-              handleContextMenu(e, message.content || '', message.role === 'assistant')
+              handleContextMenu(e, message.content || '', message.id, message.role === 'assistant')
             }
           >
             {message.role === 'tool' && (

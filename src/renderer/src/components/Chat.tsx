@@ -50,7 +50,7 @@ export interface ChatEventDeps {
 
 export interface ChatUtilityDeps {
   randomUUID: () => string
-  showMessageContextMenu: (text: string, isAssistantMessage?: boolean) => void
+  showMessageContextMenu: (text: string, messageId?: string, isAssistantMessage?: boolean) => void
   mermaid: Mermaid
   hljs: typeof hljs
 }
@@ -78,7 +78,7 @@ export interface ChatProps {
   registerSourceListener: (
     callback: (content: { sources: Array<Record<string, unknown>>; isPartial: boolean }) => void
   ) => () => void
-  showMessageContextMenu: (text: string, isAssistantMessage?: boolean) => void
+  showMessageContextMenu: (text: string, messageId?: string, isAssistantMessage?: boolean) => void
   mermaidInit: typeof mermaid.initialize
   mermaidRun: typeof mermaid.run
   highlightAll: typeof hljs.highlightAll
@@ -129,7 +129,28 @@ function Chat({
     const unsubscribe = registerNewThreadListener(() => {
       navigate('/')
     })
-    return unsubscribe
+
+    // Add listener for message deletion
+    const handleMessageDeleted = (_, messageId: string): void => {
+      if (!messageId) return
+
+      window.api.deleteMessage(messageId).then(() => {
+        setMessages((prevMessages) => prevMessages.filter((message) => message.id !== messageId))
+      })
+    }
+
+    // Add message deleted listener if ipcRenderer is available (in real app, not in tests)
+    const removeMessageDeletedListener =
+      window.electron?.ipcRenderer?.on ?
+      window.electron.ipcRenderer.on('message-deleted', handleMessageDeleted) :
+      undefined
+
+    return () => {
+      unsubscribe()
+      if (window.electron?.ipcRenderer?.removeListener && removeMessageDeletedListener) {
+        window.electron.ipcRenderer.removeListener('message-deleted', handleMessageDeleted)
+      }
+    }
   }, [navigate, registerNewThreadListener])
 
   useEffect(() => {
@@ -156,7 +177,7 @@ function Chat({
         }
       }, 1)
     })
-  }, [init])
+  }, [init, mermaidInit, mermaidRun])
 
   useEffect(() => {
     const unsubscribeStream = registerStreamListener((chunk) => {

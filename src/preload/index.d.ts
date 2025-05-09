@@ -17,6 +17,7 @@ interface API {
   send: (input: string, resourceId: string, threadId: string, isRetry: boolean) => Promise<void>
   getConfig: (name: string) => Promise<unknown>
   setConfig: (name: string, input: unknown) => Promise<void>
+  deleteMessage: (messageId: string) => Promise<void>
 }
 
 declare global {
@@ -38,7 +39,8 @@ export const validChannels = [
   'show-message-context-menu',
   'show-thread-context-menu',
   'tool-approval',
-  'source'
+  'source',
+  'message-deleted'
 ] as const
 
 export type ValidChannel = (typeof validChannels)[number]

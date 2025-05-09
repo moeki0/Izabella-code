@@ -16,7 +16,9 @@ const api = {
     ipcRenderer.invoke('send', input, resourceId, threadId, isRetry),
   getConfig: (name: string): Promise<string> => ipcRenderer.invoke('get-config', name),
   setConfig: (name: string, input: unknown): Promise<void> =>
-    ipcRenderer.invoke('set-config', name, input)
+    ipcRenderer.invoke('set-config', name, input),
+  deleteMessage: (messageId: string): Promise<void> =>
+    ipcRenderer.invoke('delete-message', messageId)
 }
 
 if (process.contextIsolated) {
@@ -59,7 +61,8 @@ contextBridge.exposeInMainWorld('electron', {
         'search-threads-result',
         'new-thread',
         'retry',
-        'source'
+        'source',
+        'message-deleted'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.on(channel, (_, ...args) => callback(...args))
@@ -77,7 +80,8 @@ contextBridge.exposeInMainWorld('electron', {
         'search-threads-result',
         'new-thread',
         'retry',
-        'source'
+        'source',
+        'message-deleted'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.removeAllListeners(channel)

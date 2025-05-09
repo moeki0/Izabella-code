@@ -11,6 +11,7 @@ import { updateElectronApp } from 'update-electron-app'
 import { store } from './lib/store'
 import { initializeConfig } from './lib/initializeConfig'
 import { handleToolApproval } from './handlers/handleToolApproval'
+import { handleDeleteMessage } from './handlers/handleDeleteMessage'
 
 let mainWindow: BrowserWindow
 
@@ -36,6 +37,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('send', handleSend)
   ipcMain.handle('set-config', (_, name, input) => store.set(name, input))
   ipcMain.handle('get-config', (_, name) => store.get(name))
+  ipcMain.handle('delete-message', handleDeleteMessage)
   ipcMain.on('tool-approval', async (_, approved) => {
     await handleToolApproval(approved)
   })

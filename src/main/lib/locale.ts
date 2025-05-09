@@ -43,7 +43,8 @@ export const locale = {
     copyPrompt: 'プロンプトをコピー',
     backLink: 'バックリンク',
     copyAll: '全てコピー',
-    stopAssistant: 'アシスタントを停止'
+    stopAssistant: 'アシスタントを停止',
+    deleteMessage: 'メッセージを削除'
   },
   en: {
     app: 'ChatZen',
@@ -89,6 +90,7 @@ export const locale = {
     copyPrompt: 'Copy as Prompt',
     backLink: 'Back Links',
     copyAll: 'Copy All',
-    stopAssistant: 'Stop Assistant'
+    stopAssistant: 'Stop Assistant',
+    deleteMessage: 'Delete Message'
   }
 }

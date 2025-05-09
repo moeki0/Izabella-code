@@ -57,7 +57,7 @@ describe('Messages', () => {
     const message = screen.getByText('Hello')
     fireEvent.contextMenu(message)
 
-    expect(defaultProps.showMessageContextMenu).toHaveBeenCalledWith('Hello', false)
+    expect(defaultProps.showMessageContextMenu).toHaveBeenCalledWith('Hello', undefined, false)
   })
 
   it('応答中のアシスタントメッセージを右クリックすると停止オプション付きのコンテキストメニューが表示されること', () => {
@@ -66,7 +66,7 @@ describe('Messages', () => {
     const message = screen.getByText('Hi there!')
     fireEvent.contextMenu(message)
 
-    expect(defaultProps.showMessageContextMenu).toHaveBeenCalledWith('Hi there!', true)
+    expect(defaultProps.showMessageContextMenu).toHaveBeenCalledWith('Hi there!', undefined, true)
   })
 
   it('ツールのトグルボタンをクリックするとhandleToolClickが呼ばれること', () => {
