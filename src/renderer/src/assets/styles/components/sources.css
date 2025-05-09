@@ -1,9 +1,7 @@
 .source-info {
   margin-top: 12px;
-  padding: 12px;
   border-radius: 8px;
   font-size: 0.9em;
-  border: 1px solid #eee;
 }
 
 .source-info-title {
@@ -14,7 +12,7 @@
 
 .source-info-content {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
@@ -25,6 +23,9 @@
   text-decoration: none;
   color: #888;
   font-size: 10px;
+  background-color: #eee;
+  padding: 1px 10px;
+  border-radius: 10px;
 }
 
 .source-error {

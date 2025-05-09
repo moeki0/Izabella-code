@@ -117,14 +117,6 @@ function Messages({
                                 }
 
                                 if (url) {
-                                  let domain = ''
-                                  try {
-                                    const urlObj = new URL(url)
-                                    domain = urlObj.hostname.replace(/^www\./, '')
-                                  } catch (e) {
-                                    console.warn(e)
-                                  }
-
                                   return (
                                     <a
                                       href={url}
@@ -133,7 +125,6 @@ function Messages({
                                       className="source-item"
                                       key={`source-${index}`}
                                     >
-                                      <span className="source-domain">{domain}</span>
                                       <span className="source-title">{title}</span>
                                     </a>
                                   )
