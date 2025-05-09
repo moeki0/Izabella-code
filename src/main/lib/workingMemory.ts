@@ -4,7 +4,7 @@ import { promises as fs } from 'fs'
 
 const WORKING_MEMORY_PATH = join(app.getPath('userData'), 'working-memory.md')
 
-const DEFAULT_WORKING_MEMORY_TEMPLATE = `
+export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 # User Information
 - **Environment**: Local ChatZen instance
 - **Working Memory Status**: ON
