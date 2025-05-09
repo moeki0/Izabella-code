@@ -1,6 +1,9 @@
-import { DEFAULT_WORKING_MEMORY_TEMPLATE } from './workingMemory'
+import { readWorkingMemory } from './workingMemory'
 
-export const systemInstructions = `
-# Working Memory Template
-${DEFAULT_WORKING_MEMORY_TEMPLATE}
+export const systemInstructions = async (): Promise<string> => {
+  const workingMemoryContent = await readWorkingMemory()
+  return `
+# Working Memory
+${workingMemoryContent}
 `
+}

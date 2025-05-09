@@ -14,8 +14,8 @@ import { generateObject } from 'ai'
 import { z } from 'zod'
 import { getMessages } from './message'
 import { updateWorkingMemoryTool } from './workingMemoryTool'
-import { readWorkingMemory } from './workingMemory'
 import { TokenLimiter } from '@mastra/memory/processors'
+import { workingMemoryInstructions } from './workingMemoryInstructions'
 
 log.initialize()
 
@@ -97,23 +97,11 @@ const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
 
 export const agent = async (input: string): Promise<Agent> => {
   const useSearchGrounding = await detectSearchNeed(input)
-  const workingMemoryContent = await readWorkingMemory()
-  const workingMemoryInstructions = `
-# Working Memory
-${workingMemoryContent}
-
-You have access to the working memory tool:
-Use 'update_working_memory' tool with content: "new content"' to update the working memory content
-
-You should use working memory to maintain important information about the user and their projects.
-Update the working memory when you learn new important information about the user's projects,
-tasks, decisions, locations, concepts, people, or events.
-`
   const baseInstructions = useSearchGrounding
-    ? webSearchInstructions + systemInstructions
-    : knowledgeInstructions + systemInstructions
+    ? webSearchInstructions + (await systemInstructions())
+    : workingMemoryInstructions + knowledgeInstructions + (await systemInstructions())
 
-  const agentInstructions = baseInstructions + workingMemoryInstructions
+  const agentInstructions = baseInstructions
 
   const mode = await model(useSearchGrounding)
 
