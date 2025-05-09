@@ -43,6 +43,12 @@ export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 
 # Other:
 - [Other important information not classified above]
+
+# Knowledge Index:
+- This section contains summaries and search hints for information stored in the knowledge base.
+- Example: Detailed engineering guidelines are stored in the knowledge base. (File path: /docs/engineering/guidelines.md)
+- Example: Project overview, team roles, and technical architecture information are stored in the knowledge base.
+- Example: Application features (alpha version, modeless design, long-term memory) information is in working memory.
 `
 
 export const ensureWorkingMemoryExists = async (): Promise<void> => {

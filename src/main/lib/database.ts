@@ -46,8 +46,6 @@ const applyMigrations = (db: Database.Database): void => {
       )
 
       db.exec('COMMIT')
-
-      console.log(`Migration to version ${migration.version} applied successfully`)
     } catch (error) {
       db.exec('ROLLBACK')
       console.error(`Failed to apply migration to version ${migration.version}:`, error)

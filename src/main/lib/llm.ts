@@ -35,6 +35,7 @@ const detectSearchNeed = async (input: string): Promise<boolean> => {
   try {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
     const model = google('gemini-2.0-flash-lite')
+    const recentMessages = await getMessages(5)
     const result = await generateObject({
       model,
       schema: z.object({
@@ -45,7 +46,8 @@ const detectSearchNeed = async (input: string): Promise<boolean> => {
 You are a system that determines if web search is needed.
 Return search: false (default) if the user requests to read or write external information (files, codes).
 For user questions, return search: true if recent information, news, fact checking, or data is required.
-User question: ${input}`
+User question: ${input}
+History: ${JSON.stringify(recentMessages)}`
     })
     return result.object.search as unknown as boolean
   } catch {

@@ -47,8 +47,6 @@ export class HnswVectorStore {
     `)
 
     this.db.exec(`CREATE INDEX IF NOT EXISTS idx_${this.tableName}_id ON ${this.tableName}(id)`)
-
-    console.log(`ベクトルストアを初期化しました: ${this.tableName}`)
   }
 
   private initHnswIndex(): void {
@@ -66,7 +64,6 @@ export class HnswVectorStore {
       const maxElements = 100000
       this.index = new HierarchicalNSW('cosine', dim)
       this.index.initIndex(maxElements, 16, 200, 100)
-      console.log('エラーにより新しいHNSWインデックスを初期化しました')
     }
   }
 
@@ -78,7 +75,6 @@ export class HnswVectorStore {
       // Initialize empty index
       const maxElements = 100000 // Initial capacity, can be increased later
       this.index.initIndex(maxElements, 16, 200, 100)
-      console.log('新しいHNSWインデックスを初期化しました')
     }
   }
 
@@ -95,7 +91,6 @@ export class HnswVectorStore {
     try {
       // Load the index file
       await this.index.readIndex(this.indexPath)
-      console.log('HNSWインデックスを読み込みました')
 
       // Load the mapping data
       const mappingPath = `${this.indexPath}.mapping`
@@ -109,8 +104,6 @@ export class HnswVectorStore {
         Object.entries(mapping.docIdToId).map(([key, value]) => [key, Number(value)])
       )
       this.nextId = mapping.nextId
-
-      console.log(`${this.idToDocId.size}件のドキュメントマッピングを読み込みました`)
     } catch (error) {
       console.error('インデックス読み込みエラー:', error)
       // If there's an error, re-initialize the index
@@ -121,7 +114,6 @@ export class HnswVectorStore {
       this.idToDocId = new Map()
       this.docIdToId = new Map()
       this.nextId = 0
-      console.log('エラーにより新しいHNSWインデックスを初期化しました')
     }
   }
 
@@ -150,8 +142,6 @@ export class HnswVectorStore {
 
       const mappingPath = `${this.indexPath}.mapping`
       await fs.writeFile(mappingPath, JSON.stringify(mappingData))
-
-      console.log('HNSWインデックスを保存しました')
     } catch (error) {
       console.error('インデックス保存エラー:', error)
     }
@@ -281,36 +271,32 @@ export class HnswVectorStore {
   }
 
   async deleteByIds(ids: string[]): Promise<void> {
-    try {
-      if (!ids || ids.length === 0) return
+    if (!ids || ids.length === 0) return
 
-      const placeholders = ids.map(() => '?').join(', ')
-      const docsToDelete = this.db
-        .prepare(
-          `
+    const placeholders = ids.map(() => '?').join(', ')
+    const docsToDelete = this.db
+      .prepare(
+        `
         SELECT id FROM ${this.tableName}
         WHERE id IN (${placeholders}) OR id LIKE ?
         `
-        )
-        .all(...ids, `${ids[0]}_%`) as Array<{ id: string }>
-      this.db.transaction(() => {
-        this.db
-          .prepare(
-            `
+      )
+      .all(...ids, `${ids[0]}_%`) as Array<{ id: string }>
+    this.db.transaction(() => {
+      this.db
+        .prepare(
+          `
           DELETE FROM ${this.tableName}
           WHERE id IN (${placeholders}) OR id LIKE ?
           `
-          )
-          .run(...ids, `${ids[0]}_%`)
-      })()
+        )
+        .run(...ids, `${ids[0]}_%`)
+    })()
 
-      const docIdsToDelete = docsToDelete.map((doc) => doc.id)
-      docIdsToDelete.forEach((id) => {
-        this.index.markDelete(Number(id))
-      })
-    } catch (e) {
-      console.log(e)
-    }
+    const docIdsToDelete = docsToDelete.map((doc) => doc.id)
+    docIdsToDelete.forEach((id) => {
+      this.index.markDelete(Number(id))
+    })
   }
 
   async addTexts(texts: string[], ids: string[]): Promise<number> {

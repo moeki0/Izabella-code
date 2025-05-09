@@ -22,9 +22,9 @@ export type MessagesWithPagination = {
   totalPages: number
 }
 
-export const getMessages = async (): Promise<Array<Message>> => {
+export const getMessages = async (limit = 40): Promise<Array<Message>> => {
   const db = await database()
-  return await db.prepare('SELECT * FROM messages ORDER BY created_at DESC LIMIT 40').all()
+  return await db.prepare(`SELECT * FROM messages ORDER BY created_at DESC LIMIT ${limit}`).all()
 }
 
 export type SearchMessagesParams = {
