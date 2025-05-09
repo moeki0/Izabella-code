@@ -13,7 +13,7 @@ const getKnowledgeStore = (): HnswVectorStore => {
   return knowledgeStore
 }
 
-// 再利用可能なナレッジ保存関数の型定義
+// ナレッジ検索と更新のパラメータインターフェース
 export interface KnowledgeSearchAndUpsertParams {
   text: string
   id: string
@@ -21,15 +21,17 @@ export interface KnowledgeSearchAndUpsertParams {
   indexName?: string
 }
 
-// 再利用可能なナレッジ保存関数
+// ナレッジ操作の結果インターフェース
 export interface KnowledgeOperationResult {
   action: 'inserted' | 'updated'
   id: string
   originalId?: string
 }
 
-// ナレッジベースに情報を保存する再利用可能な関数
-export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams): Promise<string> {
+// ナレッジベースに情報を保存する関数
+export async function saveToKnowledgeBase(
+  params: KnowledgeSearchAndUpsertParams
+): Promise<string | void> {
   try {
     const { text, id, similarityThreshold = 0.7 } = params
 
@@ -53,28 +55,25 @@ export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams
       id: id
     })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    throw new Error(`Failed to perform vector operation: ${errorMessage}`)
+    console.log(error)
   }
 }
 
 export const vectorSearchAndUpsert: unknown = createTool({
   id: 'knowledge_search_and_upsert',
   inputSchema: z.object({
-    indexName: z.string().describe('The name of the knowledge index to use'),
-    text: z.string().describe('The text content to search for or store'),
-    id: z.string().describe('A unique identifier for this content'),
+    text: z.string().describe('検索または保存するテキストコンテンツ'),
+    id: z.string().describe('このコンテンツの一意の識別子'),
     similarityThreshold: z
       .number()
       .min(0)
       .max(1)
       .default(0.7)
-      .describe('Similarity threshold for matching (0-1)')
+      .describe('マッチングの類似度閾値（0-1）')
   }),
   description:
-    'Search for similar information in the knowledge database and update if match found, otherwise insert as new. Please actively use this when encountering unknown information in user conversations',
+    'ナレッジデータベースで類似情報を検索し、一致が見つかった場合は更新、見つからない場合は新規追加します。ユーザーとの会話で未知の情報に遭遇した際には積極的に使用してください',
   execute: async ({ context: { text, id, similarityThreshold } }) => {
-    // Use the reusable function
     return saveToKnowledgeBase({
       text,
       id,
@@ -86,10 +85,10 @@ export const vectorSearchAndUpsert: unknown = createTool({
 export const vectorSearch: unknown = createTool({
   id: 'knowledge_search',
   inputSchema: z.object({
-    query: z.string().describe('The query text to search for'),
-    limit: z.number().min(1).default(5).describe('Number of results to return')
+    query: z.string().describe('検索クエリテキスト'),
+    limit: z.number().min(1).default(5).describe('返す結果の数')
   }),
-  description: 'Search for similar information in the knowledge database and return the results',
+  description: 'ナレッジデータベースで類似情報を検索し、結果を返します。',
   execute: async ({ context: { query, limit } }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
@@ -99,24 +98,22 @@ export const vectorSearch: unknown = createTool({
         results: results.map((result) => ({
           content: result.pageContent,
           id: result.id,
-          // 類似度も含める（LLMがより良い判断をするために）
           similarity: result._similarity
         }))
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`Failed to perform vector search: ${errorMessage}`)
+      throw new Error(`ベクトル検索に失敗しました: ${errorMessage}`)
     }
   }
 })
 
-// Knowledge delete tool
 export const vectorDelete: unknown = createTool({
   id: 'knowledge_delete',
   inputSchema: z.object({
-    ids: z.array(z.string()).describe('The IDs of the entries to delete')
+    ids: z.array(z.string()).describe('削除するエントリのID配列')
   }),
-  description: 'Delete information from the knowledge database by ID',
+  description: 'IDを指定してナレッジデータベースから情報を削除します',
   execute: async ({ context: { ids } }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
@@ -127,7 +124,7 @@ export const vectorDelete: unknown = createTool({
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`Failed to delete vectors: ${errorMessage}`)
+      throw new Error(`ベクトルの削除に失敗しました: ${errorMessage}`)
     }
   }
 })

@@ -1,13 +1,15 @@
 import { DEFAULT_WORKING_MEMORY_TEMPLATE } from '../lib/workingMemory'
 
 export const workingMemoryInstructions = `
-# Working Memory
+# ワーキングメモリ
 
-* *****Use 'update_working_memory' tool with content: "new content"' to update the working memory content*****
-* Please hide the content from the user when saving.
-* ****ACTIVELY***** save new concepts and topics when they first appear
-* You can save without user permission
+* 'update_working_memory' ツールを使用してコンテンツを更新してください
+* 積極的に新しい概念やトピックが最初に出現したときに保存してください
+* ユーザーの許可なしで保存できます
+* 更新の際には必ず "update_working_memory" ツールを使ってください
+* ワーキングメモリを保存する際にはそれまでの形を破壊せずにテンプレートに従ってください
 
-## Template
+テンプレート:
+*****ワーキングメモリのフォーマットは必ず以下のテンプレートに従ってください！！！！！******
 ${DEFAULT_WORKING_MEMORY_TEMPLATE}
 `

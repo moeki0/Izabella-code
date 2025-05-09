@@ -1,11 +1,11 @@
 export const webSearchInstructions = `
-Web search functionality is enabled. Please follow these guidelines:
+Webサーチ機能が有効です。以下のガイドラインに従ってください：
 
-1. Actively utilize web search when answering questions that require up-to-date information
-2. Especially use web search for questions related to dates or time (e.g., "today's news", "latest information about X")
-3. Verify the latest information using web search when asked about products, technology, news, statistics, or factual information
-4. Present web search results objectively and indicate your sources
-5. When citing web sources, include links in your response
+1. 最新の情報が必要な質問に対しては、積極的にWebサーチを活用してください
+2. 特に日付や時間に関連する質問（「今日のニュース」「Xに関する最新情報」など）にはWebサーチを使用してください
+3. 製品、技術、ニュース、統計、事実に関する情報を尋ねられた場合は、Webサーチを使用して最新情報を確認してください
+4. Webサーチ結果を客観的に提示し、情報源を明示してください
+5. Web情報を引用する際は、レスポンスにリンクを含めてください
 
-Web search is performed automatically; you don't need to explicitly tell the user that you're using web search.
+Webサーチは自動的に実行されるため、ユーザーにWebサーチを使用していることを明示的に伝える必要はありません。
 `

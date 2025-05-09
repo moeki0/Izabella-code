@@ -10,7 +10,7 @@ import { messageSearch } from './messageSearchTool'
 import { knowledgeInstructions } from '../instructions/knowledgeInstructions'
 import { webSearchInstructions } from '../instructions/webSearchInstructions'
 import { systemInstructions } from '../instructions/systemInstructions'
-import { generateObject } from 'ai'
+import { generateObject, LanguageModelV1 } from 'ai'
 import { z } from 'zod'
 import { getMessages } from './message'
 import { updateWorkingMemoryTool } from './workingMemoryTool'
@@ -31,7 +31,7 @@ process.env.PATH =
 let mcp
 let tools
 
-const detectSearchNeed = async (input: string): Promise<boolean> => {
+export const detectSearchNeed = async (input: string): Promise<boolean> => {
   try {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
     const model = google('gemini-2.0-flash-lite')
@@ -43,11 +43,11 @@ const detectSearchNeed = async (input: string): Promise<boolean> => {
       }),
       temperature: 0,
       prompt: `
-You are a system that determines if web search is needed.
-Return search: false (default) if the user requests to read or write external information (files, codes).
-For user questions, return search: true if recent information, news, fact checking, or data is required.
-User question: ${input}
-History: ${JSON.stringify(recentMessages)}`
+  あなたはウェブ検索が必要かどうかを判断するシステムです。
+  外部情報（ファイル、コード）の読み書きをユーザーが要求する場合やユーザーの個人的な情報（ナレッジ）を検索する場合は、search: false（デフォルト）を返してください。
+  ユーザーの質問に対して、最新の情報、ニュース、ファクトチェック、データが必要な場合は search: true を返してください。
+  ユーザーの質問: ${input}
+  履歴: ${JSON.stringify(recentMessages)}`
     })
     return result.object.search as unknown as boolean
   } catch {
@@ -81,10 +81,10 @@ export const initializeMCP = async (): Promise<void> => {
     update_working_memory: updateWorkingMemoryTool
   }
   const mcpTools = await mcp.getTools()
-  tools = { ...mcpTools, ...knowledgeTools, ...messageTools, ...workingMemoryTools }
+  tools = { ...knowledgeTools, ...messageTools, ...workingMemoryTools, ...mcpTools }
 }
 
-const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
+export const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
   const modelName = 'gemini-2.5-flash-preview-04-17'
   process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
 
@@ -97,21 +97,15 @@ const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
   }
 }
 
-export const agent = async (input: string): Promise<Agent> => {
-  const useSearchGrounding = await detectSearchNeed(input)
-  const baseInstructions = useSearchGrounding
-    ? webSearchInstructions + (await systemInstructions())
-    : workingMemoryInstructions + knowledgeInstructions + (await systemInstructions())
-
-  const agentInstructions = baseInstructions
-
-  const mode = await model(useSearchGrounding)
-
+export const agent = async (
+  model: LanguageModelV1,
+  useSearchGrounding: boolean
+): Promise<Agent> => {
   return new Agent({
+    instructions: '',
     name: 'Assistant',
-    instructions: agentInstructions,
-    model: mode,
-    tools
+    model,
+    tools: useSearchGrounding ? {} : tools
   })
 }
 
@@ -131,19 +125,27 @@ export const formatMessageForLLM = (message: {
   }
 }
 
-export const chat = async (agent: Agent, input: string): Promise<StreamReturn> => {
+export const chat = async (
+  agent: Agent,
+  input: string,
+  useSearchGrounding: boolean
+): Promise<StreamReturn> => {
   const recentMessages = await getMessages()
   const formattedMessages = recentMessages
     .reverse()
     .map(formatMessageForLLM)
     .filter((message): message is MessageType => message !== null)
 
+  const baseInstructions = useSearchGrounding
+    ? webSearchInstructions + (await systemInstructions())
+    : (await systemInstructions()) + workingMemoryInstructions + knowledgeInstructions
+
+  formattedMessages.push({ role: 'assistant', content: baseInstructions })
   formattedMessages.push({ role: 'user', content: input })
 
   const limitedMessages = new TokenLimiter(254000).process(formattedMessages)
 
   return await agent.stream(limitedMessages, {
-    instructions: await systemInstructions(),
     toolChoice: 'auto',
     maxSteps: 10
   })

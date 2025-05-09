@@ -1,4 +1,4 @@
-import { agent, chat } from '../lib/llm'
+import { agent, chat, detectSearchNeed, model } from '../lib/llm'
 import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
 import { saveToKnowledgeBase } from '../lib/vectorStoreTools'
@@ -27,7 +27,9 @@ export type Assistant = {
 
 export const handleSend = async (_, input): Promise<void> => {
   try {
-    const stream = await chat(await agent(input), input)
+    const useSearchGrounding = await detectSearchNeed(input)
+    const m = await model(useSearchGrounding)
+    const stream = await chat(await agent(m, useSearchGrounding), input, useSearchGrounding)
 
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
@@ -47,15 +49,8 @@ export const handleSend = async (_, input): Promise<void> => {
         throw 'Interrupt'
       }
       if (chunk.type === 'tool-call') {
-        if (
-          ![
-            'knowledge_search_and_upsert',
-            'knowledge_search',
-            'update_working_memory',
-            'message_search'
-          ].includes(chunk.toolName)
-        ) {
-          mainWindow.webContents.send('tool-call', chunk)
+        if (!['knowledge_search', 'message_search'].includes(chunk.toolName)) {
+          mainWindow.webContents.send('tool-call', chunk, true)
           const approved = await waitForToolApproval()
           if (!approved) {
             throw 'ToolRejected'
@@ -65,40 +60,46 @@ export const handleSend = async (_, input): Promise<void> => {
         }
       }
       if (chunk.type === 'tool-result') {
-        mainWindow.webContents.send('tool-result', chunk)
+        if (
+          !chunk.toolName ||
+          ['knowledge_search', 'message_search'].includes(chunk.toolName) ||
+          toolApprovalResolver === null
+        ) {
+          mainWindow.webContents.send('tool-result', chunk)
 
-        await createMessage({
-          role: 'tool',
-          toolName: chunk.toolName,
-          toolReq: JSON.stringify(chunk.args),
-          toolRes: JSON.stringify(chunk.result)
-        })
+          await createMessage({
+            role: 'tool',
+            toolName: chunk.toolName,
+            toolReq: JSON.stringify(chunk.args),
+            toolRes: JSON.stringify(chunk.result)
+          })
 
-        try {
-          const toolName = chunk.toolName
-          const toolResult = chunk.result
+          try {
+            const toolName = chunk.toolName
+            const toolResult = chunk.result
 
-          const shouldStore =
-            toolName !== 'knowledge-search-and-upsert' &&
-            toolName !== 'knowledge-search' &&
-            toolName !== 'knowledge-delete' &&
-            toolName !== 'message_search' &&
-            toolResult &&
-            typeof toolResult === 'object'
+            const shouldStore =
+              toolName !== 'knowledge-search-and-upsert' &&
+              toolName !== 'knowledge-search' &&
+              toolName !== 'knowledge-delete' &&
+              toolName !== 'message_search' &&
+              toolResult &&
+              typeof toolResult === 'object'
 
-          if (shouldStore) {
-            const textContent = JSON.stringify(toolResult, null, 2)
-            const id = `tool-result-${toolName}-${Date.now()}`
+            if (shouldStore) {
+              const textContent = JSON.stringify(toolResult, null, 2)
+              const id = `tool-result-${toolName}-${Date.now()}`
 
-            await saveToKnowledgeBase({
-              indexName: 'knowledge',
-              text: textContent,
-              id: id,
-              similarityThreshold: 0.85
-            })
+              await saveToKnowledgeBase({
+                indexName: 'knowledge',
+                text: textContent,
+                id: id,
+                similarityThreshold: 0.85
+              })
+            }
+          } catch (error) {
+            console.error('Knowledge base storage error:', error)
           }
-        } catch (error) {
-          console.error('Knowledge base storage error:', error)
         }
       }
       if (chunk.type === 'source') {
@@ -171,7 +172,7 @@ export const handleSend = async (_, input): Promise<void> => {
       }
     }
   } catch (e) {
-    if (e !== 'Interrupt') {
+    if (e !== 'Interrupt' && e !== 'ToolRejected') {
       mainWindow.webContents.send('error', typeof e === 'string' ? e : String(e))
     }
   }

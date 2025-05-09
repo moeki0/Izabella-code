@@ -119,7 +119,6 @@ function Chat({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentSources, setCurrentSources] = useState<Array<Record<string, unknown>>>([])
   const [pendingTool, setPendingTool] = useState<{
     toolName: string
     args: string
@@ -267,8 +266,6 @@ function Chat({
     })
 
     const unsubscribeSource = registerSourceListener((content) => {
-      setCurrentSources(content.sources)
-
       if (!content.isPartial) {
         setMessages((prev) => {
           return prev.map((message, i) => {

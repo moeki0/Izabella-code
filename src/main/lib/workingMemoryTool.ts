@@ -24,19 +24,19 @@ export const workingMemoryUpdate = async (args: {
 }
 
 export const updateWorkingMemoryTool: unknown = createTool({
-  id: 'working_memory',
+  id: 'update_working_memory',
   inputSchema: z.object({
-    content: z.string().describe('The new content for the working memory')
+    updatedContent: z.string().describe('すでにある内容をテンプレートに沿って更新してください')
   }),
   description:
-    'Get or update the working memory content. Please actively use this when there is unknown information in conversations with users',
+    'ワーキングメモリの内容を取得または更新します。ユーザーとの会話で新しい情報や発見があった場合は、積極的にこれを使用してください。',
   execute: async ({ context }) => {
     try {
-      const result = await workingMemoryUpdate({ content: context.content })
+      const result = await workingMemoryUpdate({ content: context.updatedContent })
       return JSON.stringify(result)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`Failed to perform working memory operation: ${errorMessage}`)
+      throw new Error(`ワーキングメモリ操作に失敗しました: ${errorMessage}`)
     }
   }
 })
