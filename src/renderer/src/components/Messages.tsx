@@ -19,16 +19,18 @@ function Messages({
   messages,
   showMessageContextMenu,
   loading,
+  running,
   handleToolClick
 }: {
   messages: Array<Message>
-  showMessageContextMenu: (text: string) => void
+  showMessageContextMenu: (text: string, isAssistantMessage?: boolean) => void
   loading: boolean
+  running: boolean
   handleToolClick: (id: number) => void
 }): React.JSX.Element {
-  const handleContextMenu = (e, text): void => {
+  const handleContextMenu = (e, text, isAssistantMessage = false): void => {
     e.preventDefault()
-    showMessageContextMenu(text)
+    showMessageContextMenu(text, isAssistantMessage && running)
   }
 
   if (messages.length === 0) {
@@ -46,7 +48,9 @@ function Messages({
                 : `${message.content}-${i}`
             }
             className={`prompt prompt-${message.role}`}
-            onContextMenu={(e) => handleContextMenu(e, message.content || '')}
+            onContextMenu={(e) =>
+              handleContextMenu(e, message.content || '', message.role === 'assistant')
+            }
           >
             {message.role === 'tool' && (
               <div className="tool">

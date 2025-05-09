@@ -26,6 +26,7 @@ describe('Messages', () => {
     messages: mockMessages,
     showMessageContextMenu: vi.fn(),
     loading: false,
+    running: false,
     handleToolClick: vi.fn(),
     onScroll: vi.fn()
   }
@@ -56,7 +57,16 @@ describe('Messages', () => {
     const message = screen.getByText('Hello')
     fireEvent.contextMenu(message)
 
-    expect(defaultProps.showMessageContextMenu).toHaveBeenCalledWith('Hello')
+    expect(defaultProps.showMessageContextMenu).toHaveBeenCalledWith('Hello', false)
+  })
+
+  it('応答中のアシスタントメッセージを右クリックすると停止オプション付きのコンテキストメニューが表示されること', () => {
+    render(<Messages {...defaultProps} running={true} />)
+
+    const message = screen.getByText('Hi there!')
+    fireEvent.contextMenu(message)
+
+    expect(defaultProps.showMessageContextMenu).toHaveBeenCalledWith('Hi there!', true)
   })
 
   it('ツールのトグルボタンをクリックするとhandleToolClickが呼ばれること', () => {

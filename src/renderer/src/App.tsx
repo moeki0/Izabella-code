@@ -53,8 +53,8 @@ const chatProps = {
     window.electron.ipcRenderer.on('source', (_, content) => callback(content))
     return () => window.electron.ipcRenderer.removeAllListeners('source')
   },
-  showMessageContextMenu: (text: string) => {
-    window.electron.ipcRenderer.send('show-message-context-menu', text)
+  showMessageContextMenu: (text: string, isAssistantMessage?: boolean) => {
+    window.electron.ipcRenderer.send('show-message-context-menu', text, isAssistantMessage)
   },
   mermaidInit: mermaid.initialize,
   mermaidRun: mermaid.run,

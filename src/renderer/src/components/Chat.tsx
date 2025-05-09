@@ -50,7 +50,7 @@ export interface ChatEventDeps {
 
 export interface ChatUtilityDeps {
   randomUUID: () => string
-  showMessageContextMenu: (text: string) => void
+  showMessageContextMenu: (text: string, isAssistantMessage?: boolean) => void
   mermaid: Mermaid
   hljs: typeof hljs
 }
@@ -78,7 +78,7 @@ export interface ChatProps {
   registerSourceListener: (
     callback: (content: { sources: Array<Record<string, unknown>>; isPartial: boolean }) => void
   ) => () => void
-  showMessageContextMenu: (text: string) => void
+  showMessageContextMenu: (text: string, isAssistantMessage?: boolean) => void
   mermaidInit: typeof mermaid.initialize
   mermaidRun: typeof mermaid.run
   highlightAll: typeof hljs.highlightAll
@@ -378,6 +378,7 @@ function Chat({
           messages={messages}
           showMessageContextMenu={showMessageContextMenu}
           loading={loading}
+          running={running}
           handleToolClick={handleToolClick}
         />
         <div className="user-container">
