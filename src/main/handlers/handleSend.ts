@@ -54,7 +54,7 @@ export const handleSend = async (_, input): Promise<void> => {
       }
       if (chunk.type === 'tool-call') {
         const autoApprove = store.get('autoApprove') !== false
-        mainWindow.webContents.send('tool-call', chunk, autoApprove)
+        mainWindow.webContents.send('tool-call', chunk, !autoApprove)
         const approved = autoApprove ? true : await waitForToolApproval()
         if (!approved) {
           throw 'ToolRejected'
