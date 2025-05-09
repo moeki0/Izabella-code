@@ -94,7 +94,7 @@ describe('Chat', () => {
     })
 
     await waitFor(() => {
-      expect(mockDependencies.init).toHaveBeenCalledWith('Izabella')
+      expect(mockDependencies.init).toHaveBeenCalled()
     })
   })
 

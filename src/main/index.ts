@@ -12,6 +12,7 @@ import { store } from './lib/store'
 import { initializeConfig } from './lib/initializeConfig'
 import { handleToolApproval } from './handlers/handleToolApproval'
 import { handleDeleteMessage } from './handlers/handleDeleteMessage'
+import { handleSummarize } from './handlers/handleMemory'
 
 let mainWindow: BrowserWindow
 
@@ -38,6 +39,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('set-config', (_, name, input) => store.set(name, input))
   ipcMain.handle('get-config', (_, name) => store.get(name))
   ipcMain.handle('delete-message', handleDeleteMessage)
+  ipcMain.handle('summarize', (_, type) => handleSummarize(type))
   ipcMain.on('tool-approval', async (_, approved) => {
     await handleToolApproval(approved)
   })

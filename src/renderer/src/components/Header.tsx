@@ -1,3 +1,5 @@
+import { KnowledgeDropdown } from './KnowledgeDropdown'
+
 interface Props {
   title?: string
   startedAt?: Date
@@ -16,7 +18,10 @@ interface Props {
 function Header({ className }: Props): React.JSX.Element {
   return (
     <header role="banner" className={className}>
-      <div></div>
+      <div className="header-title"></div>
+      <div className="header-actions">
+        <KnowledgeDropdown />
+      </div>
     </header>
   )
 }

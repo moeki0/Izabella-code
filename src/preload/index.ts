@@ -18,7 +18,9 @@ const api = {
   setConfig: (name: string, input: unknown): Promise<void> =>
     ipcRenderer.invoke('set-config', name, input),
   deleteMessage: (messageId: string): Promise<void> =>
-    ipcRenderer.invoke('delete-message', messageId)
+    ipcRenderer.invoke('delete-message', messageId),
+  summarize: (): Promise<Array<{ title: string; content: string }>> =>
+    ipcRenderer.invoke('summarize')
 }
 
 if (process.contextIsolated) {

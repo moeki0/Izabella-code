@@ -13,8 +13,8 @@ export const createWindow = async (): Promise<BrowserWindow> => {
     frame: false,
     titleBarStyle: 'hidden',
     trafficLightPosition: {
-      x: 10,
-      y: 10
+      x: 13,
+      y: 13
     },
     ...(process.platform === 'linux' ? {} : {}),
     webPreferences: {

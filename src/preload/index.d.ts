@@ -18,6 +18,7 @@ interface API {
   getConfig: (name: string) => Promise<unknown>
   setConfig: (name: string, input: unknown) => Promise<void>
   deleteMessage: (messageId: string) => Promise<void>
+  summarize: () => Promise<Array<{ title: string; content: string }>>
 }
 
 declare global {
