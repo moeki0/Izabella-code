@@ -118,7 +118,7 @@ function Chat({
   const [initialized, setInitialized] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const [pendingTool, setPendingTool] = useState<{
     toolName: string
     args: string

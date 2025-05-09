@@ -27,7 +27,9 @@ vi.mock('../lib/store', () => ({
 vi.mock('../lib/llm', () => ({
   agent: vi.fn(),
   chat: vi.fn(),
-  tools: {}
+  tools: {},
+  detectSearchNeed: vi.fn().mockResolvedValue(false),
+  model: vi.fn().mockResolvedValue({})
 }))
 
 // Mock vectorStoreTools to prevent actual API calls
@@ -93,7 +95,7 @@ describe('handleSend', () => {
     await handleSend(null, 'Hello')
 
     expect(agent).toHaveBeenCalled()
-    expect(chat).toHaveBeenCalledWith(mockAgent, 'Hello')
+    expect(chat).toHaveBeenCalledWith(mockAgent, 'Hello', false)
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('stream', 'Hello')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('step-finish')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('finish')
@@ -126,7 +128,7 @@ describe('handleSend', () => {
     vi.mocked(agent).mockResolvedValue(mockAgent as Agent)
     vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
 
-    await handleSend(null, [{ role: 'user', content: 'Hello' }])
+    await handleSend(null, 'Hello')
 
     expect(createMessage).toHaveBeenCalledWith({
       role: 'tool',
@@ -140,7 +142,7 @@ describe('handleSend', () => {
     const error = new Error('Test error')
     vi.mocked(chat).mockRejectedValue(error)
 
-    await handleSend(null, [{ role: 'user', content: 'Hello' }])
+    await handleSend(null, 'Hello')
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('error', 'Error: Test error')
   })
