@@ -1,7 +1,6 @@
 import { agent, chat } from '../lib/llm'
 import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
-import { store } from '../lib/store'
 import { saveToKnowledgeBase } from '../lib/vectorStoreTools'
 
 let toolApprovalResolver: ((approved: boolean) => void) | null = null
@@ -53,9 +52,8 @@ export const handleSend = async (_, input): Promise<void> => {
         throw 'Interrupt'
       }
       if (chunk.type === 'tool-call') {
-        const autoApprove = store.get('autoApprove') !== false
-        mainWindow.webContents.send('tool-call', chunk, !autoApprove)
-        const approved = autoApprove ? true : await waitForToolApproval()
+        mainWindow.webContents.send('tool-call', chunk)
+        const approved = await waitForToolApproval()
         if (!approved) {
           throw 'ToolRejected'
         }

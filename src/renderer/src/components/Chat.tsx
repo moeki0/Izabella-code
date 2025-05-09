@@ -177,10 +177,8 @@ function Chat({
       })
     })
 
-    const unsubscribeToolCall = registerToolCallListener((content, pending) => {
-      if (pending) {
-        setPendingTool(content)
-      }
+    const unsubscribeToolCall = registerToolCallListener((content) => {
+      setPendingTool(content)
       setMessages((prev) => {
         return [
           ...prev,
