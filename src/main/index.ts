@@ -17,6 +17,8 @@ import {
   handleSummarizeMemoryContent
 } from './handlers/handleMemoryContent'
 
+process.env.OPENAI_API_KEY = store.get('apiKeys.openai') as string
+
 let mainWindow: BrowserWindow
 
 app.whenReady().then(async () => {

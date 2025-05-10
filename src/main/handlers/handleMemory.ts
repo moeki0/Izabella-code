@@ -1,14 +1,12 @@
 import { getLatestKnowledgeFiles } from '../lib/workingMemory'
-import { google } from '@ai-sdk/google'
-import { store } from '../lib/store'
 import { generateObject } from 'ai'
 import { z } from 'zod'
+import { openai } from '@ai-sdk/openai'
 
 export const handleSummarize = async (): Promise<
   Array<{ title: string; content: string }> | string
 > => {
   try {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
     const latestKnowledgeFiles = await getLatestKnowledgeFiles(40)
     const filesList = latestKnowledgeFiles.map((file) => `- ${file}`).join('\n')
 
@@ -28,7 +26,7 @@ export const handleSummarize = async (): Promise<
           })
         )
       }),
-      model: google('gemini-2.0-flash-lite'),
+      model: openai('gpt-4o-mini'),
       temperature: 0.2,
       prompt
     })

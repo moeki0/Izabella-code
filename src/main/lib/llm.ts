@@ -4,6 +4,7 @@ import { Agent } from '@mastra/core/agent'
 import { store } from './store'
 import { LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
+import { openai } from '@ai-sdk/openai'
 import log from 'electron-log/main'
 import {
   upsertKnowledge,
@@ -36,8 +37,7 @@ let tools
 
 export const detectSearchNeed = async (input: string): Promise<boolean> => {
   try {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-    const model = google('gemini-2.0-flash-lite')
+    const model = openai('gpt-4o-mini')
     const recentMessages = await getMessages(5)
     const result = await generateObject({
       model,
@@ -89,15 +89,14 @@ export const initializeMCP = async (): Promise<void> => {
 }
 
 export const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
-  const modelName = 'gemini-2.5-flash-preview-04-17'
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
+  const modelName = 'gpt-4o-mini'
 
   if (useSearchGrounding) {
-    return google(modelName, {
-      useSearchGrounding
+    return google('gemini-2.5-flash-preview-04-17', {
+      useSearchGrounding: true
     })
   } else {
-    return google(modelName)
+    return openai(modelName)
   }
 }
 

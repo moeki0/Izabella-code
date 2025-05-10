@@ -1,12 +1,11 @@
-import { google } from '@ai-sdk/google'
+import { openai } from '@ai-sdk/openai'
 import { store } from './store'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 
 export async function generateKnowledgeId(content: string, toolName: string): Promise<string> {
   try {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-    const model = google('gemini-2.0-flash-lite')
+    const model = openai('gpt-4o-mini')
 
     // Prepare the content for analysis - truncate if too long
     const maxLength = 5000
