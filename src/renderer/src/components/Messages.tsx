@@ -1,5 +1,5 @@
 import orderBy from 'lodash/orderBy'
-import { FiChevronDown, FiChevronUp, FiTool } from 'react-icons/fi'
+import { FiBookOpen, FiChevronDown, FiChevronUp, FiSearch, FiSmile, FiTool } from 'react-icons/fi'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -19,7 +19,6 @@ window.EditContext = false
 function Messages({
   messages,
   showMessageContextMenu,
-  loading,
   running,
   handleToolClick
 }: {
@@ -74,43 +73,74 @@ function Messages({
                   )
                 }
               >
-                {message.role === 'tool' && (
-                  <div className="tool">
-                    <div className="tool-name">
-                      <div className="tool-name-text">
-                        <FiTool color="#444" />
-                        <div>{message.tool_name}</div>
-                      </div>
-                      <button
-                        type="button"
-                        aria-label={`close-tool-${i}`}
-                        onClick={() => handleToolClick(i)}
-                      >
-                        {message.open ? (
-                          <FiChevronUp color="#444" />
-                        ) : (
-                          <FiChevronDown color="#444" />
-                        )}
-                      </button>
+                {message.role === 'tool' && message.tool_name === 'upsert_knowledge' && (
+                  <div className="knowledge">
+                    <div className="knowledge-icon">
+                      <FiBookOpen size={14} />
                     </div>
-                    {message.open && (
-                      <>
-                        <div className="tool-args">
-                          <div>Request</div>
-                          <pre className="tool-args-code">{message.tool_req}</pre>
-                        </div>
-                        {message.tool_res && (
-                          <div className="tool-response">
-                            <div>Response</div>
-                            <code className="tool-response-code">
-                              {message.tool_res.slice(0, 1000)}
-                            </code>
-                          </div>
-                        )}
-                      </>
-                    )}
+                    <div>
+                      {message.tool_res ? 'ナレッジを保存しました' : 'ナレッジを保存します'}
+                    </div>
                   </div>
                 )}
+                {message.role === 'tool' && message.tool_name === 'search_knowledge' && (
+                  <div className="knowledge">
+                    <div className="knowledge-icon">
+                      <FiSearch size={14} />
+                    </div>
+                    <div>
+                      {message.tool_res ? 'ナレッジが見つかりました' : 'ナレッジを検索します'}
+                    </div>
+                  </div>
+                )}
+                {message.role === 'tool' && message.tool_name === 'update_memory' && (
+                  <div className="knowledge">
+                    <div className="knowledge-icon">
+                      <FiSmile size={14} />
+                    </div>
+                    <div>{message.tool_res ? 'メモリを保存しました' : 'メモリを更新します'}</div>
+                  </div>
+                )}
+                {message.role === 'tool' &&
+                  message.tool_name !== 'upsert_knowledge' &&
+                  message.tool_name !== 'search_knowledge' &&
+                  message.tool_name !== 'update_memory' && (
+                    <div className="tool">
+                      <div className="tool-name">
+                        <div className="tool-name-text">
+                          <FiTool color="#444" />
+                          <div>{message.tool_name}</div>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label={`close-tool-${i}`}
+                          onClick={() => handleToolClick(i)}
+                        >
+                          {message.open ? (
+                            <FiChevronUp color="#444" />
+                          ) : (
+                            <FiChevronDown color="#444" />
+                          )}
+                        </button>
+                      </div>
+                      {message.open && (
+                        <>
+                          <div className="tool-args">
+                            <div>Request</div>
+                            <pre className="tool-args-code">{message.tool_req}</pre>
+                          </div>
+                          {message.tool_res && (
+                            <div className="tool-response">
+                              <div>Response</div>
+                              <code className="tool-response-code">
+                                {message.tool_res.slice(0, 1000)}
+                              </code>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 {message.role === 'assistant' && (
                   <>
                     <Markdown remarkPlugins={[remarkGfm]}>
@@ -198,7 +228,7 @@ function Messages({
             )}
           </div>
         ))}
-        {loading && (
+        {running && (
           <div className="loading" data-testid="loading">
             <div className="loader" />
           </div>

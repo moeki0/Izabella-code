@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { searchMessages, SearchMessagesParams } from './message'
 
 export const messageSearch: unknown = createTool({
-  id: 'message_search',
+  id: 'search_message',
   inputSchema: z.object({
     query: z
       .string()

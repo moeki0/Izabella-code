@@ -13,7 +13,6 @@ const getKnowledgeStore = (): MarkdownKnowledgeStore => {
   return knowledgeStore
 }
 
-// ナレッジ検索と更新のパラメータインターフェース
 export interface KnowledgeSearchAndUpsertParams {
   text: string
   id: string
@@ -21,17 +20,13 @@ export interface KnowledgeSearchAndUpsertParams {
   indexName?: string
 }
 
-// ナレッジ操作の結果インターフェース
 export interface KnowledgeOperationResult {
   action: 'inserted' | 'updated'
   id: string
   originalId?: string
 }
 
-// ナレッジベースに情報を保存する関数
-export async function saveToKnowledgeBase(
-  params: KnowledgeSearchAndUpsertParams
-): Promise<string | void> {
+export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams): Promise<string> {
   try {
     const { text, id, similarityThreshold = 0.7 } = params
 
@@ -56,11 +51,12 @@ export async function saveToKnowledgeBase(
     })
   } catch (error) {
     console.log(error)
+    return 'Error'
   }
 }
 
-export const vectorSearchAndUpsert: unknown = createTool({
-  id: 'knowledge_search_and_upsert',
+export const upsertKnowledge: unknown = createTool({
+  id: 'upsert_knowledge',
   inputSchema: z.object({
     text: z.string().describe('検索または保存するテキストコンテンツ'),
     id: z.string().describe('このコンテンツの一意の識別子'),
@@ -72,7 +68,7 @@ export const vectorSearchAndUpsert: unknown = createTool({
       .describe('マッチングの類似度閾値（0-1）')
   }),
   description:
-    'ナレッジデータベースで類似情報を検索し、一致が見つかった場合は更新、見つからない場合は新規追加します。ユーザーとの会話で未知の情報に遭遇した際には積極的に使用してください',
+    '****ユーザーからの指示ではなく自発的に利用してください****。ナレッジデータベース上に同じIDのナレッジが一致が見つかった場合は更新、見つからない場合は新規追加します。ユーザーとの会話で未知の情報に遭遇した際には積極的に使用してください',
   execute: async ({ context: { text, id, similarityThreshold } }) => {
     return saveToKnowledgeBase({
       text,
@@ -82,13 +78,14 @@ export const vectorSearchAndUpsert: unknown = createTool({
   }
 })
 
-export const vectorSearch: unknown = createTool({
-  id: 'knowledge_search',
+export const searchKnowledge: unknown = createTool({
+  id: 'search_knowledge',
   inputSchema: z.object({
     query: z.string().describe('検索クエリテキスト'),
     limit: z.number().min(1).default(5).describe('返す結果の数')
   }),
-  description: 'ナレッジデータベースで類似情報を検索し、結果を返します。',
+  description:
+    '****ユーザーからの指示ではなく自発的に利用してください****。ナレッジデータベースで類似情報を検索し、結果を返します。',
   execute: async ({ context: { query, limit } }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
@@ -109,7 +106,7 @@ export const vectorSearch: unknown = createTool({
 })
 
 export const vectorDelete: unknown = createTool({
-  id: 'knowledge_delete',
+  id: 'delete_knowledge',
   inputSchema: z.object({
     ids: z.array(z.string()).describe('削除するエントリのID配列')
   }),

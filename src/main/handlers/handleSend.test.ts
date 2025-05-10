@@ -37,10 +37,10 @@ vi.mock('../lib/vectorStoreTools', () => ({
   saveToKnowledgeBase: vi
     .fn()
     .mockResolvedValue(JSON.stringify({ action: 'inserted', id: 'test-id' })),
-  vectorSearchAndUpsert: {
+  upsertKnowledge: {
     execute: vi.fn().mockResolvedValue(JSON.stringify({ action: 'inserted', id: 'test-id' }))
   },
-  vectorSearch: {
+  searchKnowledge: {
     execute: vi.fn().mockResolvedValue(JSON.stringify({ results: [] }))
   },
   vectorDelete: {

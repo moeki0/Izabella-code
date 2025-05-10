@@ -5,7 +5,7 @@ import { store } from './store'
 import { LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
 import log from 'electron-log/main'
-import { vectorSearchAndUpsert, vectorSearch, vectorDelete } from './vectorStoreTools'
+import { upsertKnowledge, searchKnowledge, vectorDelete } from './knowledgeTools'
 import { messageSearch } from './messageSearchTool'
 import { knowledgeInstructions } from '../instructions/knowledgeInstructions'
 import { webSearchInstructions } from '../instructions/webSearchInstructions'
@@ -70,15 +70,15 @@ export const initializeMCP = async (): Promise<void> => {
     servers: avairableServers || {}
   })
   const knowledgeTools = {
-    knowledge_search_and_upsert: vectorSearchAndUpsert,
-    knowledge_search: vectorSearch,
-    knowledge_delete: vectorDelete
+    upsert_knowledge: upsertKnowledge,
+    search_knowledge: searchKnowledge,
+    delete_knowledge: vectorDelete
   }
   const messageTools = {
-    message_search: messageSearch
+    search_message: messageSearch
   }
   const workingMemoryTools = {
-    update_working_memory: updateWorkingMemoryTool
+    update_memory: updateWorkingMemoryTool
   }
   const mcpTools = await mcp.getTools()
   tools = { ...knowledgeTools, ...messageTools, ...workingMemoryTools, ...mcpTools }

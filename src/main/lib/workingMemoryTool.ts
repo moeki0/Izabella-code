@@ -24,7 +24,7 @@ export const workingMemoryUpdate = async (args: {
 }
 
 export const updateWorkingMemoryTool: unknown = createTool({
-  id: 'update_working_memory',
+  id: 'update_memory',
   inputSchema: z.object({
     updatedContent: z.string().describe('すでにある内容をテンプレートに沿って更新してください')
   }),

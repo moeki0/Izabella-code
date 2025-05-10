@@ -48,7 +48,11 @@ export const handleSend = async (_, input): Promise<void> => {
         throw 'Interrupt'
       }
       if (chunk.type === 'tool-call') {
-        if (!['knowledge_search', 'message_search'].includes(chunk.toolName)) {
+        if (
+          !['search_knowledge', 'upsert_knowledge', 'update_memory', 'search_message'].includes(
+            chunk.toolName
+          )
+        ) {
           mainWindow.webContents.send('tool-call', chunk, true)
           const approved = await waitForToolApproval()
           if (!approved) {
@@ -61,7 +65,7 @@ export const handleSend = async (_, input): Promise<void> => {
       if (chunk.type === 'tool-result') {
         if (
           !chunk.toolName ||
-          ['knowledge_search', 'message_search'].includes(chunk.toolName) ||
+          ['search_knowledge', 'search_message'].includes(chunk.toolName) ||
           toolApprovalResolver === null
         ) {
           mainWindow.webContents.send('tool-result', chunk)

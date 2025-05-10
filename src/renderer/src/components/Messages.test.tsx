@@ -47,7 +47,7 @@ describe('Messages', () => {
   })
 
   it('ローディング表示が動作すること', () => {
-    render(<Messages {...defaultProps} loading={true} />)
+    render(<Messages {...defaultProps} running={true} />)
     expect(screen.getByTestId('loading')).toBeInTheDocument()
   })
 
