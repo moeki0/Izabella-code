@@ -147,7 +147,14 @@ export const chat = async (
 
   return await agent.stream(limitedMessages, {
     toolChoice: 'auto',
-    maxSteps: 10
+    maxSteps: 10,
+    providerOptions: {
+      google: {
+        thinkingConfig: {
+          thinkingBudget: 2048
+        }
+      }
+    }
   })
 }
 
