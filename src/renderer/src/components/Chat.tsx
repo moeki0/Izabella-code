@@ -37,7 +37,8 @@ export interface ChatCommunicationDeps {
 export interface ChatEventDeps {
   registerStreamListener: (callback: (chunk: string) => void) => () => void
   registerToolCallListener: (callback: (content: string, pending: boolean) => void) => () => void
-  registerStepFinishListener: (callback: () => void) => () => void
+  registerStepFinishListener: (callback: (id: string) => void) => () => void
+  registerMessageSavedListener: (callback: (id: string) => void) => () => void
   registerFinishListener: (callback: () => void) => () => void
   registerErrorListener: (callback: (chunk: string) => void) => () => void
   registerToolResultListener: (callback: (content: string) => void) => () => void
@@ -67,13 +68,15 @@ export interface ChatProps {
   registerToolCallListener: (
     callback: (content: { toolName: string; args: string }, pending: boolean) => void
   ) => () => void
-  registerStepFinishListener: (callback: () => void) => () => void
+  registerStepFinishListener: (callback: (id: string) => void) => () => void
+  registerMessageSavedListener: (callback: (id: string) => void) => () => void
   registerFinishListener: (callback: () => void) => () => void
   registerErrorListener: (callback: (chunk: string) => void) => () => void
   registerToolResultListener: (
     callback: (content: { toolName: string; args: string }) => void
   ) => () => void
   registerTitleListener: (callback: (chunk: string) => void) => () => void
+  registerInterruptListener: (callback: () => void) => () => void
   registerNewThreadListener: (callback: () => void) => () => void
   registerRetryListener: (callback: (error: unknown) => void) => () => void
   registerSourceListener: (
@@ -97,6 +100,8 @@ function Chat({
   registerFinishListener,
   registerErrorListener,
   registerToolResultListener,
+  registerInterruptListener,
+  registerMessageSavedListener,
   registerTitleListener,
   registerNewThreadListener,
   registerRetryListener,
@@ -105,7 +110,8 @@ function Chat({
   mermaidInit,
   mermaidRun,
   highlightAll,
-  approveToolCall
+  approveToolCall,
+  interrupt
 }: ChatProps): React.JSX.Element {
   const navigate = useNavigate()
 
@@ -194,6 +200,10 @@ function Chat({
       })
     })
 
+    const unsubscribelInterrupt = registerInterruptListener(() => {
+      setRunning(false)
+    })
+
     const unsubscribeToolCall = registerToolCallListener((content, pending = true) => {
       if (pending) {
         setPendingTool(content)
@@ -212,8 +222,29 @@ function Chat({
       setLoading(true)
     })
 
-    const unsubscribeStepFinish = registerStepFinishListener(() => {
+    const unsubscribeStepFinish = registerStepFinishListener((id: string) => {
+      setMessages((prev) => {
+        return prev.map((m, index) => {
+          if (index === prev.length - 1) {
+            return { ...m, id }
+          } else {
+            return m
+          }
+        })
+      })
       hljs.highlightAll()
+    })
+
+    const unsubscribeMessageSaved = registerMessageSavedListener((id: string) => {
+      setMessages((prev) => {
+        return prev.map((m, index) => {
+          if (index === prev.length - 1) {
+            return { ...m, id }
+          } else {
+            return m
+          }
+        })
+      })
     })
 
     const unsubscribeFinish = registerFinishListener(() => {
@@ -291,6 +322,8 @@ function Chat({
       unsubscribeTitle()
       unsubscribeRetry()
       unsubscribeSource()
+      unsubscribelInterrupt()
+      unsubscribeMessageSaved()
     }
   }, [
     messages,
@@ -307,7 +340,9 @@ function Chat({
     registerTitleListener,
     registerRetryListener,
     registerSourceListener,
-    send
+    send,
+    registerInterruptListener,
+    registerMessageSavedListener
   ])
 
   useEffect(() => {
@@ -398,6 +433,7 @@ function Chat({
           loading={loading}
           running={running}
           handleToolClick={handleToolClick}
+          interrupt={interrupt}
         />
         <div className="user-container">
           <div className="user">

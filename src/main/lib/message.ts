@@ -111,14 +111,15 @@ export const createMessage = async (params: {
   toolReq?: string
   toolRes?: string
   sources?: string
-}): Promise<void> => {
+}): Promise<string> => {
   const db = await database()
+  const id = randomUUID()
   if (params.role === 'tool') {
     await db
       .prepare(
         'INSERT INTO messages (id, role, tool_name, tool_req, tool_res, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
       )
-      .run(randomUUID(), params.role, params.toolName, params.toolReq, params.toolRes)
+      .run(id, params.role, params.toolName, params.toolReq, params.toolRes)
   } else if (params.role === 'assistant' && params.sources) {
     await db
       .prepare(
@@ -132,4 +133,5 @@ export const createMessage = async (params: {
       )
       .run(randomUUID(), params.role, params.content)
   }
+  return id
 }

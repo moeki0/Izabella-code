@@ -20,13 +20,15 @@ function Messages({
   messages,
   showMessageContextMenu,
   running,
-  handleToolClick
+  handleToolClick,
+  interrupt
 }: {
   messages: Array<Message>
   showMessageContextMenu: (text: string, messageId?: string, isAssistantMessage?: boolean) => void
   loading: boolean
   running: boolean
   handleToolClick: (id: number) => void
+  interrupt: () => void
 }): React.JSX.Element {
   const handleContextMenu = (e, text, messageId, isAssistantMessage = false): void => {
     e.preventDefault()
@@ -61,17 +63,29 @@ function Messages({
                   }
                   return segment
                 })
+                .join('')
+                .split(/(<tool_code>.*?<\/tool_code>)/gs)
+                .map((segment) => {
+                  if (segment.startsWith('<tool_code>')) {
+                    return null // Hide tool_code blocks
+                  }
+                  if (segment.length === 0) {
+                    return null
+                  }
+                  return segment
+                })
                 .join('').length > 0) && (
               <div
                 className={`prompt prompt-${message.role}`}
-                onContextMenu={(e) =>
+                onContextMenu={(e) => {
+                  console.log(message)
                   handleContextMenu(
                     e,
                     message.content || '',
                     message.id,
                     message.role === 'assistant'
                   )
-                }
+                }}
               >
                 {message.role === 'tool' && message.tool_name === 'upsert_knowledge' && (
                   <div className="knowledge">
@@ -152,6 +166,17 @@ function Messages({
                           }
                           return segment
                         })
+                        .join('')
+                        .split(/(<tool_code>.*?<\/tool_code>)/gs)
+                        .map((segment) => {
+                          if (segment.startsWith('<tool_code>')) {
+                            return null // Hide tool_code blocks
+                          }
+                          if (segment.length === 0) {
+                            return null
+                          }
+                          return segment
+                        })
                         .join('')}
                     </Markdown>
                     {message.sources && (
@@ -229,7 +254,7 @@ function Messages({
           </div>
         ))}
         {running && (
-          <div className="loading" data-testid="loading">
+          <div className="loading" data-testid="loading" onClick={interrupt}>
             <div className="loader" />
           </div>
         )}

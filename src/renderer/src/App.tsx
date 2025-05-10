@@ -23,9 +23,17 @@ const chatProps = {
     window.electron.ipcRenderer.on('tool-call', (_, content, pending) => callback(content, pending))
     return () => window.electron.ipcRenderer.removeAllListeners('tool-call')
   },
-  registerStepFinishListener: (callback: () => void) => {
-    window.electron.ipcRenderer.on('step-finish', callback)
+  registerStepFinishListener: (callback: (id: string) => void) => {
+    window.electron.ipcRenderer.on('step-finish', (_, id) => callback(id))
     return () => window.electron.ipcRenderer.removeAllListeners('step-finish')
+  },
+  registerMessageSavedListener: (callback: (id: string) => void) => {
+    window.electron.ipcRenderer.on('message-saved', (_, id) => callback(id))
+    return () => window.electron.ipcRenderer.removeAllListeners('message-saved')
+  },
+  registerInterruptListener: (callback: () => void) => {
+    window.electron.ipcRenderer.on('interrupt', callback)
+    return () => window.electron.ipcRenderer.removeAllListeners('interrupt')
   },
   registerFinishListener: (callback: () => void) => {
     window.electron.ipcRenderer.on('finish', callback)

@@ -32,10 +32,12 @@ export const handleSend = async (_, input): Promise<void> => {
 
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
-    await createMessage({
+    let id: string | undefined = undefined
+    id = await createMessage({
       role: 'user',
       content: input
     })
+    mainWindow.webContents.send('message-saved', id)
 
     globalThis.Interrupt = false
 
@@ -45,6 +47,14 @@ export const handleSend = async (_, input): Promise<void> => {
       }
       if (globalThis.interrupt) {
         globalThis.interrupt = false
+        if (content.length > 0) {
+          id = await createMessage({
+            role: 'assistant',
+            content,
+            sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
+          })
+          mainWindow.webContents.send('message-saved', id)
+        }
         throw 'Interrupt'
       }
       if (chunk.type === 'tool-call') {
@@ -70,12 +80,13 @@ export const handleSend = async (_, input): Promise<void> => {
         ) {
           mainWindow.webContents.send('tool-result', chunk)
 
-          await createMessage({
+          id = await createMessage({
             role: 'tool',
             toolName: chunk.toolName,
             toolReq: JSON.stringify(chunk.args),
             toolRes: JSON.stringify(chunk.result)
           })
+          mainWindow.webContents.send('message-saved', id)
         }
       }
       if (chunk.type === 'source') {
@@ -120,11 +131,12 @@ export const handleSend = async (_, input): Promise<void> => {
             })
           }
 
-          await createMessage({
+          id = await createMessage({
             role: 'assistant',
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
+          mainWindow.webContents.send('message-saved', id)
         }
         content = ''
         sourcesArray = []
