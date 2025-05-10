@@ -10,7 +10,6 @@ import { handleMessageContextMenu } from './handlers/handleMessageContextMenu'
 import { updateElectronApp } from 'update-electron-app'
 import { store } from './lib/store'
 import { initializeConfig } from './lib/initializeConfig'
-import { handleToolApproval } from './handlers/handleToolApproval'
 import { handleDeleteMessage } from './handlers/handleDeleteMessage'
 import { handleSummarize } from './handlers/handleMemory'
 import {
@@ -50,9 +49,6 @@ app.whenReady().then(async () => {
   ipcMain.handle('getMemoryContent', () => handleGetMemoryContent())
   ipcMain.handle('getKnowledgeIndexContent', () => handleGetKnowledgeIndexContent())
   ipcMain.handle('updateKnowledgeIndex', (_, content) => handleUpdateKnowledgeIndex(content))
-  ipcMain.on('tool-approval', async (_, approved) => {
-    await handleToolApproval(approved)
-  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

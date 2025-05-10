@@ -468,6 +468,7 @@ function Chat({
                 onClick={() => {
                   approveToolCall(false)
                   setPendingTool(null)
+                  setRunning(false)
                 }}
               >
                 No

@@ -165,4 +165,3 @@ export const chat = async (
 initializeMCP()
 
 export { mcp, tools }
-export { handleToolApproval } from '../handlers/handleSend'

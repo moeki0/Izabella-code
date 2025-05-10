@@ -3,21 +3,6 @@ import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
 import { saveToKnowledgeBase } from '../lib/knowledgeTools'
 
-let toolApprovalResolver: ((approved: boolean) => void) | null = null
-
-const waitForToolApproval = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    toolApprovalResolver = resolve
-  })
-}
-
-export const handleToolApproval = async (approved: boolean): Promise<void> => {
-  if (toolApprovalResolver) {
-    toolApprovalResolver(approved)
-    toolApprovalResolver = null
-  }
-}
-
 export type Assistant = {
   name: string
   instructions: string
@@ -59,26 +44,10 @@ export const handleSend = async (_, input): Promise<void> => {
         throw 'Interrupt'
       }
       if (chunk.type === 'tool-call') {
-        if (
-          !['search_knowledge', 'upsert_knowledge', 'replace_memory', 'search_message'].includes(
-            chunk.toolName
-          )
-        ) {
-          mainWindow.webContents.send('tool-call', chunk, true)
-          const approved = await waitForToolApproval()
-          if (!approved) {
-            throw 'ToolRejected'
-          }
-        } else {
-          mainWindow.webContents.send('tool-call', chunk, false)
-        }
+        mainWindow.webContents.send('tool-call', chunk, false)
       }
       if (chunk.type === 'tool-result') {
-        if (
-          !chunk.toolName ||
-          ['search_knowledge', 'search_message'].includes(chunk.toolName) ||
-          toolApprovalResolver === null
-        ) {
+        if (!chunk.toolName || ['search_knowledge', 'search_message'].includes(chunk.toolName)) {
           mainWindow.webContents.send('tool-result', chunk)
 
           id = await createMessage({
