@@ -2,8 +2,8 @@ import { app } from 'electron'
 import { join } from 'node:path'
 import { promises as fs } from 'fs'
 
-const WORKING_MEMORY_PATH = join(app.getPath('userData'), 'memory.md')
-const KNOWLEDGE_INDEX_PATH = join(app.getPath('userData'), 'knowledge-index.md')
+const getWorkingMemoryPath = (): string => join(app.getPath('userData'), 'memory.md')
+const getKnowledgeIndexPath = (): string => join(app.getPath('userData'), 'knowledge-index.md')
 
 export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 # ユーザー情報
@@ -53,28 +53,28 @@ export const DEFAULT_KNOWLEDGE_INDEX_TEMPLATE = `
 
 export const ensureWorkingMemoryExists = async (): Promise<void> => {
   try {
-    await fs.access(WORKING_MEMORY_PATH)
+    await fs.access(getWorkingMemoryPath())
   } catch {
-    await fs.writeFile(WORKING_MEMORY_PATH, DEFAULT_WORKING_MEMORY_TEMPLATE)
+    await fs.writeFile(getWorkingMemoryPath(), DEFAULT_WORKING_MEMORY_TEMPLATE)
   }
 }
 
 export const ensureKnowledgeIndexExists = async (): Promise<void> => {
   try {
-    await fs.access(KNOWLEDGE_INDEX_PATH)
+    await fs.access(getKnowledgeIndexPath())
   } catch {
-    await fs.writeFile(KNOWLEDGE_INDEX_PATH, DEFAULT_KNOWLEDGE_INDEX_TEMPLATE)
+    await fs.writeFile(getKnowledgeIndexPath(), DEFAULT_KNOWLEDGE_INDEX_TEMPLATE)
   }
 }
 
 export const readWorkingMemory = async (): Promise<string> => {
   await ensureWorkingMemoryExists()
-  return await fs.readFile(WORKING_MEMORY_PATH, 'utf-8')
+  return await fs.readFile(getWorkingMemoryPath(), 'utf-8')
 }
 
 export const readKnowledgeIndex = async (): Promise<string> => {
   await ensureKnowledgeIndexExists()
-  return await fs.readFile(KNOWLEDGE_INDEX_PATH, 'utf-8')
+  return await fs.readFile(getKnowledgeIndexPath(), 'utf-8')
 }
 
 export const getMemoryContent = async (): Promise<string> => {
@@ -86,21 +86,21 @@ export const getKnowledgeIndexContent = async (): Promise<string> => {
 }
 
 export const updateWorkingMemory = async (content: string): Promise<void> => {
-  await fs.writeFile(WORKING_MEMORY_PATH, content)
+  await fs.writeFile(getWorkingMemoryPath(), content)
 }
 
 export const updateKnowledgeIndex = async (content: string): Promise<void> => {
-  await fs.writeFile(KNOWLEDGE_INDEX_PATH, content)
+  await fs.writeFile(getKnowledgeIndexPath(), content)
 }
 
 export const replaceWorkingMemory = async (oldText: string, newText: string): Promise<void> => {
   const currentContent = await readWorkingMemory()
   const updatedContent = currentContent.replace(oldText, newText)
-  await fs.writeFile(WORKING_MEMORY_PATH, updatedContent)
+  await fs.writeFile(getWorkingMemoryPath(), updatedContent)
 }
 
 export const replaceKnowledgeIndex = async (oldText: string, newText: string): Promise<void> => {
   const currentContent = await readKnowledgeIndex()
   const updatedContent = currentContent.replace(oldText, newText)
-  await fs.writeFile(KNOWLEDGE_INDEX_PATH, updatedContent)
+  await fs.writeFile(getKnowledgeIndexPath(), updatedContent)
 }

@@ -49,6 +49,7 @@ const mockDependencies = {
   registerStreamListener: vi.fn().mockReturnValue(() => {}),
   registerToolCallListener: vi.fn().mockReturnValue(() => {}),
   registerStepFinishListener: vi.fn().mockReturnValue(() => {}),
+  registerMessageSavedListener: vi.fn().mockReturnValue(() => {}),
   registerFinishListener: vi.fn().mockReturnValue(() => {}),
   registerErrorListener: vi.fn().mockImplementation((callback) => {
     callback('test error')
@@ -56,6 +57,7 @@ const mockDependencies = {
   }),
   registerToolResultListener: vi.fn().mockReturnValue(() => {}),
   registerTitleListener: vi.fn().mockReturnValue(() => {}),
+  registerInterruptListener: vi.fn().mockReturnValue(() => {}),
   registerNewThreadListener: vi.fn().mockReturnValue(() => {}),
   registerRetryListener: vi.fn().mockReturnValue(() => {}),
   registerSourceListener: vi.fn().mockReturnValue(() => {}),

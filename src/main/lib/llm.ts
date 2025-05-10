@@ -12,7 +12,6 @@ import {
   updateKnowledgeIndexTool
 } from './knowledgeTools'
 import { messageSearch } from './messageSearchTool'
-import { knowledgeInstructions } from '../instructions/knowledgeInstructions'
 import { webSearchInstructions } from '../instructions/webSearchInstructions'
 import { systemInstructions } from '../instructions/systemInstructions'
 import { generateObject, LanguageModelV1 } from 'ai'
@@ -20,7 +19,6 @@ import { z } from 'zod'
 import { getMessages } from './message'
 import { replaceWorkingMemoryTool } from './workingMemoryTool'
 import { TokenLimiter } from '@mastra/memory/processors'
-import { workingMemoryInstructions } from '../instructions/workingMemoryInstructions'
 
 log.initialize()
 
@@ -143,8 +141,8 @@ export const chat = async (
     .filter((message): message is MessageType => message !== null)
 
   const baseInstructions = useSearchGrounding
-    ? webSearchInstructions + (await systemInstructions())
-    : (await systemInstructions()) + workingMemoryInstructions + knowledgeInstructions
+    ? await webSearchInstructions()
+    : await systemInstructions()
 
   formattedMessages.push({ role: 'assistant', content: baseInstructions })
   formattedMessages.push({ role: 'user', content: input })

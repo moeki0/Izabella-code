@@ -6,6 +6,13 @@ import { mainWindow } from '..'
 import { Agent } from '@mastra/core/agent'
 import { StreamReturn } from '@mastra/core'
 
+// Mock electron
+vi.mock('electron', () => ({
+  app: {
+    getPath: vi.fn().mockReturnValue('/mock/path')
+  }
+}))
+
 // Googleのモックを追加
 vi.mock('@ai-sdk/google', () => ({
   google: vi.fn().mockImplementation(() => ({
