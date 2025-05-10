@@ -1,4 +1,4 @@
-import { readKnowledgeIndex } from '../lib/workingMemory'
+import { getLatestKnowledgeFiles } from '../lib/workingMemory'
 import { google } from '@ai-sdk/google'
 import { store } from '../lib/store'
 import { generateObject } from 'ai'
@@ -9,10 +9,16 @@ export const handleSummarize = async (): Promise<
 > => {
   try {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-    const knowledgeIndex = await readKnowledgeIndex()
-    const prompt = `Summarize this Knowledge Index content focusing on the most important information in Japanese.
+    const latestKnowledgeFiles = await getLatestKnowledgeFiles(40)
+    const filesList = latestKnowledgeFiles.map((file) => `- ${file}`).join('\n')
 
-      ${knowledgeIndex}`
+    const prompt = `最近のナレッジファイル一覧:
+
+      ${filesList}
+
+      これらのナレッジファイルを分類して要約してください。
+      重要な情報に焦点を当てどのような内容があるかを日本語で書いてください。`
+
     const response = await generateObject({
       schema: z.object({
         items: z.array(

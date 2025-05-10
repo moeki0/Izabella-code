@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { promises as fs } from 'fs'
 
 const getWorkingMemoryPath = (): string => join(app.getPath('userData'), 'memory.md')
-const getKnowledgeIndexPath = (): string => join(app.getPath('userData'), 'knowledge-index.md')
+const getKnowledgePath = (): string => join(app.getPath('userData'), 'knowledge')
 
 export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 # ユーザー情報
@@ -46,11 +46,6 @@ export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 - [上記に分類されないその他の重要な情報]
 `
 
-export const DEFAULT_KNOWLEDGE_INDEX_TEMPLATE = `
-- 例：詳細なエンジニアリングガイドラインはナレッジベースに保存（ファイルパス: /docs/engineering/guidelines.md）
-- 例：プロジェクト概要、チーム役割、技術アーキテクチャ情報はナレッジベースに保存
-`
-
 export const ensureWorkingMemoryExists = async (): Promise<void> => {
   try {
     await fs.access(getWorkingMemoryPath())
@@ -59,38 +54,17 @@ export const ensureWorkingMemoryExists = async (): Promise<void> => {
   }
 }
 
-export const ensureKnowledgeIndexExists = async (): Promise<void> => {
-  try {
-    await fs.access(getKnowledgeIndexPath())
-  } catch {
-    await fs.writeFile(getKnowledgeIndexPath(), DEFAULT_KNOWLEDGE_INDEX_TEMPLATE)
-  }
-}
-
 export const readWorkingMemory = async (): Promise<string> => {
   await ensureWorkingMemoryExists()
   return await fs.readFile(getWorkingMemoryPath(), 'utf-8')
-}
-
-export const readKnowledgeIndex = async (): Promise<string> => {
-  await ensureKnowledgeIndexExists()
-  return await fs.readFile(getKnowledgeIndexPath(), 'utf-8')
 }
 
 export const getMemoryContent = async (): Promise<string> => {
   return await readWorkingMemory()
 }
 
-export const getKnowledgeIndexContent = async (): Promise<string> => {
-  return await readKnowledgeIndex()
-}
-
 export const updateWorkingMemory = async (content: string): Promise<void> => {
   await fs.writeFile(getWorkingMemoryPath(), content)
-}
-
-export const updateKnowledgeIndex = async (content: string): Promise<void> => {
-  await fs.writeFile(getKnowledgeIndexPath(), content)
 }
 
 export const replaceWorkingMemory = async (oldText: string, newText: string): Promise<void> => {
@@ -99,8 +73,57 @@ export const replaceWorkingMemory = async (oldText: string, newText: string): Pr
   await fs.writeFile(getWorkingMemoryPath(), updatedContent)
 }
 
-export const replaceKnowledgeIndex = async (oldText: string, newText: string): Promise<void> => {
-  const currentContent = await readKnowledgeIndex()
-  const updatedContent = currentContent.replace(oldText, newText)
-  await fs.writeFile(getKnowledgeIndexPath(), updatedContent)
+export async function getLatestKnowledgeFiles(limit = 40): Promise<string[]> {
+  try {
+    const knowledgePath = getKnowledgePath()
+
+    // Ensure the knowledge directory exists
+    try {
+      await fs.access(knowledgePath)
+    } catch {
+      await fs.mkdir(knowledgePath, { recursive: true })
+      return [] // Return empty array if directory was just created
+    }
+
+    // Read all files in the knowledge directory
+    const files = await fs.readdir(knowledgePath)
+
+    // Filter only markdown files
+    const markdownFiles = files.filter((file) => file.endsWith('.md'))
+
+    // Get file stats for each markdown file to sort by modification time
+    const fileStats = await Promise.all(
+      markdownFiles.map(async (filename) => {
+        const filePath = join(knowledgePath, filename)
+        const stats = await fs.stat(filePath)
+        return {
+          filename,
+          mtime: stats.mtime
+        }
+      })
+    )
+
+    // Sort files by modification time (newest first)
+    fileStats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime())
+
+    // Get the filenames of the latest N files
+    const latestFiles = fileStats.slice(0, limit).map((file) => file.filename)
+
+    return latestFiles
+  } catch (error) {
+    console.error('Error getting latest knowledge files:', error)
+    return []
+  }
 }
+
+// Legacy functions to maintain compatibility with existing code
+export const getKnowledgeIndexPath = (): string =>
+  join(app.getPath('userData'), 'knowledge-index.md')
+export const DEFAULT_KNOWLEDGE_INDEX_TEMPLATE = ''
+export const ensureKnowledgeIndexExists = async (): Promise<void> => {}
+export const readKnowledgeIndex = async (): Promise<string> => ''
+export const getKnowledgeIndexContent = async (): Promise<string> => ''
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const updateKnowledgeIndex = async (_: string): Promise<void> => {}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const replaceKnowledgeIndex = async (_oldText: string, _newText: string): Promise<void> => {}

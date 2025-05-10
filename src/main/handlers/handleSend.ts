@@ -62,7 +62,7 @@ export const handleSend = async (_, input): Promise<void> => {
           if (result.match(/(content|text|body|value)/m) || result.length > 300) {
             saveToKnowledgeBase({
               text: result,
-              id: `tool-result-${chunk.toolName}-${new Date().toLocaleDateString()}-${new Date().toLocaleTimeString()}`,
+              id: `tool-result-${chunk.toolName}-${new Date().toLocaleDateString().replace(/\//g, '-')}-${new Date().toLocaleTimeString().replace(/:/g, '-')}`,
               similarityThreshold: 0.8
             })
           }

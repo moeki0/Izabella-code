@@ -2,7 +2,6 @@ import { createTool } from '@mastra/core'
 import { z } from 'zod'
 import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
 import { store } from './store'
-import { updateKnowledgeIndex, getKnowledgeIndexContent } from './workingMemory'
 
 let knowledgeStore: MarkdownKnowledgeStore | null = null
 
@@ -134,27 +133,15 @@ export const updateKnowledgeIndexTool: unknown = createTool({
     mode: z.enum(['replace', 'append']).default('replace').describe('置換または追加モード')
   }),
   description:
-    'ナレッジインデックスの内容を更新します。既存のインデックスを完全に置き換えるか、追加することができます',
-  execute: async ({ context: { content, mode } }) => {
-    try {
-      if (mode === 'append') {
-        const currentContent = await getKnowledgeIndexContent()
-        await updateKnowledgeIndex(`${currentContent}\n\n${content}`)
-      } else {
-        await updateKnowledgeIndex(content)
-      }
+    'この機能は使用されなくなりました。代わりに、最新の40件のナレッジファイルがコンテキストに自動的に含まれます',
+  execute: async ({ context: { mode } }) => {
+    console.log('updateKnowledgeIndexTool is deprecated and has no effect')
 
-      return JSON.stringify({
-        success: true,
-        message: 'ナレッジインデックスが正常に更新されました',
-        mode
-      })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      return JSON.stringify({
-        success: false,
-        error: `ナレッジインデックスの更新に失敗しました: ${errorMessage}`
-      })
-    }
+    return JSON.stringify({
+      success: true,
+      message:
+        'ナレッジインデックスの更新は不要になりました。最新の40件のナレッジファイルが自動的にコンテキストに含まれます。',
+      mode
+    })
   }
 })

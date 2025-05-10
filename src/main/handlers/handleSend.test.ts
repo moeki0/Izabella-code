@@ -124,7 +124,7 @@ describe('handleSend', () => {
       fullStream: [
         {
           type: 'tool-result',
-          toolName: 'test-tool',
+          toolName: 'search_knowledge',
           args: { test: true },
           result: { success: true }
         },
@@ -139,7 +139,7 @@ describe('handleSend', () => {
 
     expect(createMessage).toHaveBeenCalledWith({
       role: 'tool',
-      toolName: 'test-tool',
+      toolName: 'search_knowledge',
       toolReq: JSON.stringify({ test: true }),
       toolRes: JSON.stringify({ success: true })
     })

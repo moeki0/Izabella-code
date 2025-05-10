@@ -14,9 +14,7 @@ import { handleDeleteMessage } from './handlers/handleDeleteMessage'
 import { handleSummarize } from './handlers/handleMemory'
 import {
   handleGetMemoryContent,
-  handleGetKnowledgeIndexContent,
-  handleSummarizeMemoryContent,
-  handleUpdateKnowledgeIndex
+  handleSummarizeMemoryContent
 } from './handlers/handleMemoryContent'
 
 let mainWindow: BrowserWindow
@@ -47,8 +45,6 @@ app.whenReady().then(async () => {
   ipcMain.handle('summarize', () => handleSummarize())
   ipcMain.handle('summarizeMemoryContent', () => handleSummarizeMemoryContent())
   ipcMain.handle('getMemoryContent', () => handleGetMemoryContent())
-  ipcMain.handle('getKnowledgeIndexContent', () => handleGetKnowledgeIndexContent())
-  ipcMain.handle('updateKnowledgeIndex', (_, content) => handleUpdateKnowledgeIndex(content))
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

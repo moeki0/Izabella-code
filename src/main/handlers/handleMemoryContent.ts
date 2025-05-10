@@ -1,8 +1,4 @@
-import {
-  getMemoryContent,
-  getKnowledgeIndexContent,
-  updateKnowledgeIndex
-} from '../lib/workingMemory'
+import { getMemoryContent, getLatestKnowledgeFiles } from '../lib/workingMemory'
 import { google } from '@ai-sdk/google'
 import { store } from '../lib/store'
 import { generateObject } from 'ai'
@@ -17,22 +13,12 @@ export const handleGetMemoryContent = async (): Promise<string> => {
   }
 }
 
-export const handleGetKnowledgeIndexContent = async (): Promise<string> => {
+export const handleGetLatestKnowledgeFiles = async (): Promise<string[]> => {
   try {
-    return await getKnowledgeIndexContent()
+    return await getLatestKnowledgeFiles(40)
   } catch (error) {
-    console.error('Error getting knowledge index content:', error)
-    return 'Error occurred while retrieving knowledge index content'
-  }
-}
-
-export const handleUpdateKnowledgeIndex = async (content: string): Promise<boolean> => {
-  try {
-    await updateKnowledgeIndex(content)
-    return true
-  } catch (error) {
-    console.error('Error updating knowledge index content:', error)
-    return false
+    console.error('Error getting latest knowledge files:', error)
+    return []
   }
 }
 
