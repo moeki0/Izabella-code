@@ -214,7 +214,11 @@ describe('database', () => {
     mockGet.mockReturnValue({ version: 0 })
 
     // Custom implementation to track order
-    const migrationRecords = []
+    interface MigrationRecord {
+      version: number
+      description: string
+    }
+    const migrationRecords: MigrationRecord[] = []
     mockRun.mockImplementation((version, description) => {
       migrationRecords.push({ version, description })
     })

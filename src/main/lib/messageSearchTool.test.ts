@@ -10,14 +10,14 @@ describe('messageSearchTool', () => {
   const mockMessages = [
     {
       id: '1',
-      role: 'user',
+      role: 'user' as const,
       content: 'こんにちは',
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z'
     },
     {
       id: '2',
-      role: 'assistant',
+      role: 'assistant' as const,
       content: 'どうぞよろしくお願いします',
       created_at: '2023-01-01T00:01:00Z',
       updated_at: '2023-01-01T00:01:00Z'
@@ -57,9 +57,9 @@ describe('messageSearchTool', () => {
         id: msg.id,
         role: msg.role,
         content: msg.content || null,
-        tool_name: msg.tool_name || null,
-        tool_req: msg.tool_req || null,
-        tool_res: msg.tool_res || null,
+        tool_name: null,
+        tool_req: null,
+        tool_res: null,
         created_at: msg.created_at
       })),
       total: 2,

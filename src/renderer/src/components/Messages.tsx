@@ -42,23 +42,28 @@ function Messages({
     <div className="messages" data-testid="messages">
       <div className="messages-inner">
         {orderBy(messages, ['created_at']).map((message, i) => (
-          <>
+          <div
+            key={
+              message.role === 'tool'
+                ? `${message.tool_name}-${message.tool_req}-${i}`
+                : `${message.content}-${i}`
+            }
+          >
             {(!message.content ||
               message.content
-                ?.split(/(<reasoning>.*?<\/reasoning>)/gs)
+                ?.replaceAll(/[\n\s]/gm, '')
+                .split(/(<reasoning>.*?<\/reasoning>)/gs)
                 .map((segment) => {
                   if (segment.startsWith('<reasoning>')) {
                     return null // Hide reasoning blocks
+                  }
+                  if (segment.length === 0) {
+                    return null
                   }
                   return segment
                 })
                 .join('').length > 0) && (
               <div
-                key={
-                  message.role === 'tool'
-                    ? `${message.tool_name}-${message.tool_req}-${i}`
-                    : `${message.content}-${i}`
-                }
                 className={`prompt prompt-${message.role}`}
                 onContextMenu={(e) =>
                   handleContextMenu(
@@ -76,7 +81,11 @@ function Messages({
                         <FiTool color="#444" />
                         <div>{message.tool_name}</div>
                       </div>
-                      <button aria-label={`close-tool-${i}`} onClick={() => handleToolClick(i)}>
+                      <button
+                        type="button"
+                        aria-label={`close-tool-${i}`}
+                        onClick={() => handleToolClick(i)}
+                      >
                         {message.open ? (
                           <FiChevronUp color="#444" />
                         ) : (
@@ -104,35 +113,16 @@ function Messages({
                 )}
                 {message.role === 'assistant' && (
                   <>
-                    <Markdown
-                      remarkPlugins={[remarkGfm]}
-                      allowedElements={[
-                        'p',
-                        'br',
-                        'strong',
-                        'em',
-                        'h1',
-                        'h2',
-                        'h3',
-                        'h4',
-                        'h5',
-                        'h6',
-                        'ul',
-                        'ol',
-                        'li',
-                        'code',
-                        'pre',
-                        'blockquote',
-                        'a',
-                        'table',
-                        'thead',
-                        'tbody',
-                        'tr',
-                        'th',
-                        'td'
-                      ]}
-                    >
-                      {message.content}
+                    <Markdown remarkPlugins={[remarkGfm]}>
+                      {message.content
+                        ?.split(/(<reasoning>.*?<\/reasoning>)/gs)
+                        .map((segment) => {
+                          if (segment.startsWith('<reasoning>')) {
+                            return null // Hide reasoning blocks
+                          }
+                          return segment
+                        })
+                        .join('')}
                     </Markdown>
                     {message.sources && (
                       <div className="source-info">
@@ -144,7 +134,7 @@ function Messages({
                                 return null
                               }
 
-                              let sourceData
+                              let sourceData: string
                               try {
                                 sourceData = JSON.parse(sourceStr)
                               } catch {
@@ -155,7 +145,7 @@ function Messages({
                                 const uniqueUrls = new Set()
 
                                 const renderedSources = sourceData
-                                  .map((source, index) => {
+                                  .map((source) => {
                                     if (!source) return null
 
                                     const url = source.url
@@ -170,26 +160,17 @@ function Messages({
                                       uniqueUrls.add(url)
                                     }
 
-                                    if (url) {
-                                      return (
-                                        <a
-                                          href={url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="source-item"
-                                          key={`source-${index}`}
-                                        >
-                                          <span className="source-title">{title}</span>
-                                        </a>
-                                      )
-                                    } else if (title) {
-                                      return (
-                                        <div className="source-item" key={`source-${index}`}>
-                                          {title}
-                                        </div>
-                                      )
-                                    }
-                                    return null
+                                    return (
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="source-item"
+                                        key={`source-${url}`}
+                                      >
+                                        <span className="source-title">{title}</span>
+                                      </a>
+                                    )
                                   })
                                   .filter(Boolean)
 
@@ -215,11 +196,11 @@ function Messages({
                 )}
               </div>
             )}
-          </>
+          </div>
         ))}
         {loading && (
           <div className="loading" data-testid="loading">
-            <div className="loader"></div>
+            <div className="loader" />
           </div>
         )}
       </div>

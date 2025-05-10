@@ -1,7 +1,6 @@
 import { agent, chat, detectSearchNeed, model } from '../lib/llm'
 import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
-import { saveToKnowledgeBase } from '../lib/vectorStoreTools'
 
 let toolApprovalResolver: ((approved: boolean) => void) | null = null
 
@@ -73,33 +72,6 @@ export const handleSend = async (_, input): Promise<void> => {
             toolReq: JSON.stringify(chunk.args),
             toolRes: JSON.stringify(chunk.result)
           })
-
-          try {
-            const toolName = chunk.toolName
-            const toolResult = chunk.result
-
-            const shouldStore =
-              toolName !== 'knowledge-search-and-upsert' &&
-              toolName !== 'knowledge-search' &&
-              toolName !== 'knowledge-delete' &&
-              toolName !== 'message_search' &&
-              toolResult &&
-              typeof toolResult === 'object'
-
-            if (shouldStore) {
-              const textContent = JSON.stringify(toolResult, null, 2)
-              const id = `tool-result-${toolName}-${Date.now()}`
-
-              await saveToKnowledgeBase({
-                indexName: 'knowledge',
-                text: textContent,
-                id: id,
-                similarityThreshold: 0.85
-              })
-            }
-          } catch (error) {
-            console.error('Knowledge base storage error:', error)
-          }
         }
       }
       if (chunk.type === 'source') {
