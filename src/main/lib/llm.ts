@@ -5,7 +5,12 @@ import { store } from './store'
 import { LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
 import log from 'electron-log/main'
-import { upsertKnowledge, searchKnowledge, vectorDelete } from './knowledgeTools'
+import {
+  upsertKnowledge,
+  searchKnowledge,
+  vectorDelete,
+  updateKnowledgeIndexTool
+} from './knowledgeTools'
 import { messageSearch } from './messageSearchTool'
 import { knowledgeInstructions } from '../instructions/knowledgeInstructions'
 import { webSearchInstructions } from '../instructions/webSearchInstructions'
@@ -72,7 +77,8 @@ export const initializeMCP = async (): Promise<void> => {
   const knowledgeTools = {
     upsert_knowledge: upsertKnowledge,
     search_knowledge: searchKnowledge,
-    delete_knowledge: vectorDelete
+    delete_knowledge: vectorDelete,
+    update_knowledge_index: updateKnowledgeIndexTool
   }
   const messageTools = {
     search_message: messageSearch

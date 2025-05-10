@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { promises as fs } from 'fs'
 
 const WORKING_MEMORY_PATH = join(app.getPath('userData'), 'memory.md')
+const KNOWLEDGE_INDEX_PATH = join(app.getPath('userData'), 'knowledge-index.md')
 
 export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 # ユーザー情報
@@ -43,12 +44,11 @@ export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 
 # その他:
 - [上記に分類されないその他の重要な情報]
+`
 
-# ナレッジインデックス:
-- このセクションには、ナレッジベースに保存された情報の概要と検索のヒントが含まれています
+export const DEFAULT_KNOWLEDGE_INDEX_TEMPLATE = `
 - 例：詳細なエンジニアリングガイドラインはナレッジベースに保存（ファイルパス: /docs/engineering/guidelines.md）
 - 例：プロジェクト概要、チーム役割、技術アーキテクチャ情報はナレッジベースに保存
-- Example: Application features (alpha version, modeless design, long-term memory) information is in working memory.
 `
 
 export const ensureWorkingMemoryExists = async (): Promise<void> => {
@@ -59,17 +59,48 @@ export const ensureWorkingMemoryExists = async (): Promise<void> => {
   }
 }
 
+export const ensureKnowledgeIndexExists = async (): Promise<void> => {
+  try {
+    await fs.access(KNOWLEDGE_INDEX_PATH)
+  } catch {
+    await fs.writeFile(KNOWLEDGE_INDEX_PATH, DEFAULT_KNOWLEDGE_INDEX_TEMPLATE)
+  }
+}
+
 export const readWorkingMemory = async (): Promise<string> => {
   await ensureWorkingMemoryExists()
   return await fs.readFile(WORKING_MEMORY_PATH, 'utf-8')
+}
+
+export const readKnowledgeIndex = async (): Promise<string> => {
+  await ensureKnowledgeIndexExists()
+  return await fs.readFile(KNOWLEDGE_INDEX_PATH, 'utf-8')
+}
+
+export const getMemoryContent = async (): Promise<string> => {
+  return await readWorkingMemory()
+}
+
+export const getKnowledgeIndexContent = async (): Promise<string> => {
+  return await readKnowledgeIndex()
 }
 
 export const updateWorkingMemory = async (content: string): Promise<void> => {
   await fs.writeFile(WORKING_MEMORY_PATH, content)
 }
 
+export const updateKnowledgeIndex = async (content: string): Promise<void> => {
+  await fs.writeFile(KNOWLEDGE_INDEX_PATH, content)
+}
+
 export const replaceWorkingMemory = async (oldText: string, newText: string): Promise<void> => {
   const currentContent = await readWorkingMemory()
   const updatedContent = currentContent.replace(oldText, newText)
   await fs.writeFile(WORKING_MEMORY_PATH, updatedContent)
+}
+
+export const replaceKnowledgeIndex = async (oldText: string, newText: string): Promise<void> => {
+  const currentContent = await readKnowledgeIndex()
+  const updatedContent = currentContent.replace(oldText, newText)
+  await fs.writeFile(KNOWLEDGE_INDEX_PATH, updatedContent)
 }

@@ -20,7 +20,13 @@ const api = {
   deleteMessage: (messageId: string): Promise<void> =>
     ipcRenderer.invoke('delete-message', messageId),
   summarize: (): Promise<Array<{ title: string; content: string }>> =>
-    ipcRenderer.invoke('summarize')
+    ipcRenderer.invoke('summarize'),
+  summarizeMemoryContent: (): Promise<Array<{ title: string; content: string }>> =>
+    ipcRenderer.invoke('summarizeMemoryContent'),
+  getMemoryContent: (): Promise<string> => ipcRenderer.invoke('getMemoryContent'),
+  getKnowledgeIndexContent: (): Promise<string> => ipcRenderer.invoke('getKnowledgeIndexContent'),
+  updateKnowledgeIndexContent: (content: string): Promise<boolean> =>
+    ipcRenderer.invoke('updateKnowledgeIndex', content)
 }
 
 if (process.contextIsolated) {

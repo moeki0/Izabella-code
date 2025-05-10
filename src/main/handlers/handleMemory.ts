@@ -1,4 +1,4 @@
-import { readWorkingMemory } from '../lib/workingMemory'
+import { readKnowledgeIndex } from '../lib/workingMemory'
 import { google } from '@ai-sdk/google'
 import { store } from '../lib/store'
 import { generateObject } from 'ai'
@@ -9,10 +9,10 @@ export const handleSummarize = async (): Promise<
 > => {
   try {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = store.get('apiKeys.google') as string
-    const workingMemory = await readWorkingMemory()
-    const prompt = `Summarize this Knowledge Index section of working memory content focusing on the most important information in Japanse.
+    const knowledgeIndex = await readKnowledgeIndex()
+    const prompt = `Summarize this Knowledge Index content focusing on the most important information in Japanese.
 
-      ${workingMemory}`
+      ${knowledgeIndex}`
     const response = await generateObject({
       schema: z.object({
         items: z.array(

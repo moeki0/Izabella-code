@@ -2,6 +2,7 @@ import { createTool } from '@mastra/core'
 import { z } from 'zod'
 import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
 import { store } from './store'
+import { updateKnowledgeIndex, getKnowledgeIndexContent } from './workingMemory'
 
 let knowledgeStore: MarkdownKnowledgeStore | null = null
 
@@ -122,6 +123,38 @@ export const vectorDelete: unknown = createTool({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       throw new Error(`ベクトルの削除に失敗しました: ${errorMessage}`)
+    }
+  }
+})
+
+export const updateKnowledgeIndexTool: unknown = createTool({
+  id: 'update_knowledge_index',
+  inputSchema: z.object({
+    content: z.string().describe('ナレッジインデックスの新しい内容'),
+    mode: z.enum(['replace', 'append']).default('replace').describe('置換または追加モード')
+  }),
+  description:
+    'ナレッジインデックスの内容を更新します。既存のインデックスを完全に置き換えるか、追加することができます',
+  execute: async ({ context: { content, mode } }) => {
+    try {
+      if (mode === 'append') {
+        const currentContent = await getKnowledgeIndexContent()
+        await updateKnowledgeIndex(`${currentContent}\n\n${content}`)
+      } else {
+        await updateKnowledgeIndex(content)
+      }
+
+      return JSON.stringify({
+        success: true,
+        message: 'ナレッジインデックスが正常に更新されました',
+        mode
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      return JSON.stringify({
+        success: false,
+        error: `ナレッジインデックスの更新に失敗しました: ${errorMessage}`
+      })
     }
   }
 })

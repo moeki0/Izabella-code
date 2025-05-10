@@ -19,6 +19,10 @@ interface API {
   setConfig: (name: string, input: unknown) => Promise<void>
   deleteMessage: (messageId: string) => Promise<void>
   summarize: () => Promise<Array<{ title: string; content: string }>>
+  summarizeMemoryContent: () => Promise<Array<{ title: string; content: string }>>
+  getMemoryContent: () => Promise<string>
+  getKnowledgeIndexContent: () => Promise<string>
+  updateKnowledgeIndexContent: (content: string) => Promise<boolean>
 }
 
 declare global {
