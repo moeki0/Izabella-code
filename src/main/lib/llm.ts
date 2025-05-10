@@ -13,7 +13,7 @@ import { systemInstructions } from '../instructions/systemInstructions'
 import { generateObject, LanguageModelV1 } from 'ai'
 import { z } from 'zod'
 import { getMessages } from './message'
-import { updateWorkingMemoryTool } from './workingMemoryTool'
+import { replaceWorkingMemoryTool } from './workingMemoryTool'
 import { TokenLimiter } from '@mastra/memory/processors'
 import { workingMemoryInstructions } from '../instructions/workingMemoryInstructions'
 
@@ -78,7 +78,7 @@ export const initializeMCP = async (): Promise<void> => {
     search_message: messageSearch
   }
   const workingMemoryTools = {
-    update_memory: updateWorkingMemoryTool
+    replace_memory: replaceWorkingMemoryTool
   }
   const mcpTools = await mcp.getTools()
   tools = { ...knowledgeTools, ...messageTools, ...workingMemoryTools, ...mcpTools }

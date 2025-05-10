@@ -59,7 +59,7 @@ export const handleSend = async (_, input): Promise<void> => {
       }
       if (chunk.type === 'tool-call') {
         if (
-          !['search_knowledge', 'upsert_knowledge', 'update_memory', 'search_message'].includes(
+          !['search_knowledge', 'upsert_knowledge', 'replace_memory', 'search_message'].includes(
             chunk.toolName
           )
         ) {

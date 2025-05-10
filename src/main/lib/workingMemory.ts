@@ -67,3 +67,9 @@ export const readWorkingMemory = async (): Promise<string> => {
 export const updateWorkingMemory = async (content: string): Promise<void> => {
   await fs.writeFile(WORKING_MEMORY_PATH, content)
 }
+
+export const replaceWorkingMemory = async (oldText: string, newText: string): Promise<void> => {
+  const currentContent = await readWorkingMemory()
+  const updatedContent = currentContent.replace(oldText, newText)
+  await fs.writeFile(WORKING_MEMORY_PATH, updatedContent)
+}

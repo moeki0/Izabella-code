@@ -107,7 +107,7 @@ function Messages({
                     </div>
                   </div>
                 )}
-                {message.role === 'tool' && message.tool_name === 'update_memory' && (
+                {message.role === 'tool' && message.tool_name === 'replace_memory' && (
                   <div className="knowledge">
                     <div className="knowledge-icon">
                       <FiSmile size={14} />
@@ -118,7 +118,7 @@ function Messages({
                 {message.role === 'tool' &&
                   message.tool_name !== 'upsert_knowledge' &&
                   message.tool_name !== 'search_knowledge' &&
-                  message.tool_name !== 'update_memory' && (
+                  message.tool_name !== 'replace_memory' && (
                     <div className="tool">
                       <div className="tool-name">
                         <div className="tool-name-text">
