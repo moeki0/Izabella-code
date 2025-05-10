@@ -59,7 +59,18 @@ export const upsertKnowledge: unknown = createTool({
   id: 'upsert_knowledge',
   inputSchema: z.object({
     text: z.string().describe('検索または保存するテキストコンテンツ'),
-    id: z.string().describe('このコンテンツの一意の識別子'),
+    id: z.string().describe(`このコンテンツの一意の識別子
+- 内容の要約
+- スペースや特殊文字の代わりにハイフン(-)を使用
+- すべて小文字
+- 英数字、日本語の平仮名・漢字、ハイフンのみ使用可
+- 長さは100文字以内
+
+例:
+- 東京の2023年8月の気象データ
+- ChatGPTのAPIリファレンス
+- プロジェクト計画の設計フェーズ
+      `),
     similarityThreshold: z
       .number()
       .min(0)

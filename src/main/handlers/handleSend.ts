@@ -2,6 +2,7 @@ import { agent, chat, detectSearchNeed, model } from '../lib/llm'
 import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
 import { saveToKnowledgeBase } from '../lib/knowledgeTools'
+import { generateKnowledgeId } from '../lib/generateKnowledgeId'
 
 export type Assistant = {
   name: string
@@ -47,25 +48,25 @@ export const handleSend = async (_, input): Promise<void> => {
         mainWindow.webContents.send('tool-call', chunk, false)
       }
       if (chunk.type === 'tool-result') {
-        if (!chunk.toolName || ['search_knowledge', 'search_message'].includes(chunk.toolName)) {
-          mainWindow.webContents.send('tool-result', chunk)
+        mainWindow.webContents.send('tool-result', chunk)
 
-          id = await createMessage({
-            role: 'tool',
-            toolName: chunk.toolName,
-            toolReq: JSON.stringify(chunk.args),
-            toolRes: JSON.stringify(chunk.result)
+        id = await createMessage({
+          role: 'tool',
+          toolName: chunk.toolName,
+          toolReq: JSON.stringify(chunk.args),
+          toolRes: JSON.stringify(chunk.result)
+        })
+        mainWindow.webContents.send('message-saved', id)
+
+        const result = JSON.stringify(chunk.result)
+        if (result.match(/(content|text|body|value)/m) || result.length > 300) {
+          const knowledgeId = await generateKnowledgeId(result, chunk.toolName)
+
+          saveToKnowledgeBase({
+            text: result,
+            id: knowledgeId,
+            similarityThreshold: 0.8
           })
-          mainWindow.webContents.send('message-saved', id)
-
-          const result = JSON.stringify(chunk.result)
-          if (result.match(/(content|text|body|value)/m) || result.length > 300) {
-            saveToKnowledgeBase({
-              text: result,
-              id: `tool-result-${chunk.toolName}-${new Date().toLocaleDateString().replace(/\//g, '-')}-${new Date().toLocaleTimeString().replace(/:/g, '-')}`,
-              similarityThreshold: 0.8
-            })
-          }
         }
       }
       if (chunk.type === 'source') {
