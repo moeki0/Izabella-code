@@ -81,7 +81,7 @@ export const initializeMCP = async (): Promise<void> => {
     replace_memory: replaceWorkingMemoryTool
   }
   const mcpTools = await mcp.getTools()
-  tools = { ...knowledgeTools, ...messageTools, ...workingMemoryTools, ...mcpTools }
+  tools = { ...messageTools, ...workingMemoryTools, ...mcpTools, ...knowledgeTools }
 }
 
 export const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
