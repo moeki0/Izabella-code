@@ -4,8 +4,8 @@ import { locale } from './locale'
 const cache = createIntlCache()
 export const intl = createIntl(
   {
-    locale: 'en',
-    messages: locale.en
+    locale: 'ja',
+    messages: locale.ja
   },
   cache
 )

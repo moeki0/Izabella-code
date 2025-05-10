@@ -96,7 +96,7 @@ header button:hover {
   border-radius: 7px;
   animation: pulse 1.5s ease-in-out infinite;
   transition: all;
-  height: 20px;
+  height: 10px;
   width: 100%;
 }
 
@@ -133,7 +133,6 @@ header button:hover {
   display: flex;
   gap: 5px;
   flex-direction: column;
-  animation: fadeIn 0.2s;
 }
 
 .memory-summary-item {

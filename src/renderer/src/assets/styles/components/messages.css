@@ -42,6 +42,10 @@ main {
   width: 100%;
 }
 
+.prompt pre {
+  margin: 0;
+}
+
 .prompt-user-bubble pre code {
   min-width: 200px;
   border-radius: 10px;
@@ -246,4 +250,8 @@ main {
 
 .knowledge-query {
   font-size: 12px;
+}
+
+code.language-reasoning {
+  display: none !important;
 }

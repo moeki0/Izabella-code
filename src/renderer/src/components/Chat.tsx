@@ -446,7 +446,7 @@ function Chat({
               ]}
               onChange={(value) => setInput(value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask anything"
+              placeholder="なんでも聞いてください"
             />
           </div>
         </div>

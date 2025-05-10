@@ -1,6 +1,7 @@
-import { Menu, shell } from 'electron'
+import { Menu, shell, app } from 'electron'
 import { store } from './store'
 import { mainWindow } from '..'
+import { join } from 'node:path'
 
 export const createMenu = async (intl): Promise<Menu> => {
   const template = [
@@ -15,6 +16,21 @@ export const createMenu = async (intl): Promise<Menu> => {
             shell.openPath(store.path)
           },
           accelerator: 'Command+,'
+        },
+        { type: 'separator' },
+        {
+          label: intl.formatMessage({ id: 'openKnowledgeFolder' }),
+          click: (): void => {
+            const knowledgePath = join(app.getPath('userData'), 'knowledge')
+            shell.openPath(knowledgePath)
+          }
+        },
+        {
+          label: intl.formatMessage({ id: 'openMemoryFile' }),
+          click: (): void => {
+            const memoryPath = join(app.getPath('userData'), 'memory.md')
+            shell.openPath(memoryPath)
+          }
         },
         { type: 'separator' },
         { role: 'services', label: intl.formatMessage({ id: 'services' }) },
