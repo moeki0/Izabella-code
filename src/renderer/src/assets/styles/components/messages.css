@@ -1,15 +1,11 @@
 .prompt {
-  padding: 10px;
+  padding: 4px 10px;
   line-height: 1.8;
   word-break: break-all;
 }
 
 .prompt-user p {
   margin: 0;
-}
-
-.prompt-user {
-  padding-right: 20px;
 }
 
 .prompt-user-bubble {
