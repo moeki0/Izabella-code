@@ -1,6 +1,7 @@
 import { agent, chat, detectSearchNeed, model } from '../lib/llm'
 import { mainWindow } from '..'
 import { createMessage } from '../lib/message'
+import { saveToKnowledgeBase } from '../lib/knowledgeTools'
 
 let toolApprovalResolver: ((approved: boolean) => void) | null = null
 
@@ -42,6 +43,7 @@ export const handleSend = async (_, input): Promise<void> => {
     globalThis.Interrupt = false
 
     for await (const chunk of stream.fullStream) {
+      console.log(chunk)
       if (chunk.type === 'error') {
         throw chunk.error
       }
@@ -87,6 +89,15 @@ export const handleSend = async (_, input): Promise<void> => {
             toolRes: JSON.stringify(chunk.result)
           })
           mainWindow.webContents.send('message-saved', id)
+
+          const result = JSON.stringify(chunk.result)
+          if (result.match(/(content|text|body|value)/m) || result.length > 300) {
+            saveToKnowledgeBase({
+              text: result,
+              id: `tool-result-${chunk.toolName}-${new Date().toLocaleDateString()}-${new Date().toLocaleTimeString()}`,
+              similarityThreshold: 0.8
+            })
+          }
         }
       }
       if (chunk.type === 'source') {
