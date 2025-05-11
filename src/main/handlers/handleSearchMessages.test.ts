@@ -18,7 +18,7 @@ describe('handleSearchMessages', () => {
 
     vi.mocked(messageModule.searchMessages).mockResolvedValueOnce(mockSearchResult)
 
-    const result = await handleSearchMessages({} as any, { query: 'Hello' })
+    const result = await handleSearchMessages({} as Electron.IpcMainInvokeEvent, { query: 'Hello' })
 
     expect(result.success).toBe(true)
     expect(result.data).toEqual(mockSearchResult)
@@ -30,7 +30,7 @@ describe('handleSearchMessages', () => {
     const error = new Error('Search failed')
     vi.mocked(messageModule.searchMessages).mockRejectedValueOnce(error)
 
-    const result = await handleSearchMessages({} as any, { query: 'test' })
+    const result = await handleSearchMessages({} as Electron.IpcMainInvokeEvent, { query: 'test' })
 
     expect(result.success).toBe(false)
     expect(result.data).toBeNull()

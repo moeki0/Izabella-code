@@ -118,9 +118,9 @@ describe('message', () => {
       const result = await searchMessages(params)
 
       expect(mockDb.prepare).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT COUNT(*) as count FROM messages')
+        expect.stringContaining('SELECT COUNT(*) as count')
       )
-      expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('SELECT * FROM messages'))
+      expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('FROM messages_fts'))
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('messages_fts MATCH ?'))
       expect(result).toEqual({
         messages: mockMessages,
@@ -154,11 +154,10 @@ describe('message', () => {
       const result = await searchMessages(params)
 
       expect(mockDb.prepare).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT COUNT(*) as count FROM messages')
+        expect.stringContaining('SELECT COUNT(*) as count')
       )
+      expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('FROM messages_fts'))
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('messages_fts MATCH ?'))
-      expect(mockDb.prepare.mock.calls[0][0]).toContain('id IN')
-      expect(mockDb.prepare.mock.calls[0][0]).toContain('SELECT id FROM messages_fts')
 
       // コード自体が機能しているかを確認する - whereParamsの実際の値はモックで難しい
       expect(result).toEqual({

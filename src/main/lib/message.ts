@@ -53,12 +53,15 @@ export const getMessageContext = async (
 
     const targetRowId = messageRow.rowid
 
+    console.log(`Found message with rowid ${targetRowId}, fetching context with count: ${count}`)
+
     // 対象メッセージの前後の指定件数のメッセージを取得（reasoningパターンを除外）
     const contextMessages = await db
       .prepare(
         `
       SELECT * FROM messages
-      WHERE rowid BETWEEN ? AND ? AND (content NOT LIKE '%'''reasoning%' OR content IS NULL)
+      WHERE rowid BETWEEN ? AND ? 
+      AND (content NOT LIKE '%reasoning%' OR content IS NULL)
       ORDER BY created_at ASC
     `
       )
@@ -84,7 +87,7 @@ export const searchMessages = async (
   const whereParams: Array<string | number> = []
 
   // 検索結果取得のための変数
-  let messages: any[] = []
+  let messages: Array<MessageWithId> = []
   let total = 0
   let totalPages = 0
 
@@ -105,7 +108,7 @@ export const searchMessages = async (
     // role制約がある場合
     let roleFilter = ''
     if (role) {
-      roleFilter = 'AND role = ?'
+      roleFilter = 'AND messages.role = ?'
       ftsParams.push(role)
     }
 
@@ -113,18 +116,19 @@ export const searchMessages = async (
     let dateFilter = ''
     if (startTime) {
       const utcStartTime = new Date(startTime).toISOString()
-      dateFilter += ' AND datetime(created_at) >= datetime(?)'
+      dateFilter += ' AND datetime(messages.created_at) >= datetime(?)'
       ftsParams.push(utcStartTime)
     }
 
     if (endTime) {
       const utcEndTime = new Date(endTime).toISOString()
-      dateFilter += ' AND datetime(created_at) <= datetime(?)'
+      dateFilter += ' AND datetime(messages.created_at) <= datetime(?)'
       ftsParams.push(utcEndTime)
     }
 
     // reasoningを含むメッセージを除外するフィルター
-    const reasoningFilter = "AND (content NOT LIKE '%reasoning%' OR content IS NULL)"
+    const reasoningFilter =
+      "AND (messages.content NOT LIKE '%reasoning%' OR messages.content IS NULL)"
 
     // テーブル結合を使って検索
     const countFtsSql = `
@@ -170,7 +174,7 @@ export const searchMessages = async (
     }
 
     // ```reasoning パターンを除外
-    whereConditions.push("(content NOT LIKE '%'''reasoning%' OR content IS NULL)")
+    whereConditions.push("(content NOT LIKE '%reasoning%' OR content IS NULL)")
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
 

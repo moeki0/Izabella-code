@@ -106,8 +106,12 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
       setHasMoreResults(false)
     }
 
-    // 3文字以上入力された場合は自動で検索を実行
-    if (newQuery.length >= 3) {
+    // 検索クエリの自動実行判定 (日本語の場合は2文字以上、それ以外は3文字以上)
+    const hasJapaneseChars =
+      /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(
+        newQuery
+      )
+    if ((hasJapaneseChars && newQuery.length >= 2) || (!hasJapaneseChars && newQuery.length >= 3)) {
       setCurrentPage(1)
       handleSearch(1)
     }
@@ -136,7 +140,14 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
     const queryWords = originalQuery
       .toLowerCase()
       .split(/\s+/)
-      .filter((word) => word.length >= 3)
+      .filter((word) => {
+        // 日本語文字が含まれている場合は2文字以上、それ以外は3文字以上
+        const hasJapaneseChars =
+          /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(
+            word
+          )
+        return hasJapaneseChars ? word.length >= 2 : word.length >= 3
+      })
 
     if (message.content) {
       let content = message.content
@@ -151,9 +162,12 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
         const end = Math.min(content.length, index + originalQuery.length + 40)
         const extractedContent = content.substring(start, end)
 
+        // 特殊文字をエスケープしてRegExでエラーを防ぐ
+        const escapedQuery = originalQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
         // 抽出したテキスト内の検索キーワードをハイライト
         const highlightedContent = extractedContent.replace(
-          new RegExp(originalQuery, 'gi'),
+          new RegExp(escapedQuery, 'gi'),
           (match) => `<span class="message-context-highlight">${match}</span>`
         )
 
@@ -163,15 +177,25 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
       // 複数キーワードの場合、最初に見つかったキーワード付近を抽出
       else if (queryWords.length > 0) {
         for (const word of queryWords) {
-          if (word.length > 2 && content.toLowerCase().includes(word.toLowerCase())) {
+          // 日本語文字が含まれている場合は2文字以上、それ以外は3文字以上
+          const hasJapaneseChars =
+            /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(
+              word
+            )
+          const minLength = hasJapaneseChars ? 2 : 3
+
+          if (word.length >= minLength && content.toLowerCase().includes(word.toLowerCase())) {
             const index = content.toLowerCase().indexOf(word.toLowerCase())
             const start = Math.max(0, index - 20)
             const end = Math.min(content.length, index + word.length + 40)
             const extractedContent = content.substring(start, end)
 
+            // 特殊文字をエスケープしてRegExでエラーを防ぐ
+            const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
             // 抽出したテキスト内の検索キーワードをハイライト
             const highlightedContent = extractedContent.replace(
-              new RegExp(word, 'gi'),
+              new RegExp(escapedWord, 'gi'),
               (match) => `<span class="message-context-highlight">${match}</span>`
             )
 
@@ -204,23 +228,25 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
 
   return (
     <div className="message-search-container" ref={searchRef}>
-      <div className="message-search">
-        <FiSearch className="search-icon" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={handleQueryChange}
-          onKeyDown={handleKeyDown}
-          placeholder={intl.formatMessage({ id: 'searchMessages' })}
-          aria-label="Search messages"
-          autoFocus
-        />
-        {searchQuery && (
-          <button className="clear-search" onClick={clearSearch} aria-label="Clear search">
-            <FiX />
-          </button>
-        )}
-        {isSearching && <div className="spinner"></div>}
+      <div className="message-search-wrapper">
+        <div className="message-search">
+          <FiSearch className="search-icon" size={12} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleQueryChange}
+            onKeyDown={handleKeyDown}
+            placeholder={intl.formatMessage({ id: 'searchMessages' })}
+            aria-label="Search messages"
+            autoFocus
+          />
+          {searchQuery && (
+            <button className="clear-search" onClick={clearSearch} aria-label="Clear search">
+              <FiX />
+            </button>
+          )}
+          {isSearching && <div className="spinner"></div>}
+        </div>
       </div>
 
       {searchResults.length > 0 && (

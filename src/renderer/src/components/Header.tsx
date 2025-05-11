@@ -1,7 +1,4 @@
-import { KnowledgeDropdown } from './KnowledgeDropdown'
-import { MemoryDropdown } from './MemoryDropdown'
-import { SettingsDropdown } from './SettingsDropdown'
-import { FiSearch } from 'react-icons/fi'
+import { FiSearch, FiBookOpen, FiSmile, FiSettings } from 'react-icons/fi'
 
 interface Props {
   title?: string
@@ -18,9 +15,25 @@ interface Props {
   className?: string
   toggleSearchSidebar?: () => void
   isSearchSidebarOpen?: boolean
+  toggleKnowledgeSidebar?: () => void
+  isKnowledgeSidebarOpen?: boolean
+  toggleMemorySidebar?: () => void
+  isMemorySidebarOpen?: boolean
+  toggleSettingsSidebar?: () => void
+  isSettingsSidebarOpen?: boolean
 }
 
-function Header({ className, toggleSearchSidebar, isSearchSidebarOpen }: Props): React.JSX.Element {
+function Header({
+  className,
+  toggleSearchSidebar,
+  isSearchSidebarOpen,
+  toggleKnowledgeSidebar,
+  isKnowledgeSidebarOpen,
+  toggleMemorySidebar,
+  isMemorySidebarOpen,
+  toggleSettingsSidebar,
+  isSettingsSidebarOpen
+}: Props): React.JSX.Element {
   return (
     <header role="banner" className={className}>
       <div className="header-title"></div>
@@ -34,9 +47,33 @@ function Header({ className, toggleSearchSidebar, isSearchSidebarOpen }: Props):
             <FiSearch size={18} />
           </button>
         )}
-        <MemoryDropdown />
-        <KnowledgeDropdown />
-        <SettingsDropdown forceOpen={false} />
+        {toggleMemorySidebar && (
+          <button
+            className={`header-icon-button ${isMemorySidebarOpen ? 'header-button-active' : ''}`}
+            onClick={toggleMemorySidebar}
+            aria-label="Toggle memory"
+          >
+            <FiSmile size={18} />
+          </button>
+        )}
+        {toggleKnowledgeSidebar && (
+          <button
+            className={`header-icon-button ${isKnowledgeSidebarOpen ? 'header-button-active' : ''}`}
+            onClick={toggleKnowledgeSidebar}
+            aria-label="Toggle knowledge"
+          >
+            <FiBookOpen size={18} />
+          </button>
+        )}
+        {toggleSettingsSidebar && (
+          <button
+            className={`header-icon-button ${isSettingsSidebarOpen ? 'header-button-active' : ''}`}
+            onClick={toggleSettingsSidebar}
+            aria-label="Toggle settings"
+          >
+            <FiSettings size={18} />
+          </button>
+        )}
       </div>
     </header>
   )

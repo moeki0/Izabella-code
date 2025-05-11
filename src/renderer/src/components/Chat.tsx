@@ -11,6 +11,9 @@ import hljs from 'highlight.js'
 import mermaid from 'mermaid'
 import Messages from './Messages'
 import MessageSearch from './MessageSearch'
+import { KnowledgeSidebar } from './KnowledgeSidebar'
+import { MemorySidebar } from './MemorySidebar'
+import { SettingsSidebar } from './SettingsSidebar'
 import { useIntl } from '../lib/locale'
 import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
@@ -134,9 +137,19 @@ function Chat({
     args: string
   } | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
+
+  // Sidebar states
   const [isSearchSidebarOpen, setIsSearchSidebarOpen] = useState(false)
+  const [isKnowledgeSidebarOpen, setIsKnowledgeSidebarOpen] = useState(false)
+  const [isMemorySidebarOpen, setIsMemorySidebarOpen] = useState(false)
+  const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false)
+
   const [isShowingSearchResult, setIsShowingSearchResult] = useState(false)
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
+
+  // Calculate if any sidebar is open
+  const isSidebarOpen =
+    isSearchSidebarOpen || isKnowledgeSidebarOpen || isMemorySidebarOpen || isSettingsSidebarOpen
 
   useEffect(() => {
     const unsubscribe = registerNewThreadListener(() => {
@@ -517,6 +530,11 @@ function Chat({
 
   // サーチサイドバーの表示・非表示を切り替える
   const toggleSearchSidebar = useCallback(() => {
+    // 他のサイドバーを閉じる
+    setIsKnowledgeSidebarOpen(false)
+    setIsMemorySidebarOpen(false)
+    setIsSettingsSidebarOpen(false)
+
     setIsSearchSidebarOpen((prevState) => {
       const newState = !prevState
 
@@ -547,12 +565,42 @@ function Chat({
     })
   }, [isShowingSearchResult, originalMessages])
 
+  // Knowledge サイドバーの表示・非表示を切り替える
+  const toggleKnowledgeSidebar = useCallback(() => {
+    // 他のサイドバーを閉じる
+    setIsSearchSidebarOpen(false)
+    setIsMemorySidebarOpen(false)
+    setIsSettingsSidebarOpen(false)
+
+    setIsKnowledgeSidebarOpen((prev) => !prev)
+  }, [])
+
+  // Memory サイドバーの表示・非表示を切り替える
+  const toggleMemorySidebar = useCallback(() => {
+    // 他のサイドバーを閉じる
+    setIsSearchSidebarOpen(false)
+    setIsKnowledgeSidebarOpen(false)
+    setIsSettingsSidebarOpen(false)
+
+    setIsMemorySidebarOpen((prev) => !prev)
+  }, [])
+
+  // Settings サイドバーの表示・非表示を切り替える
+  const toggleSettingsSidebar = useCallback(() => {
+    // 他のサイドバーを閉じる
+    setIsSearchSidebarOpen(false)
+    setIsKnowledgeSidebarOpen(false)
+    setIsMemorySidebarOpen(false)
+
+    setIsSettingsSidebarOpen((prev) => !prev)
+  }, [])
+
   const intl = useIntl()
 
   return (
     <>
-      <main className={isSearchSidebarOpen ? 'main-with-sidebar' : ''}>
-        <div className={`main-content ${isSearchSidebarOpen ? 'main-content-with-sidebar' : ''}`}>
+      <main className={isSidebarOpen ? 'main-with-sidebar' : ''}>
+        <div className={`main-content ${isSidebarOpen ? 'main-content-with-sidebar' : ''}`}>
           <Header
             title={title}
             startedAt={startedAt!}
@@ -561,6 +609,12 @@ function Chat({
             className={isScrolled ? 'header-scrolled' : ''}
             toggleSearchSidebar={toggleSearchSidebar}
             isSearchSidebarOpen={isSearchSidebarOpen}
+            toggleKnowledgeSidebar={toggleKnowledgeSidebar}
+            isKnowledgeSidebarOpen={isKnowledgeSidebarOpen}
+            toggleMemorySidebar={toggleMemorySidebar}
+            isMemorySidebarOpen={isMemorySidebarOpen}
+            toggleSettingsSidebar={toggleSettingsSidebar}
+            isSettingsSidebarOpen={isSettingsSidebarOpen}
           />
           <Messages
             messages={messages}
@@ -571,9 +625,7 @@ function Chat({
             interrupt={interrupt}
             searchQuery={currentSearchQuery}
           />
-          <div
-            className={`user-container ${isSearchSidebarOpen ? 'user-container-with-sidebar' : ''}`}
-          >
+          <div className={`user-container ${isSidebarOpen ? 'user-container-with-sidebar' : ''}`}>
             <div className="user">
               <ReactCodeMirror
                 value={input}
@@ -592,11 +644,17 @@ function Chat({
       </main>
       {isSearchSidebarOpen && (
         <div className="sidebar">
+          <div className="sidebar-header">
+            <div className="sidebar-title">{intl.formatMessage({ id: 'search' })}</div>
+          </div>
           <MessageSearch
             onMessageSelect={(messageId, query) => handleShowMessageContext(messageId, query)}
           />
         </div>
       )}
+      <KnowledgeSidebar isOpen={isKnowledgeSidebarOpen} onClose={toggleKnowledgeSidebar} />
+      <MemorySidebar isOpen={isMemorySidebarOpen} onClose={toggleMemorySidebar} />
+      <SettingsSidebar isOpen={isSettingsSidebarOpen} onClose={toggleSettingsSidebar} />
       <div className="banner">
         {error && (
           <div className="error">

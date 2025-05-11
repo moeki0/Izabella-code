@@ -1,35 +1,34 @@
 .message-search-container {
   width: 100%;
   margin-bottom: 15px;
+  overflow: hidden;
+  height: calc(100vh-50px);
 }
 
-.sidebar-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #333;
+.message-search-wrapper {
+  padding: 10px;
 }
 
 .message-search {
   display: flex;
   align-items: center;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 6px 10px;
+  background: none;
   transition: all 0.2s ease;
+  background-color: rgba(224, 224, 224);
+  padding: 8px;
+  border-radius: 7px;
 }
 
 .message-search .search-icon {
-  color: #768390;
-  margin-right: 8px;
+  color: #555;
+  margin-right: 4px;
   min-width: 16px;
 }
 
 .message-search input {
   flex-grow: 1;
   background: transparent;
-  font-size: 14px;
+  font-size: 12px;
   width: 100%;
 }
 
@@ -48,30 +47,32 @@
 }
 
 .search-results-container {
-  margin-top: 10px;
   flex: 1;
   width: 100%;
   overflow-y: auto;
+  max-height: 100%;
 }
 
 .search-results-header {
-  padding: 10px 0;
   font-size: 13px;
   color: #57606a;
   font-weight: 600;
-  margin-bottom: 5px;
+  padding: 10px;
 }
 
 .search-results-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  overflow-y: scroll;
+  height: 100%;
+  max-height: 100%;
+  padding: 10px;
 }
 
 .search-result-item {
   padding: 10px 0;
   border-top: 1px solid #bbb;
-  border-radius: 6px;
   cursor: default;
 }
 
@@ -134,8 +135,8 @@
 .search-no-results {
   padding: 20px 12px;
   text-align: center;
-  color: #768390;
-  font-size: 14px;
+  color: #888;
+  font-size: 12px;
 }
 
 .spinner {

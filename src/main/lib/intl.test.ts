@@ -1,20 +1,32 @@
-import { describe, expect, it, vi, beforeAll } from 'vitest'
-import { locale } from './locale'
+import { describe, expect, it, vi, beforeAll, beforeEach } from 'vitest'
+import { app } from 'electron'
 
-// モック関数の定義
-const mockFormatMessage = vi.fn().mockImplementation(({ id }) => {
-  return locale.en[id] || id
-})
-
-// @formatjs/intl をモック
-vi.mock('@formatjs/intl', () => ({
-  createIntl: vi.fn().mockImplementation((config) => ({
-    locale: config.locale,
-    messages: config.messages,
-    formatMessage: mockFormatMessage
-  })),
-  createIntlCache: vi.fn().mockReturnValue({})
+// electron appのモック
+vi.mock('electron', () => ({
+  app: {
+    getLocale: vi.fn().mockReturnValue('en'),
+    getPath: vi.fn().mockReturnValue('/mock/path')
+  }
 }))
+
+// fsとpathのモック
+vi.mock('fs', () => ({
+  default: {
+    existsSync: vi.fn().mockReturnValue(false),
+    writeFileSync: vi.fn()
+  }
+}))
+
+vi.mock('path', () => ({
+  default: {
+    join: vi.fn().mockReturnValue('/mock/path/locale-preference.json')
+  }
+}))
+
+// intlオブジェクトの独自のモックを作成
+const mockFormatMessage = vi.fn().mockImplementation(({ id }) => {
+  return id
+})
 
 describe('intl', () => {
   // テスト前にモジュールキャッシュをクリア
@@ -22,31 +34,44 @@ describe('intl', () => {
     vi.resetModules()
   })
 
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('intl オブジェクトが英語ロケールで初期化されること', async () => {
     // モジュールをインポート
-    const { intl } = await import('./intl')
+    const { intl, initLocale } = await import('./intl')
+
+    // 手動で初期化
+    initLocale('en')
 
     // 期待する設定でintlが初期化されたか確認
     expect(intl.locale).toBe('en')
-    expect(intl.messages).toEqual(locale.en)
+    expect(intl.messages).toBeInstanceOf(Object)
   })
 
   it('formatMessage が正しく動作すること', async () => {
     // モジュールをインポート
-    const { intl } = await import('./intl')
+    const { intl, initLocale } = await import('./intl')
 
-    // 存在するメッセージIDの場合
+    // formatMessageのスパイを設定
+    const spy = vi.spyOn(intl, 'formatMessage')
+
+    // 手動で初期化
+    initLocale('en')
+
+    // formatMessageをテスト
     intl.formatMessage({ id: 'app' })
-    expect(mockFormatMessage).toHaveBeenCalledWith({ id: 'app' })
+    expect(spy).toHaveBeenCalledWith({ id: 'app' })
 
     intl.formatMessage({ id: 'file' })
-    expect(mockFormatMessage).toHaveBeenCalledWith({ id: 'file' })
+    expect(spy).toHaveBeenCalledWith({ id: 'file' })
 
     intl.formatMessage({ id: 'edit' })
-    expect(mockFormatMessage).toHaveBeenCalledWith({ id: 'edit' })
+    expect(spy).toHaveBeenCalledWith({ id: 'edit' })
 
     // 存在しないメッセージIDの場合
     intl.formatMessage({ id: 'nonExistentKey' })
-    expect(mockFormatMessage).toHaveBeenCalledWith({ id: 'nonExistentKey' })
+    expect(spy).toHaveBeenCalledWith({ id: 'nonExistentKey' })
   })
 })

@@ -46,12 +46,14 @@ export const locale = {
     backLink: 'バックリンク',
     copyAll: '全てコピー',
     stopAssistant: 'アシスタントを停止',
-    deleteMessage: 'メッセージを削除'
+    deleteMessage: 'メッセージを削除',
+    settings: '設定'
   },
   en: {
     app: 'Izabella',
     about: 'About Izabella',
     setting: 'Settings (JSON)',
+    settings: 'Settings',
     openKnowledgeFolder: 'Open Knowledge Folder',
     openMemoryFile: 'Open Memory File',
     services: 'Services',

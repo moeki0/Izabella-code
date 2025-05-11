@@ -32,12 +32,19 @@ const HighlightedMarkdown: React.FC<HighlightedMarkdownProps> = ({ content, sear
   // ```reasoning ブロックを削除
   const cleanContent = content ? content.replace(/```reasoning[\s\S]*?```/g, '') : ''
 
-  // 検索クエリを分解して個別の単語にする（3文字以上の単語のみ）
+  // 検索クエリを分解して個別の単語にする（日本語の場合は2文字以上の単語も対象に）
   const queryWords = searchQuery
     .trim()
     .toLowerCase()
     .split(/\s+/)
-    .filter((word) => word.length >= 3)
+    .filter((word) => {
+      // 日本語文字が含まれている場合は2文字以上、それ以外は3文字以上をフィルタリング
+      const hasJapaneseChars =
+        /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(
+          word
+        )
+      return hasJapaneseChars ? word.length >= 2 : word.length >= 3
+    })
 
   if (queryWords.length === 0) {
     return <Markdown remarkPlugins={[remarkGfm]}>{cleanContent}</Markdown>
@@ -56,14 +63,18 @@ const HighlightedMarkdown: React.FC<HighlightedMarkdownProps> = ({ content, sear
     const allPatterns: string[] = []
 
     // 完全一致のクエリを追加
-    if (searchQuery.trim().length >= 3) {
-      allPatterns.push(escapeRegExp(searchQuery.trim()))
+    if (searchQuery.trim().length >= 2) {
+      // 2文字以上に変更（日本語対応）
+      const escapedQuery = escapeRegExp(searchQuery.trim())
+      allPatterns.push(escapedQuery)
     }
 
     // 個別の単語を追加
     queryWords.forEach((word) => {
-      if (word.length >= 3 && !allPatterns.includes(escapeRegExp(word))) {
-        allPatterns.push(escapeRegExp(word))
+      if (word.length >= 2 && !allPatterns.includes(escapeRegExp(word))) {
+        // 2文字以上に変更（日本語対応）
+        const escapedWord = escapeRegExp(word)
+        allPatterns.push(escapedWord)
       }
     })
 
