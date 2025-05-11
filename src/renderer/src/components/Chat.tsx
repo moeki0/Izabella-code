@@ -10,7 +10,9 @@ import type { Mermaid } from 'mermaid'
 import hljs from 'highlight.js'
 import mermaid from 'mermaid'
 import Messages from './Messages'
+import MessageSearch from './MessageSearch'
 import { useIntl } from '../lib/locale'
+import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
 
 export type Message = {
@@ -118,6 +120,7 @@ function Chat({
 
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Array<Message>>([])
+  const [originalMessages, setOriginalMessages] = useState<Array<Message>>([])
   const [title, setTitle] = useState('')
   const [startedAt, setStartedAt] = useState<Date | null>(new Date())
   const [loading, setLoading] = useState(false)
@@ -131,6 +134,9 @@ function Chat({
     args: string
   } | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isSearchSidebarOpen, setIsSearchSidebarOpen] = useState(false)
+  const [isShowingSearchResult, setIsShowingSearchResult] = useState(false)
+  const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
 
   useEffect(() => {
     const unsubscribe = registerNewThreadListener(() => {
@@ -163,6 +169,7 @@ function Chat({
     init().then(({ title, messages: m }) => {
       setInitialized(true)
       setMessages(m)
+      setOriginalMessages(m) // オリジナルのメッセージを保存
       setTitle(title)
       setTimeout(() => {
         hljs.highlightAll()
@@ -189,15 +196,23 @@ function Chat({
     const unsubscribeStream = registerStreamListener((chunk) => {
       setLoading(false)
       setMessages((prev) => {
+        let newPrev = prev
         if (prev.length === 0 || prev[prev.length - 1].role !== 'assistant') {
-          prev = [...prev, { role: 'assistant', content: '' }]
+          newPrev = [...prev, { role: 'assistant', content: '' }]
         }
-        return prev.map((message, i) => {
-          if (i === prev.length - 1) {
+        const updatedMessages = newPrev.map((message, i) => {
+          if (i === newPrev.length - 1) {
             return { ...message, content: (message.content || '') + chunk }
           }
           return message
         })
+
+        // 検索結果表示中でない場合はオリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
       })
     })
 
@@ -210,7 +225,7 @@ function Chat({
         setPendingTool(content)
       }
       setMessages((prev) => {
-        return [
+        const updatedMessages = [
           ...prev,
           {
             role: 'tool',
@@ -219,6 +234,13 @@ function Chat({
             open: true
           }
         ]
+
+        // 検索結果表示中でない場合はオリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
       })
       setLoading(true)
     })
@@ -273,7 +295,7 @@ function Chat({
 
     const unsubscribeToolResult = registerToolResultListener((content) => {
       setMessages((prev) => {
-        return prev.map((message, i) => {
+        const updatedMessages = prev.map((message, i) => {
           if (i === prev.length - 1) {
             return {
               ...message,
@@ -283,6 +305,13 @@ function Chat({
           }
           return { ...message, open: false }
         })
+
+        // 検索結果表示中でない場合はオリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
       })
       setLoading(true)
     })
@@ -343,7 +372,8 @@ function Chat({
     registerSourceListener,
     send,
     registerInterruptListener,
-    registerMessageSavedListener
+    registerMessageSavedListener,
+    isShowingSearchResult
   ])
 
   useEffect(() => {
@@ -368,7 +398,14 @@ function Chat({
   const sendMessage = useCallback((): void => {
     send(input, false)
     setInput('')
-    setMessages((pre) => [...pre, { role: 'user', content: input }])
+    setMessages((pre) => {
+      const newMessages = [...pre, { role: 'user', content: input }]
+      // 検索結果表示中でない場合はオリジナルメッセージも更新
+      if (!isShowingSearchResult) {
+        setOriginalMessages(newMessages)
+      }
+      return newMessages
+    })
     const lastPrompt = document.querySelector('.prompt:last-child')
     setLoading(true)
     setRunning(true)
@@ -388,7 +425,7 @@ function Chat({
         }
       }, 1)
     }
-  }, [send, input])
+  }, [send, input, isShowingSearchResult])
 
   const handleToolClick = (i: number): void => {
     setMessages((prev) => {
@@ -418,40 +455,148 @@ function Chat({
     })
   }, [])
 
+  // メッセージコンテキストを表示する
+  const handleShowMessageContext = useCallback(
+    async (messageId: string, searchQuery?: string) => {
+      try {
+        // メッセージの前後20件を取得
+        const result = await window.api.getMessageContext(messageId, 20)
+
+        if (result.success && result.data && result.data.length > 0) {
+          // 検索結果表示中フラグをセット
+          setIsShowingSearchResult(true)
+
+          // 検索クエリを保存
+          if (searchQuery) {
+            // 直接引数から検索クエリを使用
+            setCurrentSearchQuery(searchQuery)
+          } else {
+            // 引数がない場合は入力欄から検索クエリを取得（後方互換性）
+            const searchInputElement = document.querySelector(
+              '.message-search input'
+            ) as HTMLInputElement
+            if (searchInputElement && searchInputElement.value) {
+              // クエリからタイムスタンプを除去
+              const cleanedQuery = cleanSearchQuery(searchInputElement.value)
+              setCurrentSearchQuery(cleanedQuery)
+            }
+          }
+
+          // reasoningブロックを含むメッセージを除外
+          const filteredMessages = result.data.filter((message) => {
+            // contentがnullの場合はフィルタリングしない
+            if (!message.content) return true
+
+            // ```reasoning```ブロックを含むメッセージを除外
+            return !message.content.includes('```reasoning')
+          })
+
+          // 取得したメッセージで現在のメッセージリストを置き換え
+          setMessages(filteredMessages)
+
+          // 少し待ってから選択したメッセージにスクロール
+          setTimeout(() => {
+            const element = document.getElementById(`message-${messageId}`)
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              element.classList.add('message-highlight')
+              setTimeout(() => {
+                element.classList.remove('message-highlight')
+              }, 2000)
+            }
+          }, 100)
+        } else {
+          console.error('Failed to get message context:', result.error)
+        }
+      } catch (error) {
+        console.error('Error showing message context:', error)
+      }
+    },
+    [setMessages, setIsShowingSearchResult, setCurrentSearchQuery]
+  )
+
+  // サーチサイドバーの表示・非表示を切り替える
+  const toggleSearchSidebar = useCallback(() => {
+    setIsSearchSidebarOpen((prevState) => {
+      const newState = !prevState
+
+      // サイドバーを閉じる場合、元のメッセージに戻す
+      if (!newState && isShowingSearchResult) {
+        setMessages(originalMessages)
+        setIsShowingSearchResult(false)
+        setCurrentSearchQuery('') // 検索クエリをクリア
+
+        // メッセージリストの一番下までスクロール
+        setTimeout(() => {
+          try {
+            const messagesInnerElement = document.querySelector('.messages-inner')
+            if (messagesInnerElement) {
+              const height = messagesInnerElement.getBoundingClientRect().height
+              window.scroll({
+                top: height,
+                behavior: 'smooth'
+              })
+            }
+          } catch (e) {
+            console.warn(e)
+          }
+        }, 100)
+      }
+
+      return newState
+    })
+  }, [isShowingSearchResult, originalMessages])
+
+  const intl = useIntl()
+
   return (
     <>
-      <main>
-        <Header
-          title={title}
-          startedAt={startedAt!}
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-          className={isScrolled ? 'header-scrolled' : ''}
-        />
-        <Messages
-          messages={messages}
-          showMessageContextMenu={showMessageContextMenu}
-          loading={loading}
-          running={running}
-          handleToolClick={handleToolClick}
-          interrupt={interrupt}
-        />
-        <div className="user-container">
-          <div className="user">
-            <ReactCodeMirror
-              value={input}
-              autoFocus={true}
-              extensions={[
-                markdown({ base: markdownLanguage, codeLanguages: languages }),
-                EditorView.lineWrapping
-              ]}
-              onChange={(value) => setInput(value)}
-              onKeyDown={handleKeyDown}
-              placeholder={useIntl().formatMessage({ id: 'askMeAnything' })}
-            />
+      <main className={isSearchSidebarOpen ? 'main-with-sidebar' : ''}>
+        <div className={`main-content ${isSearchSidebarOpen ? 'main-content-with-sidebar' : ''}`}>
+          <Header
+            title={title}
+            startedAt={startedAt!}
+            isMenuOpen={isMenuOpen}
+            setIsMenuOpen={setIsMenuOpen}
+            className={isScrolled ? 'header-scrolled' : ''}
+            toggleSearchSidebar={toggleSearchSidebar}
+            isSearchSidebarOpen={isSearchSidebarOpen}
+          />
+          <Messages
+            messages={messages}
+            showMessageContextMenu={showMessageContextMenu}
+            loading={loading}
+            running={running}
+            handleToolClick={handleToolClick}
+            interrupt={interrupt}
+            searchQuery={currentSearchQuery}
+          />
+          <div
+            className={`user-container ${isSearchSidebarOpen ? 'user-container-with-sidebar' : ''}`}
+          >
+            <div className="user">
+              <ReactCodeMirror
+                value={input}
+                autoFocus={true}
+                extensions={[
+                  markdown({ base: markdownLanguage, codeLanguages: languages }),
+                  EditorView.lineWrapping
+                ]}
+                onChange={(value) => setInput(value)}
+                onKeyDown={handleKeyDown}
+                placeholder={intl.formatMessage({ id: 'askMeAnything' })}
+              />
+            </div>
           </div>
         </div>
       </main>
+      {isSearchSidebarOpen && (
+        <div className="sidebar">
+          <MessageSearch
+            onMessageSelect={(messageId, query) => handleShowMessageContext(messageId, query)}
+          />
+        </div>
+      )}
       <div className="banner">
         {error && (
           <div className="error">
@@ -462,10 +607,7 @@ function Chat({
         {pendingTool && (
           <div className="tool-confirmation">
             <div className="tool-confirmation-text">
-              {useIntl().formatMessage(
-                { id: 'toolConfirmation' },
-                { toolName: pendingTool.toolName }
-              )}
+              {intl.formatMessage({ id: 'toolConfirmation' }, { toolName: pendingTool.toolName })}
             </div>
             <div className="tool-confirmation-buttons">
               <button
@@ -475,7 +617,7 @@ function Chat({
                   setRunning(false)
                 }}
               >
-                {useIntl().formatMessage({ id: 'no' })}
+                {intl.formatMessage({ id: 'no' })}
               </button>
               <button
                 onClick={() => {
@@ -483,7 +625,7 @@ function Chat({
                   setPendingTool(null)
                 }}
               >
-                {useIntl().formatMessage({ id: 'yes' })}
+                {intl.formatMessage({ id: 'yes' })}
               </button>
             </div>
           </div>

@@ -1,8 +1,67 @@
 main {
   background-color: white;
   width: 100vw;
+  height: 100vh;
+  overflow: hidden;
   position: relative;
-  padding-top: 30px;
+  display: flex;
+  flex-direction: row;
+}
+
+.main-content {
+  flex: 1;
+  margin: 0 auto;
+}
+
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  border-left: 1px solid #eee;
+  padding: 20px 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  height: 100vh;
+  overflow-y: scroll;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.sidebar-close-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 0;
+}
+
+.sidebar-close {
+  background: none;
+  border: none;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-close:hover {
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .messages {
@@ -10,6 +69,8 @@ main {
   justify-content: center;
   width: 100%;
   animation: fadeInWithDelay 1s;
+  overflow-y: scroll;
+  height: calc(100vh - 50px);
 }
 
 @keyframes fadeInWithDelay {
@@ -38,6 +99,7 @@ main {
   position: fixed;
   width: 100%;
   padding: 0px 10px 20px;
+  z-index: 200;
 }
 
 .banner {

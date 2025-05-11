@@ -4,6 +4,10 @@
   word-break: break-all;
 }
 
+.prompt-wrapper:last-child .prompt {
+  margin-bottom: 200px;
+}
+
 .prompt-user p {
   margin: 0;
 }
@@ -18,7 +22,6 @@
 }
 
 main {
-  padding-top: 50px;
   padding-bottom: 100px;
 }
 
@@ -75,6 +78,10 @@ main {
   overflow-x: scroll;
   width: 100%;
   max-width: 100%;
+}
+
+.user-container-with-sidebar {
+  width: calc(100vw - 300px);
 }
 
 .user {

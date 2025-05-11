@@ -36,6 +36,44 @@ export type SearchMessagesParams = {
   itemsPerPage?: number
 }
 
+// 特定のメッセージIDの前後のメッセージを取得する
+export const getMessageContext = async (
+  messageId: string,
+  count: number = 20
+): Promise<Array<MessageWithId>> => {
+  const db = await database()
+
+  try {
+    // まず対象のメッセージのrowid（SQLiteの内部ID）を取得
+    const messageRow = await db.prepare('SELECT rowid FROM messages WHERE id = ?').get(messageId)
+
+    if (!messageRow) {
+      return []
+    }
+
+    const targetRowId = messageRow.rowid
+
+    // 対象メッセージの前後の指定件数のメッセージを取得（reasoningパターンを除外）
+    const contextMessages = await db
+      .prepare(
+        `
+      SELECT * FROM messages
+      WHERE rowid BETWEEN ? AND ? AND (content NOT LIKE '%'''reasoning%' OR content IS NULL)
+      ORDER BY created_at ASC
+    `
+      )
+      .all(
+        Math.max(1, targetRowId - count), // 最小rowid = 1
+        targetRowId + count
+      )
+
+    return contextMessages
+  } catch (error) {
+    console.error('Error getting message context:', error)
+    return []
+  }
+}
+
 export const searchMessages = async (
   params: SearchMessagesParams
 ): Promise<MessagesWithPagination> => {
@@ -45,57 +83,113 @@ export const searchMessages = async (
   const whereConditions: Array<string> = []
   const whereParams: Array<string | number> = []
 
-  // For content search using FTS5
-  let ftsFilter = ''
-  if (query) {
-    ftsFilter = `
-      id IN (
-        SELECT id FROM messages_fts
-        WHERE messages_fts MATCH ?
-      )
+  // 検索結果取得のための変数
+  let messages: any[] = []
+  let total = 0
+  let totalPages = 0
+
+  // クエリ文字列がある場合は全文検索を使用
+  if (query && query.trim()) {
+    // クエリからタイムスタンプを除去（フロントエンドでタイムスタンプを追加している場合）
+    let cleanQuery = query.trim()
+
+    // 末尾に数字がある場合（タイムスタンプ）は除去
+    cleanQuery = cleanQuery.replace(/\s+\d+$/, '')
+
+    console.log(`Original query: "${query}", Cleaned query: "${cleanQuery}"`)
+
+    // FTSを使ったクエリを構築
+    const ftsQuery = `${cleanQuery}*`
+    const ftsParams: (string | number)[] = [ftsQuery]
+
+    // role制約がある場合
+    let roleFilter = ''
+    if (role) {
+      roleFilter = 'AND role = ?'
+      ftsParams.push(role)
+    }
+
+    // 日付範囲の制約
+    let dateFilter = ''
+    if (startTime) {
+      const utcStartTime = new Date(startTime).toISOString()
+      dateFilter += ' AND datetime(created_at) >= datetime(?)'
+      ftsParams.push(utcStartTime)
+    }
+
+    if (endTime) {
+      const utcEndTime = new Date(endTime).toISOString()
+      dateFilter += ' AND datetime(created_at) <= datetime(?)'
+      ftsParams.push(utcEndTime)
+    }
+
+    // reasoningを含むメッセージを除外するフィルター
+    const reasoningFilter = "AND (content NOT LIKE '%reasoning%' OR content IS NULL)"
+
+    // テーブル結合を使って検索
+    const countFtsSql = `
+      SELECT COUNT(*) as count
+      FROM messages_fts
+      JOIN messages ON messages_fts.rowid = messages.rowid
+      WHERE messages_fts MATCH ? ${roleFilter} ${dateFilter} ${reasoningFilter}
     `
-    whereParams.push(`${query}*`)
+
+    const countResult = await db.prepare(countFtsSql).get(...ftsParams)
+    total = countResult.count
+    totalPages = Math.ceil(total / itemsPerPage)
+    const offset = (page - 1) * itemsPerPage
+
+    // 実際のメッセージを取得
+    const querySql = `
+      SELECT messages.*
+      FROM messages_fts
+      JOIN messages ON messages_fts.rowid = messages.rowid
+      WHERE messages_fts MATCH ? ${roleFilter} ${dateFilter} ${reasoningFilter}
+      ORDER BY messages.created_at DESC
+      LIMIT ? OFFSET ?
+    `
+
+    messages = await db.prepare(querySql).all(...ftsParams, itemsPerPage, offset)
+  } else {
+    // 通常の検索（クエリ文字列なし）
+    if (role) {
+      whereConditions.push('role = ?')
+      whereParams.push(role)
+    }
+
+    if (startTime) {
+      const utcStartTime = new Date(startTime).toISOString()
+      whereConditions.push('datetime(created_at) >= datetime(?)')
+      whereParams.push(utcStartTime)
+    }
+
+    if (endTime) {
+      const utcEndTime = new Date(endTime).toISOString()
+      whereConditions.push('datetime(created_at) <= datetime(?)')
+      whereParams.push(utcEndTime)
+    }
+
+    // ```reasoning パターンを除外
+    whereConditions.push("(content NOT LIKE '%'''reasoning%' OR content IS NULL)")
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+
+    const countSql = `SELECT COUNT(*) as count FROM messages ${whereClause}`
+    const countResult = await db.prepare(countSql).get(...whereParams)
+
+    total = countResult.count
+    totalPages = Math.ceil(total / itemsPerPage)
+    const offset = (page - 1) * itemsPerPage
+
+    const querySql = `
+      SELECT * FROM messages
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `
+
+    messages = await db.prepare(querySql).all(...whereParams, itemsPerPage, offset)
   }
-
-  // Add FTS condition first if it exists
-  if (ftsFilter) {
-    whereConditions.push(ftsFilter)
-  }
-
-  if (role) {
-    whereConditions.push('role = ?')
-    whereParams.push(role)
-  }
-
-  if (startTime) {
-    const utcStartTime = new Date(startTime).toISOString()
-    whereConditions.push('datetime(created_at) >= datetime(?)')
-    whereParams.push(utcStartTime)
-  }
-
-  if (endTime) {
-    const utcEndTime = new Date(endTime).toISOString()
-    whereConditions.push('datetime(created_at) <= datetime(?)')
-    whereParams.push(utcEndTime)
-  }
-
-  const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-
-  const countSql = `SELECT COUNT(*) as count FROM messages ${whereClause}`
-  const countResult = await db.prepare(countSql).get(...whereParams)
-
-  const total = countResult.count
-  const totalPages = Math.ceil(total / itemsPerPage)
-  const offset = (page - 1) * itemsPerPage
-
-  const querySql = `
-    SELECT * FROM messages
-    ${whereClause}
-    ORDER BY created_at DESC
-    LIMIT ? OFFSET ?
-  `
-
-  const messages = await db.prepare(querySql).all(...whereParams, itemsPerPage, offset)
 
   return {
     messages,

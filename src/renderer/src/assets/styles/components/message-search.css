@@ -1,0 +1,155 @@
+.message-search-container {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.message-search {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  transition: all 0.2s ease;
+}
+
+.message-search .search-icon {
+  color: #768390;
+  margin-right: 8px;
+  min-width: 16px;
+}
+
+.message-search input {
+  flex-grow: 1;
+  background: transparent;
+  font-size: 14px;
+  width: 100%;
+}
+
+.message-search .clear-search {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 5px;
+  display: flex;
+  align-items: center;
+  color: #768390;
+}
+
+.message-search .clear-search:hover {
+  color: #444;
+}
+
+.search-results-container {
+  margin-top: 10px;
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.search-results-header {
+  padding: 10px 0;
+  font-size: 13px;
+  color: #57606a;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.search-results-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.search-result-item {
+  padding: 10px 0;
+  border-top: 1px solid #bbb;
+  border-radius: 6px;
+  cursor: default;
+}
+
+.search-result-item.selected {
+  background-color: #edf3ff;
+  border-left: 3px solid #1a73e8;
+}
+
+.search-result-item:last-child {
+  margin-bottom: 0;
+}
+
+.search-result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search-result-text {
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.search-result-user .search-result-text {
+  font-weight: 500;
+}
+
+.search-result-assistant .search-result-text {
+  color: #333;
+}
+
+.search-result-tool .search-result-text {
+  color: #0969da;
+  font-family: monospace;
+}
+
+.search-result-date {
+  font-size: 12px;
+  color: #768390;
+}
+
+.search-results-more {
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: #768390;
+  cursor: default;
+}
+
+.spinner-small {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #9ab;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+.search-no-results {
+  padding: 20px 12px;
+  text-align: center;
+  color: #768390;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #9ab;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

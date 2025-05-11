@@ -16,6 +16,9 @@ import {
   handleGetMemoryContent,
   handleSummarizeMemoryContent
 } from './handlers/handleMemoryContent'
+import { handleSearchMessages } from './handlers/handleSearchMessages'
+import { handleGetMessageContext } from './handlers/handleGetMessageContext'
+import { handleMessageContext } from './handlers/handleMessageContext'
 import { initializeMCP } from './lib/llm'
 import { getLocale, setLocale } from './lib/intl'
 
@@ -77,6 +80,9 @@ app.whenReady().then(async () => {
   ipcMain.handle('summarize', () => handleSummarize())
   ipcMain.handle('summarizeMemoryContent', () => handleSummarizeMemoryContent())
   ipcMain.handle('getMemoryContent', () => handleGetMemoryContent())
+  ipcMain.handle('search-messages', handleSearchMessages)
+  ipcMain.handle('get-message-context', handleGetMessageContext)
+  ipcMain.handle('message-context', handleMessageContext)
 
   // Handler for getting the current locale
   ipcMain.handle('get-locale', () => getLocale())

@@ -12,9 +12,7 @@ const getSupportedLocale = (requestedLocale: string): keyof typeof locale => {
 
   // Check for language match (first 2 characters)
   const requestedLanguage = requestedLocale.substring(0, 2)
-  const matchingLocale = supportedLocales.find(
-    (loc) => loc.substring(0, 2) === requestedLanguage
-  )
+  const matchingLocale = supportedLocales.find((loc) => loc.substring(0, 2) === requestedLanguage)
 
   return matchingLocale || 'en'
 }
@@ -47,10 +45,10 @@ export const getPreferredLocale = (): keyof typeof locale => {
   try {
     const fs = require('fs')
     const path = require('path')
-    
+
     const userDataPath = app.getPath('userData')
     const localeFilePath = path.join(userDataPath, 'locale-preference.json')
-    
+
     if (fs.existsSync(localeFilePath)) {
       const data = JSON.parse(fs.readFileSync(localeFilePath, 'utf8'))
       if (data && data.locale && locale[data.locale as keyof typeof locale]) {
@@ -60,7 +58,7 @@ export const getPreferredLocale = (): keyof typeof locale => {
   } catch (error) {
     console.error('Failed to get locale preference:', error)
   }
-  
+
   // Fall back to system locale if no preference found
   return getSystemLocale()
 }
@@ -85,7 +83,7 @@ export const setLocale = (localeKey: keyof typeof locale): void => {
   try {
     const fs = require('fs')
     const path = require('path')
-    
+
     const userDataPath = app.getPath('userData')
     const localeFilePath = path.join(userDataPath, 'locale-preference.json')
     fs.writeFileSync(localeFilePath, JSON.stringify({ locale: localeKey }), 'utf8')

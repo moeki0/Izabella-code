@@ -70,7 +70,17 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     request: 'Request',
     response: 'Response',
     language: 'Language',
-    languageSelector: 'Language'
+    languageSelector: 'Language',
+    searchMessages: 'Search messages',
+    searchResultsCount: '{count} results found',
+    moreResults: '{count} more results',
+    noSearchResults: 'No messages found',
+    messageContext: 'Message Context',
+    loadingMessages: 'Loading messages...',
+    noMessagesFound: 'No messages found',
+    user: 'User',
+    assistant: 'Assistant',
+    tool: 'Tool'
   },
   ja: {
     app: 'Izabella',
@@ -135,7 +145,17 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     request: 'リクエスト',
     response: 'レスポンス',
     language: '言語',
-    languageSelector: '言語'
+    languageSelector: '言語',
+    searchMessages: 'メッセージを検索',
+    searchResultsCount: '{count}件の結果が見つかりました',
+    moreResults: 'さらに{count}件の結果',
+    noSearchResults: '一致するメッセージが見つかりません',
+    messageContext: 'メッセージコンテキスト',
+    loadingMessages: 'メッセージを読み込み中...',
+    noMessagesFound: 'メッセージが見つかりません',
+    user: 'ユーザー',
+    assistant: 'アシスタント',
+    tool: 'ツール'
   }
 }
 

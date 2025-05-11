@@ -11,6 +11,7 @@ export const createWindow = async (): Promise<BrowserWindow> => {
     show: false,
     autoHideMenuBar: true,
     frame: false,
+    transparent: true,
     titleBarStyle: 'hidden',
     trafficLightPosition: {
       x: 13,
@@ -22,6 +23,9 @@ export const createWindow = async (): Promise<BrowserWindow> => {
       sandbox: false
     }
   })
+
+  mainWindow.setBackgroundMaterial('acrylic')
+  mainWindow.setVibrancy('under-window')
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()

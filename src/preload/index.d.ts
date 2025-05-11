@@ -2,6 +2,8 @@ import type { ElectronAPI } from '@electron-toolkit/preload'
 import { Thread } from '@renderer/components/Threads'
 import { Message } from '@renderer/components/Chat'
 import { Tool } from '@renderer/components/Tools'
+import { MessagesSearchResult } from '.'
+import { SearchMessagesParams } from '../main/lib/message'
 
 interface ThreadsWithPagination {
   threads: Array<Thread>
@@ -19,6 +21,15 @@ interface API {
   setConfig: (name: string, input: unknown) => Promise<void>
   restartApp: () => Promise<void>
   deleteMessage: (messageId: string) => Promise<void>
+  searchMessages: (params: SearchMessagesParams) => Promise<MessagesSearchResult>
+  getMessageContext: (
+    messageId: string,
+    count?: number
+  ) => Promise<{
+    success: boolean
+    data: Array<Message> | null
+    error: string | null
+  }>
   summarize: () => Promise<Array<{ title: string; content: string }>>
   summarizeMemoryContent: () => Promise<Array<{ title: string; content: string }>>
   getMemoryContent: () => Promise<string>

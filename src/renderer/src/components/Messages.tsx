@@ -1,8 +1,7 @@
 import orderBy from 'lodash/orderBy'
 import { FiBookOpen, FiChevronDown, FiChevronUp, FiSearch, FiSmile, FiTool } from 'react-icons/fi'
-import Markdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { useIntl } from '../lib/locale'
+import HighlightedMarkdown from './HighlightedMarkdown'
 
 export type Message = {
   id?: string
@@ -22,7 +21,8 @@ function Messages({
   showMessageContextMenu,
   running,
   handleToolClick,
-  interrupt
+  interrupt,
+  searchQuery
 }: {
   messages: Array<Message>
   showMessageContextMenu: (text: string, messageId?: string, isAssistantMessage?: boolean) => void
@@ -30,7 +30,9 @@ function Messages({
   running: boolean
   handleToolClick: (id: number) => void
   interrupt: () => void
+  searchQuery?: string
 }): React.JSX.Element {
+  const intl = useIntl()
   const handleContextMenu = (e, text, messageId, isAssistantMessage = false): void => {
     e.preventDefault()
     showMessageContextMenu(text, messageId, isAssistantMessage && running)
@@ -50,6 +52,8 @@ function Messages({
                 ? `${message.tool_name}-${message.tool_req}-${i}`
                 : `${message.content}-${i}`
             }
+            id={message.id ? `message-${message.id}` : undefined}
+            className="prompt-wrapper"
           >
             <div
               className={`prompt prompt-${message.role}`}
@@ -70,8 +74,8 @@ function Messages({
                   </div>
                   <div>
                     {message.tool_res
-                      ? useIntl().formatMessage({ id: 'knowledgeIndexUpdated' })
-                      : useIntl().formatMessage({ id: 'updatingKnowledgeIndex' })}
+                      ? intl.formatMessage({ id: 'knowledgeIndexUpdated' })
+                      : intl.formatMessage({ id: 'updatingKnowledgeIndex' })}
                   </div>
                 </div>
               )}
@@ -82,8 +86,8 @@ function Messages({
                   </div>
                   <div>
                     {message.tool_res
-                      ? useIntl().formatMessage({ id: 'knowledgeSaved' })
-                      : useIntl().formatMessage({ id: 'savingKnowledge' })}
+                      ? intl.formatMessage({ id: 'knowledgeSaved' })
+                      : intl.formatMessage({ id: 'savingKnowledge' })}
                   </div>
                 </div>
               )}
@@ -94,8 +98,8 @@ function Messages({
                   </div>
                   <div>
                     {message.tool_res
-                      ? useIntl().formatMessage({ id: 'knowledgeFound' })
-                      : useIntl().formatMessage({ id: 'searchingKnowledge' })}
+                      ? intl.formatMessage({ id: 'knowledgeFound' })
+                      : intl.formatMessage({ id: 'searchingKnowledge' })}
                   </div>
                 </div>
               )}
@@ -106,8 +110,8 @@ function Messages({
                   </div>
                   <div>
                     {message.tool_res
-                      ? useIntl().formatMessage({ id: 'memorySaved' })
-                      : useIntl().formatMessage({ id: 'updatingMemory' })}
+                      ? intl.formatMessage({ id: 'memorySaved' })
+                      : intl.formatMessage({ id: 'updatingMemory' })}
                   </div>
                 </div>
               )}
@@ -137,12 +141,12 @@ function Messages({
                     {message.open && (
                       <>
                         <div className="tool-args">
-                          <div>{useIntl().formatMessage({ id: 'request' })}</div>
+                          <div>{intl.formatMessage({ id: 'request' })}</div>
                           <pre className="tool-args-code">{message.tool_req}</pre>
                         </div>
                         {message.tool_res && (
                           <div className="tool-response">
-                            <div>{useIntl().formatMessage({ id: 'response' })}</div>
+                            <div>{intl.formatMessage({ id: 'response' })}</div>
                             <code className="tool-response-code">
                               {message.tool_res.slice(0, 1000)}
                             </code>
@@ -154,7 +158,7 @@ function Messages({
                 )}
               {message.role === 'assistant' && (
                 <>
-                  <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
+                  <HighlightedMarkdown content={message.content || ''} searchQuery={searchQuery} />
                   {message.sources && (
                     <div className="source-info">
                       <div className="source-info-content">
@@ -222,7 +226,7 @@ function Messages({
               )}
               {message.role === 'user' && (
                 <div className="prompt-user-bubble">
-                  <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
+                  <HighlightedMarkdown content={message.content || ''} searchQuery={searchQuery} />
                 </div>
               )}
             </div>

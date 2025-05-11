@@ -1,10 +1,20 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { Message } from '../main/lib/message'
+import { Message, SearchMessagesParams } from '../main/lib/message'
 
 export type Tool = {
   name: string
   description: string
+}
+
+export type MessagesSearchResult = {
+  success: boolean
+  data: {
+    messages: Array<Message>
+    total: number
+    totalPages: number
+  } | null
+  error: string | null
 }
 
 const api = {
@@ -20,6 +30,16 @@ const api = {
   restartApp: (): Promise<void> => ipcRenderer.invoke('restart-app'),
   deleteMessage: (messageId: string): Promise<void> =>
     ipcRenderer.invoke('delete-message', messageId),
+  searchMessages: (params: SearchMessagesParams): Promise<MessagesSearchResult> =>
+    ipcRenderer.invoke('search-messages', params),
+  getMessageContext: (
+    messageId: string,
+    count?: number
+  ): Promise<{
+    success: boolean
+    data: Array<Message> | null
+    error: string | null
+  }> => ipcRenderer.invoke('get-message-context', messageId, count),
   summarize: (): Promise<Array<{ title: string; content: string }>> =>
     ipcRenderer.invoke('summarize'),
   summarizeMemoryContent: (): Promise<Array<{ title: string; content: string }>> =>
