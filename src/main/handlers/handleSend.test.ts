@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { handleSend } from './handleSend'
-import { agent, chat } from '../lib/llm'
+import { chat } from '../lib/llm'
 import { createMessage } from '../lib/message'
 import { mainWindow } from '..'
-import { Agent } from '@mastra/core/agent'
 import { StreamReturn } from '@mastra/core'
 
 // Mock electron
@@ -32,7 +31,6 @@ vi.mock('../lib/store', () => ({
 }))
 
 vi.mock('../lib/llm', () => ({
-  agent: vi.fn(),
   chat: vi.fn(),
   tools: {},
   detectSearchNeed: vi.fn().mockResolvedValue(false),
@@ -65,6 +63,14 @@ vi.mock('../lib/thread', () => ({
   updateThreadTitle: vi.fn()
 }))
 
+vi.mock('../lib/extractKnowledge', () => ({
+  processConversationForKnowledge: vi.fn().mockResolvedValue(['test-knowledge-id'])
+}))
+
+vi.mock('../lib/generateWorkingMemory', () => ({
+  processConversationForWorkingMemory: vi.fn().mockResolvedValue(true)
+}))
+
 vi.mock('../lib/database', () => ({
   database: vi.fn().mockResolvedValue({
     prepare: vi.fn().mockReturnValue({
@@ -87,7 +93,6 @@ describe('handleSend', () => {
   })
 
   it('正常系: メッセージを送信し、スレッドとメッセージが作成されること', async () => {
-    const mockAgent = {}
     const mockChat = {
       fullStream: [
         { type: 'text-delta', textDelta: 'Hello' },
@@ -96,13 +101,11 @@ describe('handleSend', () => {
       ]
     }
 
-    vi.mocked(agent).mockResolvedValue(mockAgent as Agent)
     vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
 
     await handleSend(null, 'Hello')
 
-    expect(agent).toHaveBeenCalled()
-    expect(chat).toHaveBeenCalledWith(mockAgent, 'Hello', false)
+    expect(chat).toHaveBeenCalledWith('Hello', false)
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('stream', 'Hello')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('step-finish')
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('finish')
@@ -119,7 +122,6 @@ describe('handleSend', () => {
   })
 
   it('ツール呼び出しを含むメッセージを送信し、ツールメッセージが作成されること', async () => {
-    const mockAgent = {}
     const mockChat = {
       fullStream: [
         {
@@ -132,7 +134,6 @@ describe('handleSend', () => {
       ]
     }
 
-    vi.mocked(agent).mockResolvedValue(mockAgent as Agent)
     vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
 
     await handleSend(null, 'Hello')
@@ -152,5 +153,65 @@ describe('handleSend', () => {
     await handleSend(null, 'Hello')
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('error', 'Error: Test error')
+  })
+
+  it('ナレッジベースに情報が保存された場合、ツールメッセージが作成されること', async () => {
+    const mockChat = {
+      fullStream: [{ type: 'text-delta', textDelta: 'Hello' }, { type: 'finish' }]
+    }
+
+    vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
+    vi.mocked(createMessage).mockResolvedValue('test-message-id')
+
+    await handleSend(null, 'Hello')
+
+    // 各種メッセージ作成が呼び出されていることを確認
+    expect(createMessage).toHaveBeenCalledWith({
+      role: 'user',
+      content: 'Hello'
+    })
+
+    expect(createMessage).toHaveBeenCalledWith({
+      role: 'assistant',
+      content: 'Hello',
+      sources: undefined
+    })
+
+    // ナレッジ記録用のツールメッセージが作成されていることを確認
+    expect(createMessage).toHaveBeenCalledWith({
+      role: 'tool',
+      toolName: 'knowledge_record',
+      toolReq: JSON.stringify({ conversation_id: 'test-message-id' }),
+      toolRes: JSON.stringify({ saved_knowledge_ids: ['test-knowledge-id'] })
+    })
+
+    // UI通知が送信されていることを確認
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('knowledge-saved', {
+      ids: ['test-knowledge-id']
+    })
+  })
+
+  it('ワーキングメモリが更新された場合、ツールメッセージが作成されること', async () => {
+    const mockChat = {
+      fullStream: [{ type: 'text-delta', textDelta: 'Hello' }, { type: 'finish' }]
+    }
+
+    vi.mocked(chat).mockResolvedValue(mockChat as unknown as StreamReturn)
+    vi.mocked(createMessage).mockResolvedValue('test-message-id')
+
+    await handleSend(null, 'Hello')
+
+    // メモリ更新用のツールメッセージが作成されていることを確認
+    expect(createMessage).toHaveBeenCalledWith({
+      role: 'tool',
+      toolName: 'memory_update',
+      toolReq: JSON.stringify({ conversation_id: 'test-message-id' }),
+      toolRes: JSON.stringify({ updated: true })
+    })
+
+    // UI通知が送信されていることを確認
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('memory-updated', {
+      success: true
+    })
   })
 })

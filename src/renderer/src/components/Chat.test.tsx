@@ -12,14 +12,21 @@ vi.mock('@uiw/react-codemirror')
 window.electron = {
   ipcRenderer: {
     invoke: vi.fn().mockResolvedValue(true),
-    on: vi.fn()
+    on: vi.fn(),
+    removeListener: vi.fn(),
+    removeAllListeners: vi.fn(),
+    send: vi.fn()
   }
 }
 
 // window.apiをモック
 window.api = {
   getConfig: vi.fn().mockResolvedValue(true),
-  setConfig: vi.fn().mockResolvedValue(true)
+  setConfig: vi.fn().mockResolvedValue(true),
+  deleteMessage: vi.fn().mockResolvedValue(true),
+  getMessageContext: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  init: vi.fn().mockResolvedValue({ title: 'Test', messages: [] }),
+  getLocale: vi.fn().mockResolvedValue('en')
 }
 
 const mockDependencies = {
@@ -61,6 +68,8 @@ const mockDependencies = {
   registerNewThreadListener: vi.fn().mockReturnValue(() => {}),
   registerRetryListener: vi.fn().mockReturnValue(() => {}),
   registerSourceListener: vi.fn().mockReturnValue(() => {}),
+  registerKnowledgeSavedListener: vi.fn().mockReturnValue(() => {}),
+  registerMemoryUpdatedListener: vi.fn().mockReturnValue(() => {}),
   showMessageContextMenu: vi.fn(),
   approveToolCall: vi.fn(),
   mermaidInit: vi.fn(),

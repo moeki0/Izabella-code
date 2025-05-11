@@ -11,7 +11,16 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
       exclude: ['out']
-    }
+    },
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*'
+    ],
+    threads: false
   },
   resolve: {
     alias: {

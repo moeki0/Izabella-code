@@ -1,0 +1,57 @@
+.notifications-container {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.notification {
+  position: relative;
+  background: white;
+  backdrop-filter: blur(8px);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
+  max-width: 400px;
+  animation: slideUp 0.2s ease-out;
+  text-align: center;
+  background: rgba(256, 256, 256, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 1px 0 2px 1px rgba(0, 0, 0, 0.07);
+  pointer-events: auto;
+}
+
+.notification-success {
+  border-left: 4px solid #4CAF50;
+}
+
+.notification-info {
+  border-left: 4px solid #2196F3;
+}
+
+.notification-text {
+  font-size: 14px;
+  line-height: 1.4;
+  flex-grow: 1;
+  text-align: left;
+}
+
+.notification-close {
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.notification-close:hover {
+  opacity: 1;
+}

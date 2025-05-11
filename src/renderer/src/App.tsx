@@ -11,6 +11,14 @@ const chatProps = {
   link: window.api.link,
   interrupt: window.api.interrupt,
   randomUUID: window.crypto.randomUUID.bind(window.crypto),
+  registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => {
+    window.electron.ipcRenderer.on('knowledge-saved', (_, data) => callback(data))
+    return () => window.electron.ipcRenderer.removeAllListeners('knowledge-saved')
+  },
+  registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => {
+    window.electron.ipcRenderer.on('memory-updated', (_, data) => callback(data))
+    return () => window.electron.ipcRenderer.removeAllListeners('memory-updated')
+  },
   registerStreamListener: (callback: (chunk: string) => void) => {
     window.electron.ipcRenderer.on('stream', (_, chunk) => callback(chunk))
     return () => window.electron.ipcRenderer.removeAllListeners('stream')

@@ -14,7 +14,7 @@ import MessageSearch from './MessageSearch'
 import { KnowledgeSidebar } from './KnowledgeSidebar'
 import { MemorySidebar } from './MemorySidebar'
 import { SettingsSidebar } from './SettingsSidebar'
-import { useIntl } from '../lib/locale'
+import { useIntl, getIntl } from '../lib/locale'
 import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
 
@@ -54,6 +54,8 @@ export interface ChatEventDeps {
   registerSourceListener: (
     callback: (content: { sources: Array<Record<string, unknown>>; isPartial: boolean }) => void
   ) => () => void
+  registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
+  registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
 }
 
 export interface ChatUtilityDeps {
@@ -70,6 +72,8 @@ export interface ChatProps {
   link: (href: string) => void
   interrupt: () => void
   randomUUID: () => string
+  registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
+  registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
   registerStreamListener: (callback: (chunk: string) => void) => () => void
   registerToolCallListener: (
     callback: (content: { toolName: string; args: string }, pending: boolean) => void
@@ -108,6 +112,8 @@ function Chat({
   registerToolResultListener,
   registerInterruptListener,
   registerMessageSavedListener,
+  registerKnowledgeSavedListener,
+  registerMemoryUpdatedListener,
   registerTitleListener,
   registerNewThreadListener,
   registerRetryListener,
@@ -131,6 +137,8 @@ function Chat({
   const [initialized, setInitialized] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 保存されたナレッジIDのリストは通知コンポーネントで管理するように変更
+  // const [savedKnowledgeIds, setSavedKnowledgeIds] = useState<string[]>([])
 
   const [pendingTool, setPendingTool] = useState<{
     toolName: string
@@ -196,7 +204,7 @@ function Chat({
         document.querySelectorAll('.prompt-wrapper').forEach((prompt) => {
           height += prompt.getBoundingClientRect().height
         })
-        if (main) {
+        if (main && typeof main.scroll === 'function') {
           main.scroll({
             top: height + 400
           })
@@ -206,6 +214,46 @@ function Chat({
   }, [init, mermaidInit, mermaidRun])
 
   useEffect(() => {
+    const unsubscribeKnowledgeSaved = registerKnowledgeSavedListener((data) => {
+      const ids = data.ids || []
+      setMessages((prev) => {
+        const newMessage = {
+          role: 'tool' as const,
+          tool_name: 'knowledge_record',
+          tool_res: `{"saved_knowledge_ids": "${ids}"}`
+        }
+        console.log(newMessage)
+        const updatedMessages = [...prev, newMessage]
+
+        // 検索結果表示中でない場合はオリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
+      })
+    })
+
+    const unsubscribeMemoryUpdated = registerMemoryUpdatedListener(() => {
+      // メモリが更新されたことをメッセージとして表示
+      const intl = getIntl()
+      setMessages((prev) => {
+        const newMessage = {
+          role: 'tool' as const,
+          tool_name: 'memory_update',
+          tool_res: intl.formatMessage({ id: 'memoryUpdated' })
+        }
+        const updatedMessages = [...prev, newMessage]
+
+        // 検索結果表示中でない場合はオリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
+      })
+    })
+
     const unsubscribeStream = registerStreamListener((chunk) => {
       setLoading(false)
       setMessages((prev) => {
@@ -356,6 +404,8 @@ function Chat({
     })
 
     return () => {
+      unsubscribeKnowledgeSaved()
+      unsubscribeMemoryUpdated()
       unsubscribeStream()
       unsubscribeToolCall()
       unsubscribeStepFinish()
@@ -386,6 +436,8 @@ function Chat({
     send,
     registerInterruptListener,
     registerMessageSavedListener,
+    registerKnowledgeSavedListener,
+    registerMemoryUpdatedListener,
     isShowingSearchResult
   ])
 
@@ -431,10 +483,12 @@ function Chat({
           height += prompt.getBoundingClientRect().height
         })
         if (main) {
-          main.scroll({
-            top: height + 400,
-            behavior: 'smooth'
-          })
+          if (typeof main.scroll === 'function') {
+            main.scroll({
+              top: height + 400,
+              behavior: 'smooth'
+            })
+          }
         }
       }, 1)
     }

@@ -1,16 +1,10 @@
 import { shellPathSync } from 'shell-path'
 import { MCPConfiguration } from '@mastra/mcp'
-import { Agent } from '@mastra/core/agent'
 import { store } from './store'
-import { LanguageModel, StreamReturn } from '@mastra/core'
+import { Agent, LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
 import log from 'electron-log/main'
-import {
-  upsertKnowledge,
-  searchKnowledge,
-  vectorDelete,
-  updateKnowledgeIndexTool
-} from './knowledgeTools'
+import { searchKnowledge, vectorDelete } from './knowledgeTools'
 import { messageSearch } from './messageSearchTool'
 import { webSearchInstructions } from '../instructions/webSearchInstructions'
 import { systemInstructions } from '../instructions/systemInstructions'
@@ -75,10 +69,8 @@ export const initializeMCP = async (): Promise<void> => {
   })
 
   const knowledgeTools = {
-    upsert_knowledge: upsertKnowledge,
     search_knowledge: searchKnowledge,
-    delete_knowledge: vectorDelete,
-    update_knowledge_index: updateKnowledgeIndexTool
+    delete_knowledge: vectorDelete
   }
   const messageTools = {
     search_message: messageSearch

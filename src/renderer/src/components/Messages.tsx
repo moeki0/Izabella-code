@@ -115,11 +115,47 @@ function Messages({
                   </div>
                 </div>
               )}
+              {message.role === 'tool' && message.tool_name === 'knowledge_record' && (
+                <div className="knowledge">
+                  <div className="knowledge-icon">
+                    <FiBookOpen size={14} />
+                  </div>
+                  <div>{intl.formatMessage({ id: 'knowledgeRecorded' })}:</div>
+                  <div>
+                    {message.tool_res &&
+                      (() => {
+                        try {
+                          const response = JSON.parse(message.tool_res)
+                          if (
+                            response.saved_knowledge_ids &&
+                            Array.isArray(response.saved_knowledge_ids)
+                          ) {
+                            return response.saved_knowledge_ids.join(', ')
+                          }
+                          return ''
+                        } catch (error) {
+                          console.error('Error parsing knowledge record response:', error)
+                          return ''
+                        }
+                      })()}
+                  </div>
+                </div>
+              )}
+              {message.role === 'tool' && message.tool_name === 'memory_update' && (
+                <div className="knowledge">
+                  <div className="knowledge-icon">
+                    <FiSmile size={14} />
+                  </div>
+                  <div>{intl.formatMessage({ id: 'memoryUpdated' })}</div>
+                </div>
+              )}
               {message.role === 'tool' &&
                 message.tool_name !== 'upsert_knowledge' &&
                 message.tool_name !== 'search_knowledge' &&
                 message.tool_name !== 'update_knowledge_index' &&
-                message.tool_name !== 'replace_memory' && (
+                message.tool_name !== 'replace_memory' &&
+                message.tool_name !== 'knowledge_record' &&
+                message.tool_name !== 'memory_update' && (
                   <div className="tool">
                     <div className="tool-name">
                       <div className="tool-name-text">

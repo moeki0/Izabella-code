@@ -83,7 +83,9 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     noMessagesFound: 'No messages found',
     user: 'User',
     assistant: 'Assistant',
-    tool: 'Tool'
+    tool: 'Tool',
+    knowledgeRecorded: 'Knowledge recorded',
+    memoryUpdated: 'Memory updated'
   },
   ja: {
     app: 'Izabella',
@@ -161,7 +163,9 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     noMessagesFound: 'メッセージが見つかりません',
     user: 'ユーザー',
     assistant: 'アシスタント',
-    tool: 'ツール'
+    tool: 'ツール',
+    knowledgeRecorded: 'ナレッジが記録されました',
+    memoryUpdated: 'メモリが更新されました'
   }
 }
 

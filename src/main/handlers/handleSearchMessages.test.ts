@@ -10,7 +10,13 @@ describe('handleSearchMessages', () => {
   it('正常に検索結果を返すこと', async () => {
     const mockSearchResult = {
       messages: [
-        { id: 'msg1', role: 'user', content: 'Hello', created_at: '2023-01-01T00:00:00Z' }
+        {
+          id: 'msg1',
+          role: 'user' as const,
+          content: 'Hello',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z'
+        }
       ],
       total: 1,
       totalPages: 1

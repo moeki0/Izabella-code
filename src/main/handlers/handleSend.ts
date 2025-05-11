@@ -1,8 +1,8 @@
 import { agent, chat, detectSearchNeed, model } from '../lib/llm'
 import { mainWindow } from '..'
-import { createMessage } from '../lib/message'
-import { saveToKnowledgeBase } from '../lib/knowledgeTools'
-import { generateKnowledgeId } from '../lib/generateKnowledgeId'
+import { createMessage, getMessages } from '../lib/message'
+import { processConversationForKnowledge } from '../lib/extractKnowledge'
+import { processConversationForWorkingMemory } from '../lib/generateWorkingMemory'
 
 export type Assistant = {
   name: string
@@ -57,21 +57,6 @@ export const handleSend = async (_, input): Promise<void> => {
           toolRes: JSON.stringify(chunk.result)
         })
         mainWindow.webContents.send('message-saved', id)
-
-        const result = JSON.stringify(chunk.result)
-        if (
-          chunk.toolName !== 'search_knowledge' &&
-          chunk.toolName !== 'search_message' &&
-          (result.match(/(content|text|body|value)/m) || result.length > 300)
-        ) {
-          const knowledgeId = await generateKnowledgeId(result, chunk.toolName)
-
-          saveToKnowledgeBase({
-            text: result,
-            id: knowledgeId,
-            similarityThreshold: 0.8
-          })
-        }
       }
       if (chunk.type === 'source') {
         const newSource = chunk.source
@@ -140,6 +125,59 @@ export const handleSend = async (_, input): Promise<void> => {
             content,
             sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
           })
+        }
+        // 会話履歴からナレッジを抽出して保存
+        try {
+          const recentMessages = await getMessages(3)
+          const formattedMessages = recentMessages
+            .reverse()
+            .map((message) => ({
+              role: message.role === 'user' ? ('user' as const) : ('assistant' as const),
+              content: message.content || ''
+            }))
+            .filter((message) => message.content.trim() !== '')
+
+          // 別のLLMでナレッジを抽出して保存する処理
+          const savedKnowledgeIds = await processConversationForKnowledge(formattedMessages)
+
+          // 保存されたナレッジIDをUIに通知
+          if (savedKnowledgeIds.length > 0) {
+            mainWindow.webContents.send('knowledge-saved', {
+              ids: savedKnowledgeIds
+            })
+
+            // ナレッジベースへの記録をツールメッセージとして保存
+            await createMessage({
+              role: 'tool',
+              toolName: 'knowledge_record',
+              toolReq: JSON.stringify({ conversation_id: id }),
+              toolRes: JSON.stringify({ saved_knowledge_ids: savedKnowledgeIds })
+            })
+          }
+
+          // ワーキングメモリを更新
+          try {
+            const memoryUpdated = await processConversationForWorkingMemory(formattedMessages)
+
+            if (memoryUpdated) {
+              // ワーキングメモリ更新をツールメッセージとして保存
+              await createMessage({
+                role: 'tool',
+                toolName: 'memory_update',
+                toolReq: JSON.stringify({ conversation_id: id }),
+                toolRes: JSON.stringify({ updated: true })
+              })
+
+              // UI通知を送信
+              mainWindow.webContents.send('memory-updated', {
+                success: true
+              })
+            }
+          } catch (memoryError) {
+            console.error('Error updating working memory:', memoryError)
+          }
+        } catch (error) {
+          console.error('Error processing conversation for knowledge:', error)
         }
       }
     }
