@@ -8,7 +8,7 @@ export const handleSummarize = async (): Promise<
 > => {
   try {
     const latestKnowledgeFiles = await getLatestKnowledgeFiles(40)
-    const filesList = latestKnowledgeFiles.map((file) => `- ${file}`).join('\n')
+    const filesList = latestKnowledgeFiles.map((file) => `- ${file.replace(/.md$/, '')}`).join('\n')
 
     const prompt = `最近のナレッジファイル一覧:
 

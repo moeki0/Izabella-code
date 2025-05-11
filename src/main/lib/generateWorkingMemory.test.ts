@@ -4,7 +4,6 @@ import {
   processConversationForWorkingMemory
 } from './generateWorkingMemory'
 import { readWorkingMemory, updateWorkingMemory } from './workingMemory'
-import * as googleAI from '@ai-sdk/google'
 
 // Google AIのモック
 vi.mock('@ai-sdk/google', () => ({
