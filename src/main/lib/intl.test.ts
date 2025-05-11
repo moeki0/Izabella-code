@@ -1,5 +1,4 @@
 import { describe, expect, it, vi, beforeAll, beforeEach } from 'vitest'
-import { app } from 'electron'
 
 // electron appのモック
 vi.mock('electron', () => ({
@@ -23,8 +22,8 @@ vi.mock('path', () => ({
   }
 }))
 
-// intlオブジェクトの独自のモックを作成
-const mockFormatMessage = vi.fn().mockImplementation(({ id }) => {
+// intlオブジェクトのモックは以下のテストで利用
+vi.fn().mockImplementation(({ id }) => {
   return id
 })
 

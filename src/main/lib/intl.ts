@@ -12,6 +12,16 @@ export const intl = {
   }
 }
 
+// Get the current locale
+export const getLocale = (): SupportedLocales => {
+  return intl.locale
+}
+
+// Set the current locale
+export const setLocale = (locale: SupportedLocales): void => {
+  initLocale(locale)
+}
+
 // Get system locale from electron app
 export const getSystemLocale = (): SupportedLocales => {
   try {
