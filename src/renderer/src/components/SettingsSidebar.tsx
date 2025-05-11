@@ -206,7 +206,7 @@ function SettingsSidebar({ isOpen }: SettingsSidebarProps): React.JSX.Element | 
         <div className="settings-section">
           <h3 className="settings-section-title">API Keys</h3>
           <div className="settings-input-group">
-            <label htmlFor="openai-api-key">OpenAI</label>
+            <label htmlFor="openai-api-key">OpenAI (Legacy)</label>
             <input
               type="password"
               id="openai-api-key"
@@ -217,7 +217,7 @@ function SettingsSidebar({ isOpen }: SettingsSidebarProps): React.JSX.Element | 
           </div>
 
           <div className="settings-input-group">
-            <label htmlFor="gemini-api-key">Gemini</label>
+            <label htmlFor="gemini-api-key">Gemini 2.5 Flash</label>
             <input
               type="password"
               id="gemini-api-key"
