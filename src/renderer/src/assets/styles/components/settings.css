@@ -54,6 +54,7 @@
 }
 
 .settings-input-group input,
+.settings-input-group select,
 textarea {
   width: 100%;
   padding: 4px 8px;

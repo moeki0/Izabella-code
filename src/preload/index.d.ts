@@ -24,6 +24,8 @@ interface API {
   getMemoryContent: () => Promise<string>
   getKnowledgeIndexContent: () => Promise<string>
   updateKnowledgeIndexContent: (content: string) => Promise<boolean>
+  getLocale: () => Promise<string>
+  setLocale: (locale: string) => Promise<string>
 }
 
 declare global {

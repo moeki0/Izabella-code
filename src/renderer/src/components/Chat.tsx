@@ -10,6 +10,7 @@ import type { Mermaid } from 'mermaid'
 import hljs from 'highlight.js'
 import mermaid from 'mermaid'
 import Messages from './Messages'
+import { useIntl } from '../lib/locale'
 import 'highlight.js/styles/dracula.css'
 
 export type Message = {
@@ -446,7 +447,7 @@ function Chat({
               ]}
               onChange={(value) => setInput(value)}
               onKeyDown={handleKeyDown}
-              placeholder="なんでも聞いてください"
+              placeholder={useIntl().formatMessage({ id: 'askMeAnything' })}
             />
           </div>
         </div>
@@ -461,7 +462,10 @@ function Chat({
         {pendingTool && (
           <div className="tool-confirmation">
             <div className="tool-confirmation-text">
-              Do you want to execute {pendingTool.toolName}?
+              {useIntl().formatMessage(
+                { id: 'toolConfirmation' },
+                { toolName: pendingTool.toolName }
+              )}
             </div>
             <div className="tool-confirmation-buttons">
               <button
@@ -471,7 +475,7 @@ function Chat({
                   setRunning(false)
                 }}
               >
-                No
+                {useIntl().formatMessage({ id: 'no' })}
               </button>
               <button
                 onClick={() => {
@@ -479,7 +483,7 @@ function Chat({
                   setPendingTool(null)
                 }}
               >
-                Yes
+                {useIntl().formatMessage({ id: 'yes' })}
               </button>
             </div>
           </div>

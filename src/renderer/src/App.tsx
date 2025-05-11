@@ -1,7 +1,9 @@
 import { Routes, Route, HashRouter } from 'react-router'
+import { useEffect } from 'react'
 import Chat from './components/Chat'
 import mermaid from 'mermaid'
 import hljs from 'highlight.js'
+import { initializeLocale } from './lib/locale'
 
 const chatProps = {
   send: window.api.send,
@@ -79,6 +81,11 @@ const chatProps = {
 }
 
 function App(): React.JSX.Element {
+  useEffect(() => {
+    // Initialize locale from system settings
+    initializeLocale().catch(console.error)
+  }, [])
+
   return (
     <HashRouter>
       <Routes>

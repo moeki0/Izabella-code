@@ -17,6 +17,7 @@ import {
   handleSummarizeMemoryContent
 } from './handlers/handleMemoryContent'
 import { initializeMCP } from './lib/llm'
+import { getLocale, setLocale } from './lib/intl'
 
 // Set API keys from store
 const updateApiKeys = (): void => {
@@ -76,6 +77,15 @@ app.whenReady().then(async () => {
   ipcMain.handle('summarize', () => handleSummarize())
   ipcMain.handle('summarizeMemoryContent', () => handleSummarizeMemoryContent())
   ipcMain.handle('getMemoryContent', () => handleGetMemoryContent())
+
+  // Handler for getting the current locale
+  ipcMain.handle('get-locale', () => getLocale())
+
+  // Handler for setting the locale
+  ipcMain.handle('set-locale', (_, locale) => {
+    setLocale(locale)
+    return getLocale()
+  })
 
   // Handler for restarting the application
   ipcMain.handle('restart-app', () => {

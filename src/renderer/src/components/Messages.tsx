@@ -2,6 +2,7 @@ import orderBy from 'lodash/orderBy'
 import { FiBookOpen, FiChevronDown, FiChevronUp, FiSearch, FiSmile, FiTool } from 'react-icons/fi'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useIntl } from '../lib/locale'
 
 export type Message = {
   id?: string
@@ -69,8 +70,8 @@ function Messages({
                   </div>
                   <div>
                     {message.tool_res
-                      ? 'ナレッジのインデックスを更新しました'
-                      : 'ナレッジのインデックスを更新します'}
+                      ? useIntl().formatMessage({ id: 'knowledgeIndexUpdated' })
+                      : useIntl().formatMessage({ id: 'updatingKnowledgeIndex' })}
                   </div>
                 </div>
               )}
@@ -79,7 +80,11 @@ function Messages({
                   <div className="knowledge-icon">
                     <FiBookOpen size={14} />
                   </div>
-                  <div>{message.tool_res ? 'ナレッジを保存しました' : 'ナレッジを保存します'}</div>
+                  <div>
+                    {message.tool_res
+                      ? useIntl().formatMessage({ id: 'knowledgeSaved' })
+                      : useIntl().formatMessage({ id: 'savingKnowledge' })}
+                  </div>
                 </div>
               )}
               {message.role === 'tool' && message.tool_name === 'search_knowledge' && (
@@ -88,7 +93,9 @@ function Messages({
                     <FiSearch size={14} />
                   </div>
                   <div>
-                    {message.tool_res ? 'ナレッジが見つかりました' : 'ナレッジを検索します'}
+                    {message.tool_res
+                      ? useIntl().formatMessage({ id: 'knowledgeFound' })
+                      : useIntl().formatMessage({ id: 'searchingKnowledge' })}
                   </div>
                 </div>
               )}
@@ -97,7 +104,11 @@ function Messages({
                   <div className="knowledge-icon">
                     <FiSmile size={14} />
                   </div>
-                  <div>{message.tool_res ? 'メモリを保存しました' : 'メモリを更新します'}</div>
+                  <div>
+                    {message.tool_res
+                      ? useIntl().formatMessage({ id: 'memorySaved' })
+                      : useIntl().formatMessage({ id: 'updatingMemory' })}
+                  </div>
                 </div>
               )}
               {message.role === 'tool' &&
@@ -126,12 +137,12 @@ function Messages({
                     {message.open && (
                       <>
                         <div className="tool-args">
-                          <div>Request</div>
+                          <div>{useIntl().formatMessage({ id: 'request' })}</div>
                           <pre className="tool-args-code">{message.tool_req}</pre>
                         </div>
                         {message.tool_res && (
                           <div className="tool-response">
-                            <div>Response</div>
+                            <div>{useIntl().formatMessage({ id: 'response' })}</div>
                             <code className="tool-response-code">
                               {message.tool_res.slice(0, 1000)}
                             </code>

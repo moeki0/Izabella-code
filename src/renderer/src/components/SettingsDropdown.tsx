@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FiSettings } from 'react-icons/fi'
 import TextareaAutosize from 'react-textarea-autosize'
+import { switchLocale, SupportedLocales } from '../lib/locale'
 
 interface MCPServerConfig {
   command: string
@@ -22,6 +23,7 @@ function SettingsDropdown({ forceOpen = false }: SettingsDropdownProps): React.J
   const [newServerName, setNewServerName] = useState('')
   const [newServerCommandLine, setNewServerCommandLine] = useState('')
   const [newServerEnv, setNewServerEnv] = useState('')
+  const [currentLocale, setCurrentLocale] = useState<SupportedLocales>('en')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const fetchSettings = useCallback(async (): Promise<void> => {
@@ -31,8 +33,12 @@ function SettingsDropdown({ forceOpen = false }: SettingsDropdownProps): React.J
         | Record<string, MCPServerConfig>
         | undefined
 
+      // Get current locale from main process
+      const locale = (await window.api.getLocale()) as SupportedLocales
+
       setApiKeys(apiKeysResponse || { openai: '', google: '' })
       setMcpServers(mcpServersResponse || {})
+      setCurrentLocale(locale || 'en')
     } catch (error) {
       console.error('Error fetching settings:', error)
     }
@@ -151,6 +157,21 @@ function SettingsDropdown({ forceOpen = false }: SettingsDropdownProps): React.J
     setApiKeys({ ...apiKeys, google: e.target.value })
   }
 
+  const handleLocaleChange = async (e: React.ChangeEvent<HTMLSelectElement>): Promise<void> => {
+    const newLocale = e.target.value as SupportedLocales
+    setCurrentLocale(newLocale)
+    await switchLocale(newLocale)
+
+    // Show confirmation dialog and restart app
+    if (
+      confirm(
+        '言語設定が変更されました。変更を適用するにはアプリケーションを再起動する必要があります。今すぐ再起動しますか？\n\nLanguage settings have been changed. The application needs to restart to apply changes. Restart now?'
+      )
+    ) {
+      await window.api.restartApp()
+    }
+  }
+
   const handleClickOutside = (event: MouseEvent): void => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
       setIsOpen(false)
@@ -209,6 +230,22 @@ function SettingsDropdown({ forceOpen = false }: SettingsDropdownProps): React.J
 
       {isOpen && (
         <div className="settings-dropdown-content">
+          <div className="settings-section">
+            <h3 className="settings-section-title">Language / 言語</h3>
+            <div className="settings-input-group">
+              <label htmlFor="locale-selector">Language / 言語</label>
+              <select
+                id="locale-selector"
+                value={currentLocale}
+                onChange={handleLocaleChange}
+                className="settings-select"
+              >
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+              </select>
+            </div>
+          </div>
+
           <div className="settings-section">
             <h3 className="settings-section-title">API Keys</h3>
             <div className="settings-input-group">

@@ -27,7 +27,9 @@ const api = {
   getMemoryContent: (): Promise<string> => ipcRenderer.invoke('getMemoryContent'),
   getKnowledgeIndexContent: (): Promise<string> => ipcRenderer.invoke('getKnowledgeIndexContent'),
   updateKnowledgeIndexContent: (content: string): Promise<boolean> =>
-    ipcRenderer.invoke('updateKnowledgeIndex', content)
+    ipcRenderer.invoke('updateKnowledgeIndex', content),
+  getLocale: (): Promise<string> => ipcRenderer.invoke('get-locale'),
+  setLocale: (locale: string): Promise<string> => ipcRenderer.invoke('set-locale', locale)
 }
 
 if (process.contextIsolated) {
