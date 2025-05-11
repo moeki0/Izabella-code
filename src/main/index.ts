@@ -20,7 +20,7 @@ import { handleSearchMessages } from './handlers/handleSearchMessages'
 import { handleGetMessageContext } from './handlers/handleGetMessageContext'
 import { handleMessageContext } from './handlers/handleMessageContext'
 import { initializeMCP } from './lib/llm'
-import { getLocale, setLocale } from './lib/intl'
+import { getLocale, setLocale, initLocale } from './lib/intl'
 
 // Set API keys from store
 const updateApiKeys = (): void => {
@@ -31,7 +31,7 @@ const updateApiKeys = (): void => {
   }
 
   if (apiKeys?.google) {
-    process.env.GOOGLE_API_KEY = apiKeys.google
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = apiKeys.google
   }
 }
 
@@ -46,6 +46,7 @@ app.whenReady().then(async () => {
   }
 
   initializeConfig()
+  initLocale() // Initialize intl with the preferred locale
 
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, window) => {

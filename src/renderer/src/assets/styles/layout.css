@@ -9,8 +9,7 @@ main {
 }
 
 .main-content {
-  flex: 1;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .sidebar {
@@ -75,7 +74,6 @@ main {
 }
 
 .messages {
-  display: flex;
   justify-content: center;
   width: 100%;
   animation: fadeInWithDelay 1s;

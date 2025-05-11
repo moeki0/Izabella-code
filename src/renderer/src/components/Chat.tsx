@@ -190,16 +190,16 @@ function Chat({
         mermaidRun({
           querySelector: '.language-mermaid'
         })
-        try {
-          const messagesElement = document.querySelector('.messages')
-          if (messagesElement) {
-            const height = messagesElement.getBoundingClientRect().height
-            window.scroll({
-              top: height - window.innerHeight + 400
-            })
-          }
-        } catch (e) {
-          console.warn(e)
+        const main = document.querySelector('.messages')
+        let height = 0
+
+        document.querySelectorAll('.prompt-wrapper').forEach((prompt) => {
+          height += prompt.getBoundingClientRect().height
+        })
+        if (main) {
+          main.scroll({
+            top: height - window.innerHeight + 400
+          })
         }
       }, 1)
     })
@@ -424,17 +424,17 @@ function Chat({
     setRunning(true)
     if (lastPrompt) {
       setTimeout(() => {
-        try {
-          const messagesInnerElement = document.querySelector('.messages-inner')
-          if (messagesInnerElement) {
-            const height = messagesInnerElement.getBoundingClientRect().height
-            window.scroll({
-              top: height - 54,
-              behavior: 'smooth'
-            })
-          }
-        } catch (e) {
-          console.warn(e)
+        const main = document.querySelector('.messages')
+        let height = 0
+
+        document.querySelectorAll('.prompt-wrapper').forEach((prompt) => {
+          height += prompt.getBoundingClientRect().height
+        })
+        if (main) {
+          main.scroll({
+            top: height,
+            behavior: 'smooth'
+          })
         }
       }, 1)
     }
@@ -546,17 +546,16 @@ function Chat({
 
         // メッセージリストの一番下までスクロール
         setTimeout(() => {
-          try {
-            const messagesInnerElement = document.querySelector('.messages-inner')
-            if (messagesInnerElement) {
-              const height = messagesInnerElement.getBoundingClientRect().height
-              window.scroll({
-                top: height,
-                behavior: 'smooth'
-              })
-            }
-          } catch (e) {
-            console.warn(e)
+          const main = document.querySelector('.messages')
+          let height = 0
+
+          document.querySelectorAll('.prompt-wrapper').forEach((prompt) => {
+            height += prompt.getBoundingClientRect().height
+          })
+          if (main) {
+            main.scroll({
+              top: height - window.innerHeight + 400
+            })
           }
         }, 100)
       }

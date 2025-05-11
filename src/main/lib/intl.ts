@@ -61,7 +61,10 @@ const locale = {
     toolConfirmation: 'Allow {toolName} to run?',
     yes: 'Yes',
     no: 'No',
-    newChat: 'New Chat'
+    newChat: 'New Chat',
+    copyAll: 'Copy All',
+    deleteMessage: 'Delete Message',
+    stopAssistant: 'Stop Assistant'
   },
   ja: {
     search: '検索',
@@ -89,7 +92,10 @@ const locale = {
     toolConfirmation: '{toolName}の実行を許可しますか？',
     yes: 'はい',
     no: 'いいえ',
-    newChat: '新規チャット'
+    newChat: '新規チャット',
+    copyAll: '全てコピー',
+    deleteMessage: 'メッセージを削除',
+    stopAssistant: 'アシスタントを停止'
   }
 } as const
 

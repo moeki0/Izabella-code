@@ -4,8 +4,13 @@
   word-break: break-all;
 }
 
-.prompt-wrapper:last-child .prompt {
-  margin-bottom: 200px;
+.messages-inner {
+  margin: 0 auto;
+  padding-bottom: 200px;
+}
+
+.prompt-wrapper {
+  margin-bottom: 10px;
 }
 
 .prompt-user p {
