@@ -26,7 +26,7 @@ export const handleSummarize = async (): Promise<
           })
         )
       }),
-      model: openai('gpt-4o-mini'),
+      model: openai('gpt-4.1-nano-2025-04-14'),
       temperature: 0.2,
       prompt
     })

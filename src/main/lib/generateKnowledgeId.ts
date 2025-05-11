@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 export async function generateKnowledgeId(content: string, toolName: string): Promise<string> {
   try {
-    const model = openai('gpt-4o-mini')
+    const model = openai('gpt-4.1-nano-2025-04-14')
 
     // Prepare the content for analysis - truncate if too long
     const maxLength = 5000
