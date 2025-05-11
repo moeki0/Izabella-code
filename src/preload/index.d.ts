@@ -17,6 +17,7 @@ interface API {
   send: (input: string, isRetry: boolean) => Promise<void>
   getConfig: (name: string) => Promise<unknown>
   setConfig: (name: string, input: unknown) => Promise<void>
+  restartApp: () => Promise<void>
   deleteMessage: (messageId: string) => Promise<void>
   summarize: () => Promise<Array<{ title: string; content: string }>>
   summarizeMemoryContent: () => Promise<Array<{ title: string; content: string }>>

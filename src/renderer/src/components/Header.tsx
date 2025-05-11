@@ -1,5 +1,6 @@
 import { KnowledgeDropdown } from './KnowledgeDropdown'
 import { MemoryDropdown } from './MemoryDropdown'
+import { SettingsDropdown } from './SettingsDropdown'
 
 interface Props {
   title?: string
@@ -23,6 +24,7 @@ function Header({ className }: Props): React.JSX.Element {
       <div className="header-actions">
         <MemoryDropdown />
         <KnowledgeDropdown />
+        <SettingsDropdown forceOpen={false} />
       </div>
     </header>
   )

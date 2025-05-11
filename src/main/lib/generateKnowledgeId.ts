@@ -1,5 +1,4 @@
 import { openai } from '@ai-sdk/openai'
-import { store } from './store'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 

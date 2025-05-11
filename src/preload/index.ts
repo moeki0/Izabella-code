@@ -17,6 +17,7 @@ const api = {
   getConfig: (name: string): Promise<string> => ipcRenderer.invoke('get-config', name),
   setConfig: (name: string, input: unknown): Promise<void> =>
     ipcRenderer.invoke('set-config', name, input),
+  restartApp: (): Promise<void> => ipcRenderer.invoke('restart-app'),
   deleteMessage: (messageId: string): Promise<void> =>
     ipcRenderer.invoke('delete-message', messageId),
   summarize: (): Promise<Array<{ title: string; content: string }>> =>

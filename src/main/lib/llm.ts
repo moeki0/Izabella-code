@@ -59,19 +59,21 @@ export const detectSearchNeed = async (input: string): Promise<boolean> => {
 }
 
 export const initializeMCP = async (): Promise<void> => {
-  const avairableServers = {}
-  const serverConfig = store.get('mcpServers') as object
-  if (serverConfig) {
-    Object.keys(serverConfig).forEach((key) => {
-      avairableServers[key] = serverConfig[key]
-      if (avairableServers[key].url) {
-        avairableServers[key].url = new URL(avairableServers[key].url)
-      }
-    })
-  }
+  const mcpServers = store.get('mcpServers') as
+    | Record<
+        string,
+        {
+          command: string
+          args: string[]
+          env?: Record<string, string>
+        }
+      >
+    | undefined
+
   mcp = new MCPConfiguration({
-    servers: avairableServers || {}
+    servers: mcpServers || {}
   })
+
   const knowledgeTools = {
     upsert_knowledge: upsertKnowledge,
     search_knowledge: searchKnowledge,
