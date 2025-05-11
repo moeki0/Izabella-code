@@ -41,8 +41,6 @@ export async function extractKnowledgeFromConversation(
       schema: knowledgeExtractionSchema
     })
 
-    console.log(result)
-
     log.info('Knowledge extraction result:', result.object)
 
     return result.object

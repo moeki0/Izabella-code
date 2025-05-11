@@ -220,9 +220,8 @@ function Chat({
         const newMessage = {
           role: 'tool' as const,
           tool_name: 'knowledge_record',
-          tool_res: `{"saved_knowledge_ids": "${ids}"}`
+          tool_res: JSON.stringify({ saved_knowledge_ids: ids })
         }
-        console.log(newMessage)
         const updatedMessages = [...prev, newMessage]
 
         // 検索結果表示中でない場合はオリジナルメッセージも更新

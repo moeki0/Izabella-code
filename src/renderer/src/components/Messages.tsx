@@ -58,7 +58,6 @@ function Messages({
             <div
               className={`prompt prompt-${message.role}`}
               onContextMenu={(e) => {
-                console.log(message)
                 handleContextMenu(
                   e,
                   message.content || '',

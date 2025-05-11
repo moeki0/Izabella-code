@@ -4,7 +4,6 @@ export const knowledgeEntrySchema = z.object({
   title: z.string().describe(`抽出した情報の簡潔な名前
 
 - 内容の要約
-- すべて小文字
 - 英数字、日本語の平仮名・漢字のみ使用可
 - 長さは100文字以内
 
