@@ -19,6 +19,7 @@ import { z } from 'zod'
 import { getMessages } from './message'
 import { replaceWorkingMemoryTool } from './workingMemoryTool'
 import { TokenLimiter } from '@mastra/memory/processors'
+import { enhanceInstructionsWithKnowledge } from './promptVectorSearch'
 
 log.initialize()
 
@@ -138,9 +139,22 @@ export const chat = async (
     .map(formatMessageForLLM)
     .filter((message): message is MessageType => message !== null)
 
-  const baseInstructions = useSearchGrounding
+  let baseInstructions = useSearchGrounding
     ? await webSearchInstructions()
     : await systemInstructions()
+
+  // Enhance instructions with vector search results based on user prompt and recent message history
+  // Extract message content from the last 7 messages (or fewer if not available)
+  const recentMessageContents = formattedMessages
+    .slice(0, 7)
+    .map((msg) => msg.content)
+    .filter((content) => content && content.trim() !== '')
+
+  baseInstructions = await enhanceInstructionsWithKnowledge(
+    input,
+    baseInstructions,
+    recentMessageContents
+  )
 
   formattedMessages.push({ role: 'assistant', content: baseInstructions })
   formattedMessages.push({ role: 'user', content: input })

@@ -56,7 +56,7 @@ const HighlightedMarkdown: React.FC<HighlightedMarkdownProps> = ({ content, sear
   }
 
   // 検索ワードにマッチする部分をハイライトするテキストのレンダリング
-  const highlightText = (text: string): JSX.Element => {
+  const highlightText = (text: string): React.JSX.Element => {
     if (!text) return <>{text}</>
 
     // 検索ワードのパターンを作成

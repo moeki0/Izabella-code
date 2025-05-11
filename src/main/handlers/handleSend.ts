@@ -59,7 +59,11 @@ export const handleSend = async (_, input): Promise<void> => {
         mainWindow.webContents.send('message-saved', id)
 
         const result = JSON.stringify(chunk.result)
-        if (result.match(/(content|text|body|value)/m) || result.length > 300) {
+        if (
+          chunk.toolName !== 'search_knowledge' &&
+          chunk.toolName !== 'search_message' &&
+          (result.match(/(content|text|body|value)/m) || result.length > 300)
+        ) {
           const knowledgeId = await generateKnowledgeId(result, chunk.toolName)
 
           saveToKnowledgeBase({
