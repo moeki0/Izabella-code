@@ -196,15 +196,6 @@
   transition: background-color 0.2s ease;
 }
 
-.header-icon-button:hover {
-  background-color: #f0f0f0;
-}
-
-.header-button-active {
-  background-color: #e6f2ff !important;
-  color: #0183fd !important;
-}
-
 /* Main content with sidebar adjustments */
 .main-with-sidebar {
   flex-direction: row;
