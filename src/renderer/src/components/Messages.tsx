@@ -119,8 +119,10 @@ function Messages({
                   <div className="knowledge-icon">
                     <FiBookOpen size={14} />
                   </div>
-                  <div>{intl.formatMessage({ id: 'knowledgeRecorded' })}:</div>
-                  <div>
+                  <div className="knowledge-main">
+                    {intl.formatMessage({ id: 'knowledgeRecorded' })}:
+                  </div>
+                  <div className="knowledge-sub">
                     {message.tool_res &&
                       (() => {
                         try {
