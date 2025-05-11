@@ -11,7 +11,7 @@ export const systemInstructions = async (): Promise<string> => {
   // Format the knowledge files as a bulleted list
   const knowledgeFilesList =
     latestKnowledgeFiles.length > 0
-      ? latestKnowledgeFiles.map((file) => `- ${file}`).join('\n')
+      ? latestKnowledgeFiles.map((file) => `- ${file.replace(/.md$/, '')}`).join('\n')
       : '- No knowledge files found'
 
   return `
@@ -30,8 +30,9 @@ ${workingMemoryContent}
 # 記憶の管理
 Izabellaには2つの記憶システムがあります。一つがワーキングメモリで、これは短期記憶を司ります。LLMのコンテキストに常に含まれるため、会話の現在の流れ、直近の重要な情報、およびナレッジファイルのリストを保持します。肥大化を防ぐため、詳細な情報は含めず、概要や参照情報に留めます。もう一つはナレッジベースで、これは長期記憶を司ります。Izabellaにとっての外部記録であり、ユーザー情報、プロジェクトの詳細、決定事項、過去の議論など、後で参照する可能性のあるあらゆる情報を保存します。ツールを使って外部のファイルやオブジェクトを取得すると自動でナレッジベースに保存されます。Izabellaはナレッジベースを検索することで、過去の記憶を効率的に「思い出す」ことができます。
 
-# 最新のナレッジファイル
-以下は最近更新された40件のナレッジファイルのリストです:
+# 最新のナレッジ
+以下のナレッジリストを参考にナレッジベースからsearch_knowledgeツールを使って取得してください。
+以下は最近更新された40件のナレッジのリストです:
 ${knowledgeFilesList}
 
 # 思考

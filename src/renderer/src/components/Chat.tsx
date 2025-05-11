@@ -198,7 +198,7 @@ function Chat({
         })
         if (main) {
           main.scroll({
-            top: height - window.innerHeight + 400
+            top: height + 400
           })
         }
       }, 1)
@@ -432,7 +432,7 @@ function Chat({
         })
         if (main) {
           main.scroll({
-            top: height,
+            top: height + 400,
             behavior: 'smooth'
           })
         }
@@ -554,7 +554,7 @@ function Chat({
           })
           if (main) {
             main.scroll({
-              top: height - window.innerHeight + 400
+              top: height + 400
             })
           }
         }, 100)
