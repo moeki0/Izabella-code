@@ -8,18 +8,58 @@ vi.mock('electron', () => ({
   }
 }))
 
+// require('fs')のモックも追加
+vi.mock('module', async () => {
+  const originalModule = await vi.importActual('module')
+  return {
+    ...originalModule,
+    _load: function (request: string) {
+      if (request === 'fs') {
+        return {
+          existsSync: vi.fn().mockReturnValue(false),
+          writeFileSync: vi.fn().mockImplementation(() => undefined),
+          readFileSync: vi.fn().mockReturnValue('{"locale":"en"}'),
+          mkdirSync: vi.fn().mockImplementation(() => undefined)
+        }
+      }
+      if (request === 'path') {
+        return {
+          join: vi.fn().mockReturnValue('/mock/path/locale-preference.json')
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (originalModule as any)._load(request)
+    }
+  }
+})
+
 // fsとpathのモック
 vi.mock('fs', () => ({
   default: {
     existsSync: vi.fn().mockReturnValue(false),
-    writeFileSync: vi.fn()
+    writeFileSync: vi.fn().mockImplementation(() => undefined),
+    readFileSync: vi.fn().mockReturnValue('{"locale":"en"}'),
+    mkdirSync: vi.fn().mockImplementation(() => undefined)
   }
+}))
+
+// fs直接importのため、requireのモックも必要
+vi.mock('node:fs', () => ({
+  existsSync: vi.fn().mockReturnValue(false),
+  writeFileSync: vi.fn().mockImplementation(() => undefined),
+  readFileSync: vi.fn().mockReturnValue('{"locale":"en"}'),
+  mkdirSync: vi.fn().mockImplementation(() => undefined)
 }))
 
 vi.mock('path', () => ({
   default: {
     join: vi.fn().mockReturnValue('/mock/path/locale-preference.json')
   }
+}))
+
+// path直接importのため、requireのモックも必要
+vi.mock('node:path', () => ({
+  join: vi.fn().mockReturnValue('/mock/path/locale-preference.json')
 }))
 
 // intlオブジェクトのモックは以下のテストで利用

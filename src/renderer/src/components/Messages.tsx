@@ -206,11 +206,7 @@ function Messages({
                         try {
                           const response = JSON.parse(message.tool_res)
 
-                          return (
-                            <div className="query-optimization">
-                              <div className="optimized-query">{response.optimizedQuery}</div>
-                            </div>
-                          )
+                          return response.optimizedQuery
                         } catch (error) {
                           console.error('Error parsing search query data:', error)
                           return ''

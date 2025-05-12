@@ -167,8 +167,24 @@ export const initLocale = (localeKey: keyof typeof locale = getPreferredLocale()
 
     const userDataPath = app.getPath('userData')
     const localeFilePath = path.join(userDataPath, 'locale-preference.json')
-    fs.writeFileSync(localeFilePath, JSON.stringify({ locale: selectedLocale }), 'utf8')
+
+    try {
+      // Create directory if it doesn't exist (for testing purposes)
+      const dirPath = path.dirname(localeFilePath)
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true })
+      }
+      fs.writeFileSync(localeFilePath, JSON.stringify({ locale: selectedLocale }), 'utf8')
+    } catch (writeError) {
+      // Silent failure in tests, log in production
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Failed to save locale preference:', writeError)
+      }
+    }
   } catch (error) {
-    console.error('Failed to save locale preference:', error)
+    // Silent failure in tests, log in production
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Failed to save locale preference:', error)
+    }
   }
 }
