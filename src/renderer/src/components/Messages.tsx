@@ -1,5 +1,13 @@
 import orderBy from 'lodash/orderBy'
-import { FiBookOpen, FiChevronDown, FiChevronUp, FiHardDrive, FiSearch, FiSmile, FiTool } from 'react-icons/fi'
+import {
+  FiBookOpen,
+  FiChevronDown,
+  FiChevronUp,
+  FiHardDrive,
+  FiSearch,
+  FiSmile,
+  FiTool
+} from 'react-icons/fi'
 import { useIntl } from '../lib/locale'
 import HighlightedMarkdown from './HighlightedMarkdown'
 
@@ -158,6 +166,34 @@ function Messages({
                   <div>{intl.formatMessage({ id: 'memoryCompressed' })}</div>
                 </div>
               )}
+              {message.role === 'tool' && message.tool_name === 'knowledge_search' && (
+                <div className="knowledge">
+                  <div className="knowledge-icon">
+                    <FiSearch size={14} />
+                  </div>
+                  <div className="knowledge-main">
+                    {intl.formatMessage({ id: 'searchKnowledge' })}:
+                  </div>
+                  <div className="knowledge-sub">
+                    {message.tool_req &&
+                      message.tool_res &&
+                      (() => {
+                        try {
+                          const response = JSON.parse(message.tool_res)
+
+                          return (
+                            <div className="query-optimization">
+                              <div className="optimized-query">{response.optimizedQuery}</div>
+                            </div>
+                          )
+                        } catch (error) {
+                          console.error('Error parsing search query data:', error)
+                          return ''
+                        }
+                      })()}
+                  </div>
+                </div>
+              )}
               {message.role === 'tool' &&
                 message.tool_name !== 'upsert_knowledge' &&
                 message.tool_name !== 'search_knowledge' &&
@@ -165,7 +201,9 @@ function Messages({
                 message.tool_name !== 'replace_memory' &&
                 message.tool_name !== 'knowledge_record' &&
                 message.tool_name !== 'memory_update' &&
-                message.tool_name !== 'memory_compression' && (
+                message.tool_name !== 'memory_compression' &&
+                message.tool_name !== 'search_query_generation' &&
+                message.tool_name !== 'knowledge_search' && (
                   <div className="tool">
                     <div className="tool-name">
                       <div className="tool-name-text">

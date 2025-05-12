@@ -13,6 +13,12 @@ const chatProps = {
   link: window.api.link,
   interrupt: window.api.interrupt,
   randomUUID: window.crypto.randomUUID.bind(window.crypto),
+  registerSearchQueryListener: (
+    callback: (data: { originalQuery: string; optimizedQuery: string }) => void
+  ) => {
+    window.electron.ipcRenderer.on('search-query', (_, data) => callback(data))
+    return () => window.electron.ipcRenderer.removeAllListeners('search-query')
+  },
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => {
     window.electron.ipcRenderer.on('knowledge-saved', (_, data) => callback(data))
     return () => window.electron.ipcRenderer.removeAllListeners('knowledge-saved')

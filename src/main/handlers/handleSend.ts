@@ -14,17 +14,17 @@ export type Assistant = {
 
 export const handleSend = async (_, input): Promise<void> => {
   try {
+    let id: string | undefined = undefined
+    id = await createMessage({
+      role: 'user',
+      content: input
+    })
     const useSearchGrounding = await detectSearchNeed(input)
     const m = await model(useSearchGrounding)
     const stream = await chat(await agent(m, useSearchGrounding), input, useSearchGrounding)
 
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
-    let id: string | undefined = undefined
-    id = await createMessage({
-      role: 'user',
-      content: input
-    })
     mainWindow.webContents.send('message-saved', id)
 
     globalThis.Interrupt = false

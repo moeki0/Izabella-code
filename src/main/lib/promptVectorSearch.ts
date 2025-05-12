@@ -1,5 +1,10 @@
 import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
 import { store } from './store'
+import { google } from '@ai-sdk/google'
+import { generateObject } from 'ai'
+import { z } from 'zod'
+import { createMessage } from './message'
+import { readWorkingMemory } from './workingMemory'
 
 let knowledgeStore: MarkdownKnowledgeStore | null = null
 
@@ -17,20 +22,80 @@ export interface PromptSearchResult {
   similarity: number
 }
 
+export async function generateSearchQuery(
+  prompt: string,
+  recentMessages: string[] = [],
+  workingMemory: string = ''
+): Promise<string> {
+  try {
+    const model = google('gemini-2.5-flash-preview-04-17')
+
+    const result = await generateObject({
+      model,
+      schema: z.object({
+        query: z.string()
+      }),
+      temperature: 0,
+      prompt: `
+あなたはベクトル検索のためのクエリを生成するシステムです。
+ユーザーの入力とメッセージ履歴、ワーキングメモリの内容を分析し、検索に最適なクエリを生成してください。
+
+検索クエリは以下の要件を満たす必要があります：
+1. 具体的なキーワードを使用する
+2. 不要な接続詞や助詞を除去する
+3. 本質的な検索意図を抽出する
+4. 単なる入力のコピーではなく、検索効率を高めるための最適化されたクエリにする
+
+入力: ${prompt}
+
+メッセージ履歴:
+${recentMessages.join('\n\n')}
+
+ワーキングメモリ:
+${workingMemory}
+
+最適な検索クエリを生成してください。`
+    })
+
+    // Save the generated query as a tool message
+    await createMessage({
+      role: 'tool',
+      toolName: 'search_query_generation',
+      toolReq: JSON.stringify({
+        prompt,
+        messageHistory: recentMessages.length,
+        workingMemoryUsed: !!workingMemory
+      }),
+      toolRes: JSON.stringify({ generatedQuery: result.object.query })
+    })
+
+    return result.object.query
+  } catch (error) {
+    console.error('検索クエリ生成エラー:', error)
+    return prompt // Fallback to original prompt
+  }
+}
+
+export interface SearchQueryResult {
+  originalQuery: string
+  optimizedQuery: string
+  results: PromptSearchResult[]
+}
+
 export async function searchKnowledgeWithPrompt(
   prompt: string,
   recentMessages: string[] = [],
   limit = 7,
-  similarityThreshold = 0.75
+  similarityThreshold = 0.75,
+  workingMemory: string = ''
 ): Promise<PromptSearchResult[]> {
   try {
     const knowledgeStore = getKnowledgeStore()
 
-    // Combine the current prompt with recent message history
-    const searchContext =
-      recentMessages.length > 0 ? [prompt, ...recentMessages].join('\n\n') : prompt
+    // Generate optimized search query using LLM
+    const searchQuery = await generateSearchQuery(prompt, recentMessages, workingMemory)
 
-    const results = await knowledgeStore.search(searchContext, limit)
+    const results = await knowledgeStore.search(searchQuery, limit)
 
     return results
       .filter((result) => result._similarity >= similarityThreshold)
@@ -45,15 +110,82 @@ export async function searchKnowledgeWithPrompt(
   }
 }
 
+export async function searchKnowledgeWithQueryInfo(
+  prompt: string,
+  recentMessages: string[] = [],
+  limit = 7,
+  similarityThreshold = 0.75,
+  workingMemory: string = ''
+): Promise<SearchQueryResult> {
+  const optimizedQuery = await generateSearchQuery(prompt, recentMessages, workingMemory)
+  const results = await searchKnowledgeWithPrompt(
+    prompt,
+    recentMessages,
+    limit,
+    similarityThreshold,
+    workingMemory
+  )
+
+  return {
+    originalQuery: prompt,
+    optimizedQuery,
+    results
+  }
+}
+
 export async function enhanceInstructionsWithKnowledge(
   prompt: string,
   baseInstructions: string,
   recentMessages: string[] = []
 ): Promise<string> {
-  const searchResults = await searchKnowledgeWithPrompt(prompt, recentMessages)
+  // Get working memory to provide context for the search
+  let workingMemory = ''
+  try {
+    workingMemory = await readWorkingMemory()
+  } catch (error) {
+    console.error('Failed to read working memory:', error)
+  }
 
-  if (searchResults.length === 0) {
+  // Get search results with query information
+  const searchData = await searchKnowledgeWithQueryInfo(
+    prompt,
+    recentMessages,
+    7,
+    0.75,
+    workingMemory
+  )
+
+  if (searchData.results.length === 0) {
     return baseInstructions
+  }
+
+  // Create a message showing the search process
+  await createMessage({
+    role: 'tool',
+    toolName: 'knowledge_search',
+    toolReq: JSON.stringify({
+      prompt: searchData.originalQuery,
+      messageHistory: recentMessages.length,
+      workingMemoryUsed: !!workingMemory
+    }),
+    toolRes: JSON.stringify({
+      optimizedQuery: searchData.optimizedQuery,
+      resultsCount: searchData.results.length
+    })
+  })
+
+  // Send search query information to the renderer process
+  try {
+    const { BrowserWindow } = require('electron')
+    const mainWindow = BrowserWindow.getAllWindows()[0]
+    if (mainWindow) {
+      mainWindow.webContents.send('search-query', {
+        originalQuery: searchData.originalQuery,
+        optimizedQuery: searchData.optimizedQuery
+      })
+    }
+  } catch (error) {
+    console.error('Failed to send search query to renderer:', error)
   }
 
   // Format the search results into a section to be included in the instructions
@@ -61,7 +193,10 @@ export async function enhanceInstructionsWithKnowledge(
 # プロンプト関連のナレッジ情報
 以下はプロンプトに関連する既存のナレッジベースからの情報です。この情報を回答に活用してください：
 
-${searchResults
+検索クエリ: "${searchData.originalQuery}"
+> 最適化されたクエリ: "${searchData.optimizedQuery}"
+
+${searchData.results
   .map(
     (result) => `## ${result.id}
 ${result.content.slice(0, 1000)}

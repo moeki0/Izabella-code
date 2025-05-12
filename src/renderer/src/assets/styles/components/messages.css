@@ -258,8 +258,29 @@ main {
 
 .knowledge-sub {
   text-overflow: ellipsis;
-  text-wrap: nowrap;
   overflow-x: hidden;
+  max-width: 600px;
+  text-wrap: nowrap;
+}
+
+.query-optimization {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.original-query,
+.optimized-query {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.query-label {
+  font-weight: bold;
+  color: #555;
 }
 
 .knowledge-icon {

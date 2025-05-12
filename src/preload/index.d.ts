@@ -61,7 +61,8 @@ export const validChannels = [
   'show-thread-context-menu',
   'tool-approval',
   'source',
-  'message-deleted'
+  'message-deleted',
+  'search-query'
 ] as const
 
 export type ValidChannel = (typeof validChannels)[number]

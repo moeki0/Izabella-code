@@ -75,6 +75,9 @@ export interface ChatProps {
   link: (href: string) => void
   interrupt: () => void
   randomUUID: () => string
+  registerSearchQueryListener: (
+    callback: (data: { originalQuery: string; optimizedQuery: string }) => void
+  ) => () => void
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
   registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
   registerStreamListener: (callback: (chunk: string) => void) => () => void
@@ -128,6 +131,7 @@ function Chat({
   highlightAll,
   approveToolCall,
   interrupt,
+  registerSearchQueryListener,
   initialSettingsSidebarOpen
 }: ChatProps): React.JSX.Element {
   const navigate = useNavigate()
@@ -160,6 +164,7 @@ function Chat({
 
   const [isShowingSearchResult, setIsShowingSearchResult] = useState(false)
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
+  const [optimizedSearchQuery, setOptimizedSearchQuery] = useState<string>('')
 
   // Calculate if any sidebar is open
   const isSidebarOpen =
@@ -228,6 +233,33 @@ function Chat({
   }, [init, mermaidInit, mermaidRun])
 
   useEffect(() => {
+    const unsubscribeSearchQuery = registerSearchQueryListener((data) => {
+      setOptimizedSearchQuery(data.optimizedQuery)
+
+      // 検索クエリをユーザーに表示するためにツールメッセージとしても追加
+      setMessages((prev) => {
+        const newMessage = {
+          role: 'tool' as const,
+          tool_name: 'knowledge_search',
+          tool_req: JSON.stringify({
+            prompt: data.originalQuery
+          }),
+          tool_res: JSON.stringify({
+            optimizedQuery: data.optimizedQuery
+          }),
+          open: true
+        }
+        const updatedMessages = [...prev, newMessage]
+
+        // オリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
+      })
+    })
+
     const unsubscribeKnowledgeSaved = registerKnowledgeSavedListener((data) => {
       const ids = data.ids || []
       setMessages((prev) => {
@@ -430,6 +462,7 @@ function Chat({
       unsubscribeSource()
       unsubscribelInterrupt()
       unsubscribeMessageSaved()
+      unsubscribeSearchQuery()
     }
   }, [
     messages,
@@ -451,7 +484,8 @@ function Chat({
     registerMessageSavedListener,
     registerKnowledgeSavedListener,
     registerMemoryUpdatedListener,
-    isShowingSearchResult
+    isShowingSearchResult,
+    registerSearchQueryListener
   ])
 
   useEffect(() => {
@@ -611,6 +645,7 @@ function Chat({
         setMessages(originalMessages)
         setIsShowingSearchResult(false)
         setCurrentSearchQuery('') // 検索クエリをクリア
+        setOptimizedSearchQuery('') // 最適化済みクエリをクリア
 
         // メッセージリストの一番下までスクロール
         setTimeout(() => {
