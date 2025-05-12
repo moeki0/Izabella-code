@@ -32,7 +32,7 @@ let tools
 export const detectSearchNeed = async (input: string): Promise<boolean> => {
   try {
     const model = google('gemini-2.5-flash-preview-04-17')
-    const recentMessages = await getMessages(5)
+    const recentMessages = await getMessages(3)
     const result = await generateObject({
       model,
       schema: z.object({
