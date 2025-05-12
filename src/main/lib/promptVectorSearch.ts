@@ -20,7 +20,7 @@ export interface PromptSearchResult {
 export async function searchKnowledgeWithPrompt(
   prompt: string,
   recentMessages: string[] = [],
-  limit = 3,
+  limit = 7,
   similarityThreshold = 0.75
 ): Promise<PromptSearchResult[]> {
   try {

@@ -1,5 +1,5 @@
 import { Routes, Route, HashRouter } from 'react-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Chat from './components/Chat'
 import mermaid from 'mermaid'
 import hljs from 'highlight.js'
@@ -91,15 +91,38 @@ const chatProps = {
 }
 
 function App(): React.JSX.Element {
+  const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false)
+
   useEffect(() => {
     // Initialize locale from system settings
     initializeLocale().catch(console.error)
+
+    // Check for API keys and open settings sidebar if missing
+    const checkApiKeys = async (): Promise<void> => {
+      try {
+        const apiKeys = await window.api.getConfig('apiKeys')
+        const hasOpenAIKey = apiKeys?.openai && apiKeys.openai.trim() !== ''
+        const hasGoogleKey = apiKeys?.google && apiKeys.google.trim() !== ''
+
+        // If both API keys are missing, open the settings sidebar
+        if (!hasOpenAIKey && !hasGoogleKey) {
+          setIsSettingsSidebarOpen(true)
+        }
+      } catch (error) {
+        console.error('Error checking API keys:', error)
+      }
+    }
+
+    checkApiKeys()
   }, [])
 
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Chat {...chatProps} />} />
+        <Route
+          path="/"
+          element={<Chat {...chatProps} initialSettingsSidebarOpen={isSettingsSidebarOpen} />}
+        />
       </Routes>
     </HashRouter>
   )

@@ -101,6 +101,7 @@ export interface ChatProps {
   highlightAll: typeof hljs.highlightAll
   approveToolCall: (approved: boolean) => void
   setComponentId?: (componentId: string) => void
+  initialSettingsSidebarOpen?: boolean
 }
 
 function Chat({
@@ -126,7 +127,8 @@ function Chat({
   mermaidRun,
   highlightAll,
   approveToolCall,
-  interrupt
+  interrupt,
+  initialSettingsSidebarOpen
 }: ChatProps): React.JSX.Element {
   const navigate = useNavigate()
 
@@ -166,6 +168,10 @@ function Chat({
     isMemorySidebarOpen ||
     isSettingsSidebarOpen ||
     isToolsSidebarOpen
+
+  useEffect(() => {
+    setIsSettingsSidebarOpen(!!initialSettingsSidebarOpen)
+  }, [initialSettingsSidebarOpen])
 
   useEffect(() => {
     const unsubscribe = registerNewThreadListener(() => {

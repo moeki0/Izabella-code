@@ -206,7 +206,7 @@ function SettingsSidebar({ isOpen }: SettingsSidebarProps): React.JSX.Element | 
         <div className="settings-section">
           <h3 className="settings-section-title">API Keys</h3>
           <div className="settings-input-group">
-            <label htmlFor="openai-api-key">OpenAI (Legacy)</label>
+            <label htmlFor="openai-api-key">OpenAI</label>
             <input
               type="password"
               id="openai-api-key"
