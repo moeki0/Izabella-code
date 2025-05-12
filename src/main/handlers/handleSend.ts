@@ -129,7 +129,7 @@ export const handleSend = async (_, input): Promise<void> => {
         }
         // 会話履歴からナレッジを抽出して保存
         try {
-          const recentMessages = await getMessages(3)
+          const recentMessages = await getMessages(10)
           const formattedMessages = recentMessages
             .reverse()
             .map((message) => ({

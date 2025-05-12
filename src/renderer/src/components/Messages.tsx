@@ -30,7 +30,8 @@ function Messages({
   running,
   handleToolClick,
   interrupt,
-  searchQuery
+  searchQuery,
+  isSearching
 }: {
   messages: Array<Message>
   showMessageContextMenu: (text: string, messageId?: string, isAssistantMessage?: boolean) => void
@@ -39,6 +40,7 @@ function Messages({
   handleToolClick: (id: number) => void
   interrupt: () => void
   searchQuery?: string
+  isSearching?: boolean
 }): React.JSX.Element {
   const intl = useIntl()
   const handleContextMenu = (e, text, messageId, isAssistantMessage = false): void => {
@@ -166,6 +168,29 @@ function Messages({
                   <div>{intl.formatMessage({ id: 'memoryCompressed' })}</div>
                 </div>
               )}
+              {message.role === 'tool' && message.tool_name === 'start_search' && (
+                <div className="knowledge searching-animation">
+                  <div className="knowledge-icon">
+                    <FiSearch size={14} />
+                  </div>
+                  <div className="knowledge-main">
+                    {intl.formatMessage({ id: 'searchingKnowledge' }) ||
+                      'Searching knowledge base...'}
+                  </div>
+                </div>
+              )}
+              {isSearching &&
+                !messages.some((m) => m.role === 'tool' && m.tool_name === 'start_search') && (
+                  <div className="knowledge searching-animation" style={{ marginTop: '10px' }}>
+                    <div className="knowledge-icon">
+                      <FiSearch size={14} />
+                    </div>
+                    <div className="knowledge-main">
+                      {intl.formatMessage({ id: 'searchingKnowledge' }) ||
+                        'Searching knowledge base...'}
+                    </div>
+                  </div>
+                )}
               {message.role === 'tool' && message.tool_name === 'knowledge_search' && (
                 <div className="knowledge">
                   <div className="knowledge-icon">
@@ -203,7 +228,8 @@ function Messages({
                 message.tool_name !== 'memory_update' &&
                 message.tool_name !== 'memory_compression' &&
                 message.tool_name !== 'search_query_generation' &&
-                message.tool_name !== 'knowledge_search' && (
+                message.tool_name !== 'knowledge_search' &&
+                message.tool_name !== 'start_search' && (
                   <div className="tool">
                     <div className="tool-name">
                       <div className="tool-name-text">

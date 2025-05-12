@@ -32,7 +32,7 @@ export async function extractKnowledgeFromConversation(
 - アシスタントが生成した役立つコンテンツはあとで再利用できるように記録してください。`
 
   try {
-    const model = google('gemini-2.5-flash-preview-04-17')
+    const model = google('gemini-2.0-flash')
 
     const result = await generateObject({
       model,

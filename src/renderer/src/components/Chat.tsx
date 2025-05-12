@@ -82,6 +82,9 @@ export interface ChatProps {
   registerSearchQueryListener: (
     callback: (data: { originalQuery: string; optimizedQuery: string }) => void
   ) => () => void
+  registerStartSearchListener: (
+    callback: (data: { prompt: string; status: string }) => void
+  ) => () => void
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
   registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
   registerStreamListener: (callback: (chunk: string) => void) => () => void
@@ -129,6 +132,7 @@ function Chat({
   registerNewThreadListener,
   registerRetryListener,
   registerSourceListener,
+  registerStartSearchListener,
   showMessageContextMenu,
   mermaidInit,
   mermaidRun,
@@ -170,6 +174,8 @@ function Chat({
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
   // Used in the search query display and sidebar toggle
   const [optimizedSearchQuery, setOptimizedSearchQuery] = useState<string>('')
+  // Indicates if a search operation is currently in progress
+  const [isSearching, setIsSearching] = useState(false)
 
   // Calculate if any sidebar is open
   const isSidebarOpen =
@@ -238,11 +244,55 @@ function Chat({
   }, [init, mermaidInit, mermaidRun])
 
   useEffect(() => {
+    const unsubscribeStartSearch = registerStartSearchListener((data) => {
+      // Set searching state to true when search starts
+      setIsSearching(true)
+
+      // Add a message to indicate search is starting
+      setMessages((prev) => {
+        // まず既存のstart_searchメッセージを削除
+        const filteredMessages = prev.filter(
+          (message) => !(message.role === 'tool' && message.tool_name === 'start_search')
+        )
+
+        const newMessage = {
+          role: 'tool' as const,
+          tool_name: 'start_search',
+          tool_req: JSON.stringify({
+            prompt: data.prompt
+          }),
+          tool_res: JSON.stringify({
+            status: data.status
+          }),
+          open: true
+        }
+        const updatedMessages = [...filteredMessages, newMessage]
+
+        // Update original messages if not showing search result
+        if (!isShowingSearchResult) {
+          // 元のメッセージリストにも同様の処理を適用
+          const filteredOriginalMessages = originalMessages.filter(
+            (message) => !(message.role === 'tool' && message.tool_name === 'start_search')
+          )
+          setOriginalMessages([...filteredOriginalMessages, newMessage])
+        }
+
+        return updatedMessages
+      })
+    })
+
     const unsubscribeSearchQuery = registerSearchQueryListener((data) => {
+      // When we get the search query results, set searching to false
+      setIsSearching(false)
       setOptimizedSearchQuery(data.optimizedQuery)
 
       // 検索クエリをユーザーに表示するためにツールメッセージとしても追加
       setMessages((prev) => {
+        // 検索中のメッセージを削除
+        const filteredMessages = prev.filter(
+          (message) => !(message.role === 'tool' && message.tool_name === 'start_search')
+        )
+
         const newMessage = {
           role: 'tool' as const,
           tool_name: 'knowledge_search',
@@ -254,11 +304,15 @@ function Chat({
           }),
           open: true
         }
-        const updatedMessages = [...prev, newMessage]
+        const updatedMessages = [...filteredMessages, newMessage]
 
         // オリジナルメッセージも更新
         if (!isShowingSearchResult) {
-          setOriginalMessages(updatedMessages)
+          // 元のメッセージリストにも同様の処理を適用
+          const filteredOriginalMessages = originalMessages.filter(
+            (message) => !(message.role === 'tool' && message.tool_name === 'start_search')
+          )
+          setOriginalMessages([...filteredOriginalMessages, newMessage])
         }
 
         return updatedMessages
@@ -468,6 +522,7 @@ function Chat({
       unsubscribelInterrupt()
       unsubscribeMessageSaved()
       unsubscribeSearchQuery()
+      unsubscribeStartSearch()
     }
   }, [
     messages,
@@ -490,7 +545,8 @@ function Chat({
     registerKnowledgeSavedListener,
     registerMemoryUpdatedListener,
     isShowingSearchResult,
-    registerSearchQueryListener
+    registerSearchQueryListener,
+    registerStartSearchListener
   ])
 
   useEffect(() => {
@@ -748,6 +804,7 @@ function Chat({
             interrupt={interrupt}
             searchQuery={currentSearchQuery}
             optimizedSearchQuery={optimizedSearchQuery}
+            isSearching={isSearching}
           />
           <div className={`user-container ${isSidebarOpen ? 'user-container-with-sidebar' : ''}`}>
             <div className="user">

@@ -29,7 +29,7 @@ export async function generateSearchQuery(
   workingMemory: string = ''
 ): Promise<string> {
   try {
-    const geminiModel = 'gemini-2.5-flash-preview-04-17'
+    const geminiModel = 'gemini-2.0-flash'
     const model = google(geminiModel)
 
     const result = await generateObject({
@@ -140,6 +140,17 @@ export async function enhanceInstructionsWithKnowledge(
   baseInstructions: string,
   recentMessages: string[] = []
 ): Promise<string> {
+  try {
+    if (mainWindow) {
+      mainWindow.webContents.send('start-search', {
+        prompt,
+        status: 'searching'
+      })
+    }
+  } catch (error) {
+    console.error('Failed to send start-search event to renderer:', error)
+  }
+
   // Get working memory to provide context for the search
   let workingMemory = ''
   try {

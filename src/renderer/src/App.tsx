@@ -13,6 +13,10 @@ const chatProps = {
   link: window.api.link,
   interrupt: window.api.interrupt,
   randomUUID: window.crypto.randomUUID.bind(window.crypto),
+  registerStartSearchListener: (callback: (data: { prompt: string; status: string }) => void) => {
+    window.electron.ipcRenderer.on('start-search', (_, data) => callback(data))
+    return () => window.electron.ipcRenderer.removeAllListeners('start-search')
+  },
   registerSearchQueryListener: (
     callback: (data: { originalQuery: string; optimizedQuery: string }) => void
   ) => {

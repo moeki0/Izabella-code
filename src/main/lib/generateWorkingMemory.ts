@@ -41,7 +41,7 @@ export async function generateUpdatedWorkingMemory(
 最終的な出力としては、すべてのセクションを含む完全なワーキングメモリの内容を返してください。`
 
     // LLMを使用してワーキングメモリを更新
-    const model = google('gemini-2.5-flash-preview-04-17')
+    const model = google('gemini-2.0-flash')
 
     // 会話履歴をフォーマット
     const formattedMessages = [

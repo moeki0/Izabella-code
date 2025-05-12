@@ -71,7 +71,7 @@ export async function compressWorkingMemory(): Promise<string | Error> {
 最終的な出力としては、半分のサイズのすべてのセクションを含む完全なワーキングメモリの内容を返してください。`
 
     // LLMを使用してワーキングメモリを圧縮
-    const model = google('gemini-2.0-flash-lite')
+    const model = google('gemini-2.0-flash')
 
     const formattedMessages = [
       {
