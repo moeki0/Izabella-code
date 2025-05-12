@@ -70,6 +70,7 @@ const mockDependencies = {
   registerSourceListener: vi.fn().mockReturnValue(() => {}),
   registerKnowledgeSavedListener: vi.fn().mockReturnValue(() => {}),
   registerMemoryUpdatedListener: vi.fn().mockReturnValue(() => {}),
+  registerSearchQueryListener: vi.fn().mockReturnValue(() => {}),
   showMessageContextMenu: vi.fn(),
   approveToolCall: vi.fn(),
   mermaidInit: vi.fn(),

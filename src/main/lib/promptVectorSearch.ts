@@ -5,6 +5,7 @@ import { generateObject } from 'ai'
 import { z } from 'zod'
 import { createMessage } from './message'
 import { readWorkingMemory } from './workingMemory'
+import { mainWindow } from '..'
 
 let knowledgeStore: MarkdownKnowledgeStore | null = null
 
@@ -28,7 +29,8 @@ export async function generateSearchQuery(
   workingMemory: string = ''
 ): Promise<string> {
   try {
-    const model = google('gemini-2.5-flash-preview-04-17')
+    const geminiModel = 'gemini-2.5-flash-preview-04-17'
+    const model = google(geminiModel)
 
     const result = await generateObject({
       model,
@@ -176,8 +178,6 @@ export async function enhanceInstructionsWithKnowledge(
 
   // Send search query information to the renderer process
   try {
-    const { BrowserWindow } = require('electron')
-    const mainWindow = BrowserWindow.getAllWindows()[0]
     if (mainWindow) {
       mainWindow.webContents.send('search-query', {
         originalQuery: searchData.originalQuery,

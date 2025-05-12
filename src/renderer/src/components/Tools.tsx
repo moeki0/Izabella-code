@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export type Tool = {
   name: string
@@ -20,7 +20,7 @@ function Tools({ getTools, getEnabledTools, updateToolEnabled }: ToolsProps): Re
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
 
-  const fetchTools = async (): Promise<void> => {
+  const fetchTools = useCallback(async (): Promise<void> => {
     if (getEnabledTools) {
       try {
         const result = await getEnabledTools()
@@ -37,11 +37,11 @@ function Tools({ getTools, getEnabledTools, updateToolEnabled }: ToolsProps): Re
         console.error('Failed to fetch tools:', error)
       }
     }
-  }
+  }, [getEnabledTools, getTools])
 
   useEffect(() => {
     fetchTools()
-  }, [getTools, getEnabledTools])
+  }, [getTools, getEnabledTools, fetchTools])
 
   const handleToggle = async (toolName: string, enabled: boolean): Promise<void> => {
     if (!updateToolEnabled) return

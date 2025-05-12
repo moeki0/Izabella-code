@@ -43,12 +43,16 @@ export interface ChatCommunicationDeps {
 
 export interface ChatEventDeps {
   registerStreamListener: (callback: (chunk: string) => void) => () => void
-  registerToolCallListener: (callback: (content: string, pending: boolean) => void) => () => void
+  registerToolCallListener: (
+    callback: (content: { toolName: string; args: string }, pending: boolean) => void
+  ) => () => void
   registerStepFinishListener: (callback: (id: string) => void) => () => void
   registerMessageSavedListener: (callback: (id: string) => void) => () => void
   registerFinishListener: (callback: () => void) => () => void
   registerErrorListener: (callback: (chunk: string) => void) => () => void
-  registerToolResultListener: (callback: (content: string) => void) => () => void
+  registerToolResultListener: (
+    callback: (content: { toolName: string; args: string }) => void
+  ) => () => void
   registerTitleListener: (callback: (chunk: string) => void) => () => void
   registerNewThreadListener: (callback: () => void) => () => void
   registerRetryListener: (callback: (error: unknown) => void) => () => void
@@ -164,6 +168,7 @@ function Chat({
 
   const [isShowingSearchResult, setIsShowingSearchResult] = useState(false)
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
+  // Used in the search query display and sidebar toggle
   const [optimizedSearchQuery, setOptimizedSearchQuery] = useState<string>('')
 
   // Calculate if any sidebar is open
@@ -742,6 +747,7 @@ function Chat({
             handleToolClick={handleToolClick}
             interrupt={interrupt}
             searchQuery={currentSearchQuery}
+            optimizedSearchQuery={optimizedSearchQuery}
           />
           <div className={`user-container ${isSidebarOpen ? 'user-container-with-sidebar' : ''}`}>
             <div className="user">
