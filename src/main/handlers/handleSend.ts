@@ -3,6 +3,7 @@ import { mainWindow } from '..'
 import { createMessage, getMessages } from '../lib/message'
 import { processConversationForKnowledge } from '../lib/extractKnowledge'
 import { processConversationForWorkingMemory } from '../lib/generateWorkingMemory'
+import { checkAndCompressWorkingMemory } from '../lib/compressWorkingMemory'
 
 export type Assistant = {
   name: string
@@ -172,6 +173,20 @@ export const handleSend = async (_, input): Promise<void> => {
               mainWindow.webContents.send('memory-updated', {
                 success: true
               })
+
+              try {
+                const wasCompressed = await checkAndCompressWorkingMemory()
+                if (wasCompressed) {
+                  await createMessage({
+                    role: 'tool',
+                    toolName: 'memory_compression',
+                    toolReq: JSON.stringify({ conversation_id: id }),
+                    toolRes: JSON.stringify({ compressed: true })
+                  })
+                }
+              } catch (compressionError) {
+                console.error('Error compressing working memory:', compressionError)
+              }
             }
           } catch (memoryError) {
             console.error('Error updating working memory:', memoryError)

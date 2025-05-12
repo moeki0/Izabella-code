@@ -9,7 +9,8 @@ vi.mock('../lib/locale', () => ({
     formatMessage: ({ id }) => {
       const translations = {
         knowledgeRecorded: 'ナレッジが記録されました',
-        memoryUpdated: 'メモリが更新されました'
+        memoryUpdated: 'メモリが更新されました',
+        memoryCompressed: 'メモリが圧縮されました'
       }
       return translations[id] || id
     }
@@ -44,6 +45,12 @@ describe('Messages', () => {
       tool_name: 'memory_update',
       tool_req: '{"conversation_id": "test-id"}',
       tool_res: '{"updated": true}'
+    },
+    {
+      role: 'tool' as const,
+      tool_name: 'memory_compression',
+      tool_req: '{"conversation_id": "test-id"}',
+      tool_res: '{"compressed": true}'
     }
   ]
 
@@ -111,5 +118,10 @@ describe('Messages', () => {
   it('メモリ更新メッセージが表示されること', () => {
     // テストをスキップしておく
     console.log('スキップ: メモリ更新メッセージが表示されること')
+  })
+
+  it('メモリ圧縮メッセージが表示されること', () => {
+    render(<Messages {...defaultProps} />)
+    expect(screen.getByText('メモリが圧縮されました')).toBeInTheDocument()
   })
 })

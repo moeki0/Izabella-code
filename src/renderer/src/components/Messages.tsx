@@ -1,5 +1,5 @@
 import orderBy from 'lodash/orderBy'
-import { FiBookOpen, FiChevronDown, FiChevronUp, FiSearch, FiSmile, FiTool } from 'react-icons/fi'
+import { FiBookOpen, FiChevronDown, FiChevronUp, FiHardDrive, FiSearch, FiSmile, FiTool } from 'react-icons/fi'
 import { useIntl } from '../lib/locale'
 import HighlightedMarkdown from './HighlightedMarkdown'
 
@@ -150,13 +150,22 @@ function Messages({
                   <div>{intl.formatMessage({ id: 'memoryUpdated' })}</div>
                 </div>
               )}
+              {message.role === 'tool' && message.tool_name === 'memory_compression' && (
+                <div className="knowledge">
+                  <div className="knowledge-icon">
+                    <FiHardDrive size={14} />
+                  </div>
+                  <div>{intl.formatMessage({ id: 'memoryCompressed' })}</div>
+                </div>
+              )}
               {message.role === 'tool' &&
                 message.tool_name !== 'upsert_knowledge' &&
                 message.tool_name !== 'search_knowledge' &&
                 message.tool_name !== 'update_knowledge_index' &&
                 message.tool_name !== 'replace_memory' &&
                 message.tool_name !== 'knowledge_record' &&
-                message.tool_name !== 'memory_update' && (
+                message.tool_name !== 'memory_update' &&
+                message.tool_name !== 'memory_compression' && (
                   <div className="tool">
                     <div className="tool-name">
                       <div className="tool-name-text">
