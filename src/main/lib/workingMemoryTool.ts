@@ -62,11 +62,11 @@ export const updateWorkingMemoryTool: unknown = createTool({
 export const replaceWorkingMemoryTool: unknown = createTool({
   id: 'replace_memory',
   inputSchema: z.object({
-    oldText: z.string().describe('置換する対象のテキスト'),
-    newText: z.string().describe('置換後の新しいテキスト')
+    oldText: z.string().describe('Text to be replaced'),
+    newText: z.string().describe('New text after replacement')
   }),
   description:
-    'ワーキングメモリ内の特定のテキストを置換します。メモリ全体を更新するのではなく、特定の部分だけを更新したい場合に使用します。',
+    'Replaces specific text in working memory. Use this when you want to update a specific part rather than the entire memory.',
   execute: async ({ context }) => {
     try {
       const result = await workingMemoryReplace({
@@ -76,7 +76,7 @@ export const replaceWorkingMemoryTool: unknown = createTool({
       return JSON.stringify(result)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`ワーキングメモリの置換に失敗しました: ${errorMessage}`)
+      throw new Error(`Failed to replace working memory: ${errorMessage}`)
     }
   }
 })

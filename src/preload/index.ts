@@ -7,6 +7,10 @@ export type Tool = {
   description: string
 }
 
+export type ToolWithEnabled = Tool & {
+  enabled: boolean
+}
+
 export type MessagesSearchResult = {
   success: boolean
   data: {
@@ -20,6 +24,9 @@ export type MessagesSearchResult = {
 const api = {
   init: (): Promise<{ message: Array<Message>; title: string }> => ipcRenderer.invoke('init'),
   getTools: (): Promise<Array<Tool>> => ipcRenderer.invoke('get-tools'),
+  getEnabledTools: (): Promise<Array<ToolWithEnabled>> => ipcRenderer.invoke('get-tools-enabled'),
+  updateToolEnabled: (toolName: string, enabled: boolean): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke('update-tool-enabled', toolName, enabled),
   link: (url: string): Promise<void> => ipcRenderer.invoke('link', url),
   interrupt: (): Promise<void> => ipcRenderer.invoke('interrupt'),
   send: (input: string, isRetry: boolean): Promise<void> =>

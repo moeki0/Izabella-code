@@ -97,11 +97,21 @@ export const agent = async (
   model: LanguageModelV1,
   useSearchGrounding: boolean
 ): Promise<Agent> => {
+  const enabledTools = store.get('enabledTools') as string[] | undefined
+
+  let availableTools = useSearchGrounding ? {} : tools
+
+  if (enabledTools && !useSearchGrounding) {
+    availableTools = Object.entries(tools)
+      .filter(([key]) => enabledTools.includes(key))
+      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
+  }
+
   return new Agent({
     instructions: '',
     name: 'Assistant',
     model,
-    tools: useSearchGrounding ? {} : tools
+    tools: availableTools
   })
 }
 

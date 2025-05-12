@@ -14,6 +14,7 @@ import MessageSearch from './MessageSearch'
 import { KnowledgeSidebar } from './KnowledgeSidebar'
 import { MemorySidebar } from './MemorySidebar'
 import { SettingsSidebar } from './SettingsSidebar'
+import { ToolsSidebar } from './ToolsSidebar'
 import { useIntl, getIntl } from '../lib/locale'
 import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
@@ -69,6 +70,8 @@ export interface ChatProps {
   init: () => Promise<{ title: string; messages: Array<Message> }>
   send: (input: string, isRetry: boolean) => void
   getTools: () => Promise<Array<Tool>>
+  getEnabledTools?: () => Promise<Array<ToolWithEnabled>>
+  updateToolEnabled?: (toolName: string, enabled: boolean) => Promise<{ success: boolean }>
   link: (href: string) => void
   interrupt: () => void
   randomUUID: () => string
@@ -151,13 +154,18 @@ function Chat({
   const [isKnowledgeSidebarOpen, setIsKnowledgeSidebarOpen] = useState(false)
   const [isMemorySidebarOpen, setIsMemorySidebarOpen] = useState(false)
   const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false)
+  const [isToolsSidebarOpen, setIsToolsSidebarOpen] = useState(false)
 
   const [isShowingSearchResult, setIsShowingSearchResult] = useState(false)
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
 
   // Calculate if any sidebar is open
   const isSidebarOpen =
-    isSearchSidebarOpen || isKnowledgeSidebarOpen || isMemorySidebarOpen || isSettingsSidebarOpen
+    isSearchSidebarOpen ||
+    isKnowledgeSidebarOpen ||
+    isMemorySidebarOpen ||
+    isSettingsSidebarOpen ||
+    isToolsSidebarOpen
 
   useEffect(() => {
     const unsubscribe = registerNewThreadListener(() => {
@@ -587,6 +595,7 @@ function Chat({
     setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
+    setIsToolsSidebarOpen(false)
 
     setIsSearchSidebarOpen((prevState) => {
       const newState = !prevState
@@ -623,6 +632,7 @@ function Chat({
     setIsSearchSidebarOpen(false)
     setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
+    setIsToolsSidebarOpen(false)
 
     setIsKnowledgeSidebarOpen((prev) => !prev)
   }, [])
@@ -633,6 +643,7 @@ function Chat({
     setIsSearchSidebarOpen(false)
     setIsKnowledgeSidebarOpen(false)
     setIsSettingsSidebarOpen(false)
+    setIsToolsSidebarOpen(false)
 
     setIsMemorySidebarOpen((prev) => !prev)
   }, [])
@@ -643,8 +654,20 @@ function Chat({
     setIsSearchSidebarOpen(false)
     setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
+    setIsToolsSidebarOpen(false)
 
     setIsSettingsSidebarOpen((prev) => !prev)
+  }, [])
+
+  // Tools サイドバーの表示・非表示を切り替える
+  const toggleToolsSidebar = useCallback(() => {
+    // 他のサイドバーを閉じる
+    setIsSearchSidebarOpen(false)
+    setIsKnowledgeSidebarOpen(false)
+    setIsMemorySidebarOpen(false)
+    setIsSettingsSidebarOpen(false)
+
+    setIsToolsSidebarOpen((prev) => !prev)
   }, [])
 
   const intl = useIntl()
@@ -667,6 +690,8 @@ function Chat({
             isMemorySidebarOpen={isMemorySidebarOpen}
             toggleSettingsSidebar={toggleSettingsSidebar}
             isSettingsSidebarOpen={isSettingsSidebarOpen}
+            toggleToolsSidebar={toggleToolsSidebar}
+            isToolsSidebarOpen={isToolsSidebarOpen}
           />
           <Messages
             messages={messages}
@@ -707,6 +732,7 @@ function Chat({
       <KnowledgeSidebar isOpen={isKnowledgeSidebarOpen} onClose={toggleKnowledgeSidebar} />
       <MemorySidebar isOpen={isMemorySidebarOpen} onClose={toggleMemorySidebar} />
       <SettingsSidebar isOpen={isSettingsSidebarOpen} onClose={toggleSettingsSidebar} />
+      <ToolsSidebar isOpen={isToolsSidebarOpen} onClose={toggleToolsSidebar} />
       <div className="banner">
         {error && (
           <div className="error">

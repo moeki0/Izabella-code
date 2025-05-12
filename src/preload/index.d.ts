@@ -1,7 +1,7 @@
 import type { ElectronAPI } from '@electron-toolkit/preload'
 import { Thread } from '@renderer/components/Threads'
 import { Message } from '@renderer/components/Chat'
-import { Tool } from '@renderer/components/Tools'
+import { Tool, ToolWithEnabled } from '@renderer/components/Tools'
 import { MessagesSearchResult } from '.'
 import { SearchMessagesParams } from '../main/lib/message'
 
@@ -14,6 +14,8 @@ interface ThreadsWithPagination {
 interface API {
   init: () => Promise<{ title: string; messages: Array<Message> }>
   getTools: () => Promise<Array<Tool>>
+  getEnabledTools: () => Promise<Array<ToolWithEnabled>>
+  updateToolEnabled: (toolName: string, enabled: boolean) => Promise<{ success: boolean }>
   interrupt: () => Promise<void>
   link: (url: string) => Promise<void>
   send: (input: string, isRetry: boolean) => Promise<void>

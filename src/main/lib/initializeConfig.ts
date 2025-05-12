@@ -9,4 +9,5 @@ const initialize = (name: string, value): void => {
 export const initializeConfig = (): void => {
   initialize('apiKeys', { google: '', openai: '' })
   initialize('mcpServers', [])
+  initialize('enabledTools', [])
 }

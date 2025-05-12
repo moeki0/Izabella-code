@@ -8,6 +8,8 @@ import { initializeLocale } from './lib/locale'
 const chatProps = {
   send: window.api.send,
   getTools: window.api.getTools,
+  getEnabledTools: window.api.getEnabledTools,
+  updateToolEnabled: window.api.updateToolEnabled,
   link: window.api.link,
   interrupt: window.api.interrupt,
   randomUUID: window.crypto.randomUUID.bind(window.crypto),

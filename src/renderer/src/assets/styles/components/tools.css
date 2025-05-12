@@ -29,15 +29,55 @@
   gap: 20px;
 }
 
+.tools-list-item-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
 .tools-list-item-name {
   text-overflow: ellipsis;
   overflow-x: hidden;
-  margin-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 .tools-list-item-description {
   font-size: 10px;
   color: #999;
+  margin-left: 20px;
+}
+
+.tools-list-item:last-child {
+  margin-bottom: 20px;
+}
+
+.tools-list-item-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.tools-list-item-toggle input {
+  margin: 0;
+}
+
+.settings-tools,
+.tools-sidebar-content {
+  padding: 10px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tools-sidebar-content {
+  max-height: calc(100vh - 48px);
+}
+
+.tools-sidebar-description {
+  padding: 0 15px 15px;
+  font-size: 14px;
+  color: #666;
 }
 
 .tool {

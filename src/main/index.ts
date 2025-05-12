@@ -3,6 +3,8 @@ import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { handleInit } from './handlers/handleInit'
 import { handleSend } from './handlers/handleSend'
 import { handleToolsGet } from './handlers/handleToolsGet'
+import { handleToolsEnabledGet } from './handlers/handleToolsEnabledGet'
+import { handleToolsEnabledUpdate } from './handlers/handleToolsEnabledUpdate'
 import { handleLink } from './handlers/handleLink'
 import { handleInterrupt } from './handlers/handleInterrupt'
 import { createWindow } from './lib/createWindow'
@@ -58,6 +60,10 @@ app.whenReady().then(async () => {
   ipcMain.on('show-message-context-menu', handleMessageContextMenu)
   ipcMain.handle('link', handleLink)
   ipcMain.handle('get-tools', handleToolsGet)
+  ipcMain.handle('get-tools-enabled', handleToolsEnabledGet)
+  ipcMain.handle('update-tool-enabled', (_, toolName, enabled) =>
+    handleToolsEnabledUpdate(toolName, enabled)
+  )
   ipcMain.handle('init', handleInit)
   ipcMain.handle('interrupt', handleInterrupt)
   ipcMain.handle('send', handleSend)

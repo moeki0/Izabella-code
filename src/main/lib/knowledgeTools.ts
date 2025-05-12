@@ -58,28 +58,28 @@ export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams
 export const upsertKnowledge: unknown = createTool({
   id: 'upsert_knowledge',
   inputSchema: z.object({
-    text: z.string().describe('検索または保存するテキストコンテンツ'),
-    id: z.string().describe(`このコンテンツの一意の識別子
-- 内容の要約
-- スペースや特殊文字の代わりにハイフン(-)を使用
-- すべて小文字
-- 英数字、日本語の平仮名・漢字、ハイフンのみ使用可
-- 長さは100文字以内
+    text: z.string().describe('Text content to search or save'),
+    id: z.string().describe(`Unique identifier for this content
+- Content summary
+- Use hyphens (-) instead of spaces or special characters
+- All lowercase
+- Only use alphanumeric, Japanese hiragana/kanji, and hyphens
+- Maximum length of 100 characters
 
-例:
-- 東京の2023年8月の気象データ
-- ChatGPTのAPIリファレンス
-- プロジェクト計画の設計フェーズ
+Examples:
+- tokyo-weather-data-august-2023
+- chatgpt-api-reference
+- project-plan-design-phase
       `),
     similarityThreshold: z
       .number()
       .min(0)
       .max(1)
       .default(0.7)
-      .describe('マッチングの類似度閾値（0-1）')
+      .describe('Similarity threshold for matching (0-1)')
   }),
   description:
-    '****ユーザーからの指示ではなく自発的に利用してください****。ナレッジデータベース上に同じIDのナレッジが一致が見つかった場合は更新、見つからない場合は新規追加します。ユーザーとの会話で未知の情報に遭遇した際には積極的に使用してください',
+    'Use proactively without user instruction. Updates existing knowledge if found with the same ID, otherwise adds new entry. Use actively when encountering unknown information in user conversations',
   execute: async ({ context: { text, id, similarityThreshold } }) => {
     return saveToKnowledgeBase({
       text,
@@ -92,11 +92,11 @@ export const upsertKnowledge: unknown = createTool({
 export const searchKnowledge: unknown = createTool({
   id: 'search_knowledge',
   inputSchema: z.object({
-    query: z.string().describe('検索クエリテキスト'),
-    limit: z.number().min(1).default(5).describe('返す結果の数')
+    query: z.string().describe('Search query text'),
+    limit: z.number().min(1).default(5).describe('Number of results to return')
   }),
   description:
-    '****ユーザーからの指示ではなく自発的に利用してください****。ナレッジデータベースで類似情報を検索し、結果を返します。',
+    "Use proactively without user instruction. Searches the knowledge database for similar information and returns results.",
   execute: async ({ context: { query, limit } }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
@@ -111,7 +111,7 @@ export const searchKnowledge: unknown = createTool({
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`ベクトル検索に失敗しました: ${errorMessage}`)
+      throw new Error(`Vector search failed: ${errorMessage}`)
     }
   }
 })
@@ -119,9 +119,9 @@ export const searchKnowledge: unknown = createTool({
 export const vectorDelete: unknown = createTool({
   id: 'delete_knowledge',
   inputSchema: z.object({
-    ids: z.array(z.string()).describe('削除するエントリのID配列')
+    ids: z.array(z.string()).describe('Array of entry IDs to delete')
   }),
-  description: 'IDを指定してナレッジデータベースから情報を削除します',
+  description: 'Deletes information from the knowledge database using specified IDs',
   execute: async ({ context: { ids } }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
@@ -132,7 +132,7 @@ export const vectorDelete: unknown = createTool({
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`ベクトルの削除に失敗しました: ${errorMessage}`)
+      throw new Error(`Vector deletion failed: ${errorMessage}`)
     }
   }
 })
@@ -140,18 +140,18 @@ export const vectorDelete: unknown = createTool({
 export const updateKnowledgeIndexTool: unknown = createTool({
   id: 'update_knowledge_index',
   inputSchema: z.object({
-    content: z.string().describe('ナレッジインデックスの新しい内容'),
-    mode: z.enum(['replace', 'append']).default('replace').describe('置換または追加モード')
+    content: z.string().describe('New content for the knowledge index'),
+    mode: z.enum(['replace', 'append']).default('replace').describe('Replace or append mode')
   }),
   description:
-    'この機能は使用されなくなりました。代わりに、最新の40件のナレッジファイルがコンテキストに自動的に含まれます',
+    'This feature is deprecated. Instead, the latest 40 knowledge files are automatically included in the context',
   execute: async ({ context: { mode } }) => {
     console.log('updateKnowledgeIndexTool is deprecated and has no effect')
 
     return JSON.stringify({
       success: true,
       message:
-        'ナレッジインデックスの更新は不要になりました。最新の40件のナレッジファイルが自動的にコンテキストに含まれます。',
+        'Knowledge index updates are no longer needed. The latest 40 knowledge files are automatically included in the context.',
       mode
     })
   }

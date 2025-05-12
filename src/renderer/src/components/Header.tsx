@@ -1,4 +1,4 @@
-import { FiSearch, FiBookOpen, FiSmile, FiSettings } from 'react-icons/fi'
+import { FiSearch, FiBookOpen, FiSmile, FiSettings, FiTool } from 'react-icons/fi'
 
 interface Props {
   title?: string
@@ -21,6 +21,8 @@ interface Props {
   isMemorySidebarOpen?: boolean
   toggleSettingsSidebar?: () => void
   isSettingsSidebarOpen?: boolean
+  toggleToolsSidebar?: () => void
+  isToolsSidebarOpen?: boolean
 }
 
 function Header({
@@ -32,7 +34,9 @@ function Header({
   toggleMemorySidebar,
   isMemorySidebarOpen,
   toggleSettingsSidebar,
-  isSettingsSidebarOpen
+  isSettingsSidebarOpen,
+  toggleToolsSidebar,
+  isToolsSidebarOpen
 }: Props): React.JSX.Element {
   return (
     <header role="banner" className={className}>
@@ -63,6 +67,15 @@ function Header({
             aria-label="Toggle knowledge"
           >
             <FiBookOpen size={18} />
+          </button>
+        )}
+        {toggleToolsSidebar && (
+          <button
+            className={`header-icon-button ${isToolsSidebarOpen ? 'header-button-active' : ''}`}
+            onClick={toggleToolsSidebar}
+            aria-label="Toggle tools"
+          >
+            <FiTool size={18} />
           </button>
         )}
         {toggleSettingsSidebar && (
