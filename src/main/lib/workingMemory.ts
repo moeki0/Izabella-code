@@ -7,8 +7,6 @@ const getKnowledgePath = (): string => join(app.getPath('userData'), 'knowledge'
 
 export const DEFAULT_WORKING_MEMORY_TEMPLATE = `
 # ユーザー情報
-- **環境**: ローカルのChatZenインスタンス
-- **作業メモリーの状態**: オン
 - **名前**: [名前]
 - [その他のユーザー情報]
 
