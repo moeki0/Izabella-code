@@ -1,4 +1,5 @@
 import { app } from 'electron'
+import { locale as localeMessages } from './locale'
 
 // Supported locales
 const locales = ['en', 'ja'] as const
@@ -18,8 +19,9 @@ export const getLocale = (): SupportedLocales => {
 }
 
 // Set the current locale
-export const setLocale = (locale: SupportedLocales): void => {
+export const setLocale = (locale: SupportedLocales): SupportedLocales => {
   initLocale(locale)
+  return locale
 }
 
 // Get system locale from electron app
@@ -33,9 +35,10 @@ export const getSystemLocale = (): SupportedLocales => {
   }
 }
 
-// Locale messages
+// Locale messages - combine locale messages from locale.ts with our internal messages
 const locale = {
   en: {
+    ...localeMessages.en,
     search: 'Search',
     searchMessages: 'Search messages',
     searchResultsCount: '{count} results',
@@ -67,6 +70,7 @@ const locale = {
     stopAssistant: 'Stop Assistant'
   },
   ja: {
+    ...localeMessages.ja,
     search: '検索',
     searchMessages: 'メッセージを検索',
     searchResultsCount: '{count}件の結果',
@@ -134,43 +138,37 @@ export const getPreferredLocale = (): keyof typeof locale => {
 }
 
 // Initialize with the preferred locale
-let localeInitTimeoutId: NodeJS.Timeout | null = null
-
 export const initLocale = (localeKey: keyof typeof locale = getPreferredLocale()): void => {
-  // Debounce initialization to prevent multiple calls in quick succession
-  if (localeInitTimeoutId) {
-    clearTimeout(localeInitTimeoutId)
+  // 直接実行して同期的に初期化
+  const selectedLocale = localeKey || getPreferredLocale()
+
+  // Use cache if available
+  if (!cache[selectedLocale]) {
+    cache[selectedLocale] = {}
+    // Populate cache for selected locale
+    for (const [key, value] of Object.entries(locale[selectedLocale])) {
+      cache[selectedLocale][key] = value
+    }
   }
 
-  localeInitTimeoutId = setTimeout(() => {
-    const selectedLocale = localeKey || getPreferredLocale()
+  const messages = cache[selectedLocale]
 
-    // Use cache if available
-    if (!cache[selectedLocale]) {
-      cache[selectedLocale] = {}
-      // Populate cache for selected locale
-      for (const [key, value] of Object.entries(locale[selectedLocale])) {
-        cache[selectedLocale][key] = value
-      }
-    }
+  // Update intl object immediately
+  Object.assign(intl, { locale: selectedLocale, messages })
 
-    const messages = cache[selectedLocale]
+  console.log(`Locale initialized to: ${selectedLocale}`)
 
-    // Update intl object
-    Object.assign(intl, { locale: localeKey, messages })
+  // Store the selected locale in user preferences
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require('fs')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require('path')
 
-    // Store the selected locale in user preferences
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const fs = require('fs')
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const path = require('path')
-
-      const userDataPath = app.getPath('userData')
-      const localeFilePath = path.join(userDataPath, 'locale-preference.json')
-      fs.writeFileSync(localeFilePath, JSON.stringify({ locale: localeKey }), 'utf8')
-    } catch (error) {
-      console.error('Failed to save locale preference:', error)
-    }
-  }, 0)
+    const userDataPath = app.getPath('userData')
+    const localeFilePath = path.join(userDataPath, 'locale-preference.json')
+    fs.writeFileSync(localeFilePath, JSON.stringify({ locale: selectedLocale }), 'utf8')
+  } catch (error) {
+    console.error('Failed to save locale preference:', error)
+  }
 }

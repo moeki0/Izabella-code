@@ -22,7 +22,7 @@ import { handleSearchMessages } from './handlers/handleSearchMessages'
 import { handleGetMessageContext } from './handlers/handleGetMessageContext'
 import { handleMessageContext } from './handlers/handleMessageContext'
 import { initializeMCP } from './lib/llm'
-import { getLocale, setLocale, initLocale } from './lib/intl'
+import { getLocale, setLocale, initLocale, getPreferredLocale } from './lib/intl'
 
 // Set API keys from store
 const updateApiKeys = (): void => {
@@ -48,7 +48,10 @@ app.whenReady().then(async () => {
   }
 
   initializeConfig()
-  initLocale() // Initialize intl with the preferred locale
+
+  // Initialize intl with the preferred locale - ensure it's called before app setup
+  const preferredLocale = getPreferredLocale()
+  initLocale(preferredLocale)
 
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, window) => {

@@ -215,9 +215,17 @@ export async function initializeLocale(): Promise<void> {
     if (systemLocale && locale[systemLocale as SupportedLocales]) {
       setRendererLocale(systemLocale as SupportedLocales)
       console.log('Locale initialized to:', systemLocale)
+    } else {
+      // If backend locale is not enabled or not valid, use default locale
+      console.warn('Backend locale not enabled or invalid, using default')
+      const defaultLocale: SupportedLocales = 'en'
+      await window.api.setLocale(defaultLocale)
+      setRendererLocale(defaultLocale)
     }
   } catch (error) {
     console.error('Failed to initialize locale:', error)
+    // Fallback to default locale on error
+    setRendererLocale('en')
   }
 }
 

@@ -96,7 +96,7 @@ export const searchKnowledge: unknown = createTool({
     limit: z.number().min(1).default(5).describe('Number of results to return')
   }),
   description:
-    "Use proactively without user instruction. Searches the knowledge database for similar information and returns results.",
+    'Use proactively without user instruction. Searches the knowledge database for similar information and returns results.',
   execute: async ({ context: { query, limit } }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
