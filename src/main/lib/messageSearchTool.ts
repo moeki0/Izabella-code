@@ -9,6 +9,10 @@ export const messageSearch: unknown = createTool({
       .string()
       .optional()
       .describe('検索するテキスト（メッセージ内容、ツールリクエスト、ツールレスポンスから検索）'),
+    metadata: z
+      .string()
+      .optional()
+      .describe('メタデータ内を検索するテキスト（会話テーマなどが含まれる）'),
     role: z
       .enum(['user', 'assistant', 'tool'])
       .optional()
@@ -23,6 +27,7 @@ export const messageSearch: unknown = createTool({
     try {
       const params: SearchMessagesParams = {
         query: context.query,
+        metadata: context.metadata,
         role: context.role,
         startTime: context.startTime,
         endTime: context.endTime,
@@ -40,6 +45,7 @@ export const messageSearch: unknown = createTool({
           tool_name: msg.tool_name || null,
           tool_req: msg.tool_req?.slice(0, 400) || null,
           tool_res: msg.tool_res?.slice(0, 400) || null,
+          metadata: msg.metadata || null,
           created_at: msg.created_at
         })),
         total: result.total,

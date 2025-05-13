@@ -15,7 +15,7 @@ import { KnowledgeSidebar } from './KnowledgeSidebar'
 import { MemorySidebar } from './MemorySidebar'
 import { SettingsSidebar } from './SettingsSidebar'
 import { ToolsSidebar } from './ToolsSidebar'
-import { useIntl, getIntl } from '../lib/locale'
+import { useIntl, getIntl, localizeDateTime } from '../lib/locale'
 import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
 
@@ -27,7 +27,10 @@ export type Message = {
   tool_req?: string
   tool_res?: string
   sources?: string
+  metadata?: string
   open?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ChatInitializationDeps {
@@ -47,7 +50,9 @@ export interface ChatEventDeps {
     callback: (content: { toolName: string; args: string }, pending: boolean) => void
   ) => () => void
   registerStepFinishListener: (callback: (id: string) => void) => () => void
-  registerMessageSavedListener: (callback: (id: string) => void) => () => void
+  registerMessageSavedListener: (
+    callback: (id: string, messageInfo?: { theme?: string; created_at?: string }) => void
+  ) => () => void
   registerFinishListener: (callback: () => void) => () => void
   registerErrorListener: (callback: (chunk: string) => void) => () => void
   registerToolResultListener: (
@@ -61,6 +66,7 @@ export interface ChatEventDeps {
   ) => () => void
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
   registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
+  registerUpdateContentListener: (callback: (content: string) => void) => () => void
 }
 
 export interface ChatUtilityDeps {
@@ -92,12 +98,15 @@ export interface ChatProps {
     callback: (content: { toolName: string; args: string }, pending: boolean) => void
   ) => () => void
   registerStepFinishListener: (callback: (id: string) => void) => () => void
-  registerMessageSavedListener: (callback: (id: string) => void) => () => void
+  registerMessageSavedListener: (
+    callback: (id: string, messageInfo?: { theme?: string; created_at?: string }) => void
+  ) => () => void
   registerFinishListener: (callback: () => void) => () => void
   registerErrorListener: (callback: (chunk: string) => void) => () => void
   registerToolResultListener: (
     callback: (content: { toolName: string; args: string }) => void
   ) => () => void
+  registerUpdateContentListener: (callback: (content: string) => void) => () => void
   registerTitleListener: (callback: (chunk: string) => void) => () => void
   registerInterruptListener: (callback: () => void) => () => void
   registerNewThreadListener: (callback: () => void) => () => void
@@ -176,6 +185,10 @@ function Chat({
   const [, setOptimizedSearchQuery] = useState<string>('')
   // Indicates if a search operation is currently in progress
   const [isSearching, setIsSearching] = useState(false)
+  // 最新のテーマを保持する状態
+  const [currentTheme, setCurrentTheme] = useState<string>('')
+  // 最新メッセージの日付
+  const [latestMessageDate, setLatestMessageDate] = useState<string>('')
 
   // Calculate if any sidebar is open
   const isSidebarOpen =
@@ -222,6 +235,18 @@ function Chat({
       setMessages(m)
       setOriginalMessages(m) // オリジナルのメッセージを保存
       setTitle(title)
+
+      // 初期メッセージがある場合は、最新のテーマと日付を直接計算
+      if (m.length > 0) {
+        const { theme, date } = getLatestThemeAndDate(m)
+        if (theme) {
+          setCurrentTheme(theme)
+        }
+        if (date) {
+          setLatestMessageDate(date)
+        }
+      }
+
       setTimeout(() => {
         hljs.highlightAll()
         mermaidInit({ startOnLoad: false })
@@ -430,17 +455,41 @@ function Chat({
       hljs.highlightAll()
     })
 
-    const unsubscribeMessageSaved = registerMessageSavedListener((id: string) => {
-      setMessages((prev) => {
-        return prev.map((m, index) => {
-          if (index === prev.length - 1) {
-            return { ...m, id }
-          } else {
-            return m
-          }
+    const unsubscribeMessageSaved = registerMessageSavedListener(
+      (id: string, messageInfo?: { theme?: string; created_at?: string }) => {
+        // メッセージIDを更新
+        setMessages((prev) => {
+          const updatedMessages = prev.map((m, index) => {
+            if (index === prev.length - 1) {
+              return { ...m, id }
+            } else {
+              return m
+            }
+          })
+          return updatedMessages
         })
-      })
-    })
+
+        // バックエンドから送られてきたテーマと日付情報を設定
+        console.log('メッセージ保存イベント受信:', id, messageInfo)
+        if (messageInfo) {
+          if (messageInfo.theme) {
+            console.log('テーマを設定:', messageInfo.theme)
+            setCurrentTheme(messageInfo.theme)
+          }
+
+          if (messageInfo.created_at) {
+            // システムのロケールに合わせて日時をフォーマット
+            const date = new Date(messageInfo.created_at)
+
+            // ロケールに応じた日時フォーマットを使用
+            const formattedDate = localizeDateTime(date)
+
+            console.log('日付を設定:', formattedDate)
+            setLatestMessageDate(formattedDate)
+          }
+        }
+      }
+    )
 
     const unsubscribeFinish = registerFinishListener(() => {
       setRunning(false)
@@ -784,6 +833,49 @@ function Chat({
 
   const intl = useIntl()
 
+  // メッセージリストから最新のテーマと日付を取得する関数
+  const getLatestThemeAndDate = (
+    messageList: Array<Message>
+  ): { theme?: string; date?: string } => {
+    // メッセージを作成日時の降順（最新順）でソート
+    const sortedMessages = [...messageList].sort((a, b) => {
+      if (!a.created_at || !b.created_at) return 0
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+
+    let latestTheme: string | undefined = undefined
+    let latestDate: string | undefined = undefined
+
+    // 最新メッセージの日付を取得
+    if (sortedMessages.length > 0 && sortedMessages[0].created_at) {
+      const date = new Date(sortedMessages[0].created_at)
+      latestDate = date.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    // メタデータを持つメッセージを探す
+    for (const message of sortedMessages) {
+      if (message.metadata) {
+        try {
+          const metadata = JSON.parse(message.metadata)
+          if (metadata && metadata.theme) {
+            latestTheme = metadata.theme
+            break
+          }
+        } catch {
+          // JSONパースエラーは無視
+        }
+      }
+    }
+
+    return { theme: latestTheme, date: latestDate }
+  }
+
   return (
     <>
       <main className={isSidebarOpen ? 'main-with-sidebar' : ''}>
@@ -804,6 +896,8 @@ function Chat({
             isSettingsSidebarOpen={isSettingsSidebarOpen}
             toggleToolsSidebar={toggleToolsSidebar}
             isToolsSidebarOpen={isToolsSidebarOpen}
+            currentTheme={currentTheme}
+            latestMessageDate={latestMessageDate}
           />
           <Messages
             messages={messages}

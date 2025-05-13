@@ -15,22 +15,35 @@ interface HighlightedMarkdownProps {
  * @param searchQuery - ハイライトする検索クエリ
  */
 const HighlightedMarkdown: React.FC<HighlightedMarkdownProps> = ({ content, searchQuery }) => {
+  // Extract content from JSON if it's in JSON format
+  let processedContent = content || ''
+  try {
+    const parsed = JSON.parse(processedContent)
+    if (parsed.content) {
+      processedContent = parsed.content
+    }
+  } catch {
+    // Not JSON, use as is
+  }
+
   // 検索クエリが空の場合は通常のMarkdownを表示
   if (!searchQuery) {
     return (
       <Markdown remarkPlugins={[remarkGfm]}>
-        {content ? content.replace(/```reasoning[\s\S]*?```/g, '') : ''}
+        {processedContent ? processedContent.replace(/```reasoning[\s\S]*?```/g, '') : ''}
       </Markdown>
     )
   }
 
   // このメッセージが```reasoning```ブロックを含む場合は空を返す
-  if (content && content.includes('```reasoning')) {
+  if (processedContent && processedContent.includes('```reasoning')) {
     return <></>
   }
 
   // ```reasoning ブロックを削除
-  const cleanContent = content ? content.replace(/```reasoning[\s\S]*?```/g, '') : ''
+  const cleanContent = processedContent
+    ? processedContent.replace(/```reasoning[\s\S]*?```/g, '')
+    : ''
 
   // 検索クエリを分解して個別の単語にする（日本語の場合は2文字以上の単語も対象に）
   const queryWords = searchQuery

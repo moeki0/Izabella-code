@@ -76,6 +76,11 @@ vi.mock('../lib/compressWorkingMemory', () => ({
   checkAndCompressWorkingMemory: vi.fn().mockResolvedValue(false)
 }))
 
+vi.mock('../lib/extractTheme', () => ({
+  extractTheme: vi.fn().mockResolvedValue('一般的な会話'),
+  getThemeFromMetadata: vi.fn().mockReturnValue(undefined)
+}))
+
 vi.mock('../lib/database', () => ({
   database: vi.fn().mockResolvedValue({
     prepare: vi.fn().mockReturnValue({
@@ -117,12 +122,14 @@ describe('handleSend', () => {
 
     expect(createMessage).toHaveBeenCalledWith({
       role: 'user',
-      content: 'Hello'
+      content: 'Hello',
+      metadata: '{}'
     })
     expect(createMessage).toHaveBeenCalledWith({
       role: 'assistant',
       content: 'Hello',
-      sources: undefined
+      sources: undefined,
+      metadata: '{"theme":"一般的な会話"}'
     })
   })
 

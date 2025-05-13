@@ -60,6 +60,7 @@ describe('messageSearchTool', () => {
         tool_name: null,
         tool_req: null,
         tool_res: null,
+        metadata: null,
         created_at: msg.created_at
       })),
       total: 2,

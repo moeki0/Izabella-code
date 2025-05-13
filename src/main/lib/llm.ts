@@ -136,13 +136,46 @@ export const formatMessageForLLM = (message: {
   tool_name?: string
   tool_req?: string
   tool_res?: string
+  metadata?: string
 }): MessageType | null => {
   if (message.role === 'tool') {
     return null
   }
+
+  let contentToUse = message.content || ''
+
+  // If message has metadata, try to include both content and metadata in a JSON structure
+  if (message.metadata) {
+    try {
+      // Check if content is already in JSON format
+      let content = contentToUse
+      try {
+        const parsed = JSON.parse(contentToUse)
+        if (parsed.content) {
+          content = parsed.content
+        }
+      } catch {
+        // Content is not JSON, use as is
+      }
+
+      // Parse metadata
+      const metadata = JSON.parse(message.metadata)
+
+      // Create a combined object with content and metadata
+      const combinedObj = {
+        content: content,
+        metadata: metadata
+      }
+
+      contentToUse = JSON.stringify(combinedObj)
+    } catch (error) {
+      console.error('Error formatting message with metadata:', error)
+    }
+  }
+
   return {
     role: message.role === 'user' ? 'user' : 'assistant',
-    content: message.content || ''
+    content: contentToUse
   }
 }
 

@@ -258,3 +258,36 @@ export const localizeDate = (date: Date): string => {
     day: 'numeric'
   })
 }
+
+export const localizeDateTime = (date: Date): string => {
+  const currentLocale = currentIntl.locale
+
+  // より洗練されたフォーマットオプション
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }
+
+  // ロケールに応じたフォーマット
+  try {
+    // できるだけシステムのロケールに合わせたフォーマットを使用
+    return new Intl.DateTimeFormat(currentLocale, options).format(date)
+  } catch {
+    // フォールバック：個別にフォーマットして結合
+    const dateStr = date.toLocaleDateString(currentLocale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+
+    const timeStr = date.toLocaleTimeString(currentLocale, {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    return `${dateStr} ${timeStr}`
+  }
+}

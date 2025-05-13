@@ -49,8 +49,12 @@ const chatProps = {
     window.electron.ipcRenderer.on('step-finish', (_, id) => callback(id))
     return () => window.electron.ipcRenderer.removeAllListeners('step-finish')
   },
-  registerMessageSavedListener: (callback: (id: string) => void) => {
-    window.electron.ipcRenderer.on('message-saved', (_, id) => callback(id))
+  registerMessageSavedListener: (
+    callback: (id: string, messageInfo?: { theme?: string; created_at?: string }) => void
+  ) => {
+    window.electron.ipcRenderer.on('message-saved', (_, id, messageInfo) =>
+      callback(id, messageInfo)
+    )
     return () => window.electron.ipcRenderer.removeAllListeners('message-saved')
   },
   registerInterruptListener: (callback: () => void) => {

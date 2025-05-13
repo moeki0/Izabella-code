@@ -7,6 +7,7 @@ type MessageSearchResult = {
   role: 'user' | 'assistant' | 'tool'
   content: string | null
   tool_name: string | null
+  metadata: string | null
   created_at: string
 }
 
@@ -137,6 +138,7 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
   const getMessagePreview = (message: MessageSearchResult): string => {
     // 元の検索クエリ（タイムスタンプ部分を除く）
     const originalQuery = searchQuery.trim().replace(/\s+\d+$/, '')
+
     const queryWords = originalQuery
       .toLowerCase()
       .split(/\s+/)

@@ -19,10 +19,30 @@ export type Message = {
   tool_req?: string
   tool_res?: string
   sources?: string
+  metadata?: string
   open?: boolean
 }
 
 window.EditContext = false
+
+function getDisplayableContent(content: string): string {
+  if (!content) return ''
+
+  if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
+    try {
+      const jsonObj = JSON.parse(content.trim())
+      if (jsonObj.content) {
+        // JSONオブジェクトからのコンテンツは改行を明示的に削除
+        return jsonObj.content.replace(/[\r\n]+/g, ' ')
+      }
+    } catch {
+      // JSONパースに失敗した場合は、そのまま表示
+    }
+  }
+
+  // 通常のテキストメッセージでも改行を正規化
+  return content.replaceAll(/(\\r|\\n)/g, '\n')
+}
 
 function Messages({
   messages,
@@ -68,12 +88,18 @@ function Messages({
             <div
               className={`prompt prompt-${message.role}`}
               onContextMenu={(e) => {
-                handleContextMenu(
-                  e,
-                  message.content || '',
-                  message.id,
-                  message.role === 'assistant'
-                )
+                // Handle JSON content with metadata
+                let displayContent = message.content || ''
+                try {
+                  const parsed = JSON.parse(displayContent)
+                  if (parsed.content) {
+                    displayContent = parsed.content
+                  }
+                } catch {
+                  // Not JSON, use as is
+                }
+
+                handleContextMenu(e, displayContent, message.id, message.role === 'assistant')
               }}
             >
               {message.role === 'tool' && message.tool_name === 'update_knowledge_index' && (
@@ -264,7 +290,10 @@ function Messages({
                 )}
               {message.role === 'assistant' && (
                 <>
-                  <HighlightedMarkdown content={message.content || ''} searchQuery={searchQuery} />
+                  <HighlightedMarkdown
+                    content={getDisplayableContent(message.content || '')}
+                    searchQuery={searchQuery}
+                  />
                   {message.sources && (
                     <div className="source-info">
                       <div className="source-info-content">
@@ -340,7 +369,9 @@ function Messages({
                       />
                     </div>
                   ) : (
-                    <div className="user-plain-text">{message.content || ''}</div>
+                    <div className="user-plain-text" style={{ whiteSpace: 'pre-wrap' }}>
+                      {getDisplayableContent(message.content || '')}
+                    </div>
                   )}
                 </div>
               )}
