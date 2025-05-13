@@ -13,6 +13,12 @@
   margin: 0;
 }
 
+.user-plain-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+
 .prompt-user-bubble {
   justify-self: right;
   background-color: rgba(233, 233, 233, 0.5);
@@ -29,6 +35,10 @@ main {
 .prompt ul,
 .prompt ol {
   padding-inline-start: 20px;
+}
+
+.prompt li {
+  margin: 10px 0;
 }
 
 .prompt blockquote {
@@ -293,4 +303,10 @@ main {
 
 code.language-reasoning {
   display: none !important;
+}
+
+.message-context-highlight {
+  background-color: rgba(255, 255, 0, 0.3);
+  border-radius: 2px;
+  padding: 0 2px;
 }
