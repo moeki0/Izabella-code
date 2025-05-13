@@ -332,7 +332,16 @@ function Messages({
               )}
               {message.role === 'user' && (
                 <div className="prompt-user-bubble">
-                  <HighlightedMarkdown content={message.content || ''} searchQuery={searchQuery} />
+                  {searchQuery ? (
+                    <div className="user-plain-text">
+                      <HighlightedMarkdown
+                        content={message.content || ''}
+                        searchQuery={searchQuery}
+                      />
+                    </div>
+                  ) : (
+                    <div className="user-plain-text">{message.content || ''}</div>
+                  )}
                 </div>
               )}
             </div>
