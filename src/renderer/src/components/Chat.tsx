@@ -173,7 +173,7 @@ function Chat({
   const [isShowingSearchResult, setIsShowingSearchResult] = useState(false)
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
   // Used in the search query display and sidebar toggle
-  const [optimizedSearchQuery, setOptimizedSearchQuery] = useState<string>('')
+  const [, setOptimizedSearchQuery] = useState<string>('')
   // Indicates if a search operation is currently in progress
   const [isSearching, setIsSearching] = useState(false)
 
@@ -360,6 +360,8 @@ function Chat({
 
     const unsubscribeStream = registerStreamListener((chunk) => {
       setLoading(false)
+      // アシスタントの応答開始時に検索中フラグをリセット
+      setIsSearching(false)
       setMessages((prev) => {
         let newPrev = prev
         if (prev.length === 0 || prev[prev.length - 1].role !== 'assistant') {
@@ -383,11 +385,16 @@ function Chat({
 
     const unsubscribelInterrupt = registerInterruptListener(() => {
       setRunning(false)
+      setIsSearching(false)
     })
 
     const unsubscribeToolCall = registerToolCallListener((content, pending = true) => {
       if (pending) {
         setPendingTool(content)
+      }
+      // ナレッジ検索ツール以外のツール呼び出し時は検索中フラグをリセット
+      if (content.toolName !== 'start_search' && content.toolName !== 'knowledge_search') {
+        setIsSearching(false)
       }
       setMessages((prev) => {
         const updatedMessages = [
@@ -583,6 +590,8 @@ function Chat({
     const lastPrompt = document.querySelector('.prompt:last-child')
     setLoading(true)
     setRunning(true)
+    // メッセージ送信時に検索中フラグをリセット
+    setIsSearching(false)
     if (lastPrompt) {
       setTimeout(() => {
         const main = document.querySelector('.messages')
@@ -804,7 +813,6 @@ function Chat({
             handleToolClick={handleToolClick}
             interrupt={interrupt}
             searchQuery={currentSearchQuery}
-            optimizedSearchQuery={optimizedSearchQuery}
             isSearching={isSearching}
           />
           <div className={`user-container ${isSidebarOpen ? 'user-container-with-sidebar' : ''}`}>
