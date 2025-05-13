@@ -93,15 +93,40 @@ export const model = async (useSearchGrounding: boolean): Promise<LanguageModel>
   }
 }
 
+export const getFilteredTools = (): Record<string, unknown> => {
+  const enabledTools = store.get('enabledTools') as string[] | undefined
+
+  if (!enabledTools || enabledTools.length === 0) {
+    log.info('No tools enabled, returning empty tools object')
+    return {}
+  }
+
+  const filteredTools = Object.entries(tools).reduce((filtered, [name, tool]) => {
+    if (enabledTools.includes(name)) {
+      filtered[name] = tool
+    }
+    return filtered
+  }, {})
+
+  log.info(`Filtered tools: ${Object.keys(filteredTools).join(', ')}`)
+  return filteredTools
+}
+
 export const agent = async (
   model: LanguageModelV1,
   useSearchGrounding: boolean
 ): Promise<Agent> => {
+  const agentTools = useSearchGrounding ? {} : getFilteredTools()
+
+  log.info(
+    `Creating agent with ${Object.keys(agentTools).length} tools. Search grounding: ${useSearchGrounding}`
+  )
+
   return new Agent({
     instructions: '',
     name: 'Assistant',
     model,
-    tools: useSearchGrounding ? {} : tools
+    tools: agentTools
   })
 }
 

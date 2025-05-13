@@ -1,4 +1,5 @@
 import { store } from '../lib/store'
+import log from 'electron-log/main'
 
 export const handleToolsEnabledUpdate = (
   toolName: string,
@@ -19,10 +20,11 @@ export const handleToolsEnabledUpdate = (
     }
 
     store.set('enabledTools', enabledTools)
+    log.info(`Updated tool enablement: ${toolName} is now ${enabled ? 'enabled' : 'disabled'}`)
 
     return { success: true }
   } catch (error) {
-    console.error('Failed to update enabled tools:', error)
+    log.error('Failed to update enabled tools:', error)
     return { success: false }
   }
 }
