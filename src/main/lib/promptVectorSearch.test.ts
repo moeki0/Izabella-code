@@ -112,7 +112,10 @@ describe('promptVectorSearch', () => {
 
     it('should fall back to original prompt if query generation fails', async () => {
       const { generateObject } = await import('ai')
-      vi.mocked(generateObject).mockRejectedValueOnce(new Error('Test error'))
+      // Use mockImplementationOnce instead of mockRejectedValueOnce for better control
+      vi.mocked(generateObject).mockImplementationOnce(() => {
+        throw new Error('Test error')
+      })
 
       const result = await promptVectorSearchModule.generateSearchQuery('test prompt')
 

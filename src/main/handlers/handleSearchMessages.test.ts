@@ -34,7 +34,10 @@ describe('handleSearchMessages', () => {
 
   it('エラーが発生した場合はエラー情報を返すこと', async () => {
     const error = new Error('Search failed')
-    vi.mocked(messageModule.searchMessages).mockRejectedValueOnce(error)
+    // Use mockImplementation to avoid async issues with mockRejectedValueOnce
+    vi.mocked(messageModule.searchMessages).mockImplementationOnce(() => {
+      throw error
+    })
 
     const result = await handleSearchMessages({} as Electron.IpcMainInvokeEvent, { query: 'test' })
 

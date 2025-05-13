@@ -546,7 +546,8 @@ function Chat({
     registerMemoryUpdatedListener,
     isShowingSearchResult,
     registerSearchQueryListener,
-    registerStartSearchListener
+    registerStartSearchListener,
+    originalMessages
   ])
 
   useEffect(() => {
