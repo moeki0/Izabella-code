@@ -402,7 +402,7 @@ ${entry.content}
 
   async search(
     query: string,
-    k = 5
+    k = 20
   ): Promise<Array<{ pageContent: string; id: string; _similarity: number }>> {
     return this.similaritySearch(query.slice(0, 100), k)
   }
