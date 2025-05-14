@@ -29,6 +29,36 @@ header {
   align-items: center;
 }
 
+.header-title {
+  justify-self: flex-start;
+  display: flex;
+  align-items: center;
+  margin-top: 3px;
+  animation: fadeIn 0.1s;
+}
+
+.header-theme {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  display: flex;
+  line-height: 1.2;
+  padding: 0;
+  margin: 0;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-date {
+  font-size: 10px;
+  color: #aaa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .header-actions {
   display: flex;
   align-items: center;

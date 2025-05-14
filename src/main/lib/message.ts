@@ -8,6 +8,7 @@ export type Message = {
   tool_req?: string
   tool_res?: string
   sources?: string
+  metadata?: string
 }
 
 export type MessageWithId = Message & {
@@ -30,6 +31,7 @@ export const getMessages = async (limit = 40): Promise<Array<Message>> => {
 export type SearchMessagesParams = {
   query?: string
   role?: 'user' | 'assistant' | 'tool'
+  metadata?: string
   startTime?: string
   endTime?: string
   page?: number
@@ -81,7 +83,7 @@ export const searchMessages = async (
   params: SearchMessagesParams
 ): Promise<MessagesWithPagination> => {
   const db = await database()
-  const { query = '', role, startTime, endTime, page = 1, itemsPerPage = 20 } = params
+  const { query = '', role, metadata, startTime, endTime, page = 1, itemsPerPage = 20 } = params
 
   const whereConditions: Array<string> = []
   const whereParams: Array<string | number> = []
@@ -92,17 +94,31 @@ export const searchMessages = async (
   let totalPages = 0
 
   // クエリ文字列がある場合は全文検索を使用
-  if (query && query.trim()) {
+  if ((query && query.trim()) || (metadata && metadata.trim())) {
     // クエリからタイムスタンプを除去（フロントエンドでタイムスタンプを追加している場合）
-    let cleanQuery = query.trim()
+    let cleanQuery = query ? query.trim() : ''
+    const metadataQuery = metadata ? metadata.trim() : ''
 
     // 末尾に数字がある場合（タイムスタンプ）は除去
     cleanQuery = cleanQuery.replace(/\s+\d+$/, '')
 
-    console.log(`Original query: "${query}", Cleaned query: "${cleanQuery}"`)
+    console.log(
+      `Original query: "${query}", Cleaned query: "${cleanQuery}", Metadata query: "${metadataQuery}"`
+    )
 
-    // FTSを使ったクエリを構築
-    const ftsQuery = `${cleanQuery}*`
+    // FTSクエリを構築
+    let ftsQuery = ''
+    if (cleanQuery && metadataQuery) {
+      // contentとmetadataの両方を検索
+      ftsQuery = `content:${cleanQuery}* OR metadata:${metadataQuery}*`
+    } else if (cleanQuery) {
+      // contentのみ検索
+      ftsQuery = `${cleanQuery}*`
+    } else if (metadataQuery) {
+      // metadataのみ検索
+      ftsQuery = `metadata:${metadataQuery}*`
+    }
+
     const ftsParams: (string | number)[] = [ftsQuery]
 
     // role制約がある場合
@@ -209,27 +225,34 @@ export const createMessage = async (params: {
   toolReq?: string
   toolRes?: string
   sources?: string
+  metadata?: string
 }): Promise<string> => {
   const db = await database()
   const id = randomUUID()
+
+  // ログ出力（メタデータがある場合はその内容も）
+  if (params.metadata) {
+    console.log(`メッセージ保存: role=${params.role}, metadata=${params.metadata}`)
+  }
+
   if (params.role === 'tool') {
     await db
       .prepare(
-        'INSERT INTO messages (id, role, tool_name, tool_req, tool_res, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+        'INSERT INTO messages (id, role, tool_name, tool_req, tool_res, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
       )
-      .run(id, params.role, params.toolName, params.toolReq, params.toolRes)
+      .run(id, params.role, params.toolName, params.toolReq, params.toolRes, params.metadata)
   } else if (params.role === 'assistant' && params.sources) {
     await db
       .prepare(
-        'INSERT INTO messages (id, role, content, sources, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+        'INSERT INTO messages (id, role, content, sources, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
       )
-      .run(randomUUID(), params.role, params.content, params.sources)
+      .run(id, params.role, params.content, params.sources, params.metadata)
   } else {
     await db
       .prepare(
-        'INSERT INTO messages (id, role, content, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+        'INSERT INTO messages (id, role, content, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
       )
-      .run(randomUUID(), params.role, params.content)
+      .run(id, params.role, params.content, params.metadata)
   }
   return id
 }

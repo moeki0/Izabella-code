@@ -102,7 +102,8 @@ contextBridge.exposeInMainWorld('electron', {
         'source',
         'message-deleted',
         'knowledge-saved',
-        'memory-updated'
+        'memory-updated',
+        'message-saved'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.on(channel, (_, ...args) => callback(...args))
@@ -123,7 +124,8 @@ contextBridge.exposeInMainWorld('electron', {
         'source',
         'message-deleted',
         'knowledge-saved',
-        'memory-updated'
+        'memory-updated',
+        'message-saved'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.removeAllListeners(channel)

@@ -23,6 +23,8 @@ interface Props {
   isSettingsSidebarOpen?: boolean
   toggleToolsSidebar?: () => void
   isToolsSidebarOpen?: boolean
+  currentTheme?: string
+  latestMessageDate?: string
 }
 
 function Header({
@@ -36,11 +38,18 @@ function Header({
   toggleSettingsSidebar,
   isSettingsSidebarOpen,
   toggleToolsSidebar,
-  isToolsSidebarOpen
+  isToolsSidebarOpen,
+  currentTheme,
+  latestMessageDate
 }: Props): React.JSX.Element {
   return (
     <header role="banner" className={className}>
-      <div className="header-title"></div>
+      <div className="header-title">
+        <div>
+          {currentTheme && <div className="header-theme">{currentTheme}</div>}
+          {latestMessageDate && <div className="header-date">{latestMessageDate}</div>}
+        </div>
+      </div>
       <div className="header-actions">
         {toggleSearchSidebar && (
           <button
