@@ -14,7 +14,13 @@ export const knowledgeEntrySchema = z.object({
     .max(5)
     .describe(
       '現在の会話履歴におけるこの情報の重要度を1〜5のスケールで評価してください（5が最も重要）'
-    )
+    ),
+  importance: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe('ナレッジの蓄積的な重要度。参照されるたびに増加します。')
 })
 
 export const knowledgeExtractionSchema = z.object({

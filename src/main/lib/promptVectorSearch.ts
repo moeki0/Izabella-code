@@ -21,6 +21,8 @@ export interface PromptSearchResult {
   content: string
   id: string
   similarity: number
+  importance?: number
+  created_at?: number
 }
 
 export async function generateSearchQuery(
@@ -103,13 +105,55 @@ export async function searchKnowledgeWithPrompt(
       optimizedQuery: searchQuery
     })
 
-    return results
-      .filter((result) => result._similarity >= similarityThreshold)
-      .map((result) => ({
-        content: result.pageContent,
-        id: result.id,
-        similarity: result._similarity
-      }))
+    // Filter results by similarity threshold
+    const filteredResults = results.filter((result) => result._similarity >= similarityThreshold)
+
+    // Increase importance for each referenced knowledge entry
+    for (const result of filteredResults) {
+      await knowledgeStore.increaseImportance(result.id)
+    }
+
+    // Calculate combined score using similarity, importance and freshness
+    // Rerank results based on combined score
+    const rankedResults = [...filteredResults].sort((a, b) => {
+      // Get creation timestamps with proper type handling
+      // Define an interface to safely access created_at
+      interface KnowledgeSearchResult {
+        _similarity: number
+        _importance: number
+        created_at: number
+      }
+
+      const createdAtA = (a as KnowledgeSearchResult).created_at || 0
+      const createdAtB = (b as KnowledgeSearchResult).created_at || 0
+
+      // Normalize timestamps (newer = higher value)
+      const now = Math.floor(Date.now() / 1000)
+      const maxAge = 60 * 60 * 24 * 365 // 1 year in seconds
+
+      // Calculate freshness score (0-1 range, 1 = newest)
+      const freshnessA = Math.max(0, Math.min(1, 1 - (now - createdAtA) / maxAge))
+      const freshnessB = Math.max(0, Math.min(1, 1 - (now - createdAtB) / maxAge))
+
+      // Calculate importance normalization
+      const maxImportance = Math.max(...filteredResults.map((r) => r._importance || 0)) || 1
+
+      // Calculate combined score (60% similarity, 20% normalized importance, 20% freshness)
+      const scoreA =
+        0.6 * a._similarity + 0.2 * ((a._importance || 0) / maxImportance) + 0.2 * freshnessA
+      const scoreB =
+        0.6 * b._similarity + 0.2 * ((b._importance || 0) / maxImportance) + 0.2 * freshnessB
+
+      return scoreB - scoreA // Sort descending
+    })
+
+    return rankedResults.map((result) => ({
+      content: result.pageContent,
+      id: result.id,
+      similarity: result._similarity,
+      importance: result._importance || 0,
+      created_at: result.created_at || 0
+    }))
   } catch (error) {
     console.error('プロンプトベクトル検索エラー:', error)
     return []
@@ -211,11 +255,18 @@ export async function enhanceInstructionsWithKnowledge(
 > 最適化されたクエリ: "${searchData.optimizedQuery}"
 
 ${searchData.results
-  .map(
-    (result) => `## ${result.id}
+  .map((result) => {
+    // Create a readable date string for the created_at timestamp
+    let dateStr = ''
+    if (result.created_at) {
+      const date = new Date(result.created_at * 1000)
+      dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
+    }
+
+    return `## ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
 ${result.content.slice(0, 1000)}
 `
-  )
+  })
   .join('\n')}
 `
 

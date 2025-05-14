@@ -12,6 +12,7 @@ interface KnowledgeEntry {
   content: string
   metadata: Record<string, unknown>
   created_at: number
+  importance?: number
 }
 
 export class MarkdownKnowledgeStore {
@@ -169,13 +170,15 @@ export class MarkdownKnowledgeStore {
       id: string
       created_at: number
       metadata: Record<string, unknown>
+      importance?: number
     }
 
     return {
       id: frontmatter.id,
       content: markdownContent.trim(),
       metadata: frontmatter.metadata || {},
-      created_at: frontmatter.created_at || Math.floor(Date.now() / 1000)
+      created_at: frontmatter.created_at || Math.floor(Date.now() / 1000),
+      importance: frontmatter.importance || 0
     }
   }
 
@@ -185,6 +188,7 @@ export class MarkdownKnowledgeStore {
     const frontmatter = {
       id: entry.id,
       created_at: entry.created_at,
+      importance: entry.importance || 0,
       metadata: entry.metadata || {}
     }
 
@@ -234,7 +238,8 @@ ${entry.content}
         id: docId,
         content: texts[i],
         metadata: {},
-        created_at: Math.floor(Date.now() / 1000)
+        created_at: Math.floor(Date.now() / 1000),
+        importance: 0
       }
 
       try {
@@ -279,7 +284,15 @@ ${entry.content}
   async similaritySearch(
     query: string,
     k = 20
-  ): Promise<Array<{ pageContent: string; id: string; _similarity: number }>> {
+  ): Promise<
+    Array<{
+      pageContent: string
+      id: string
+      _similarity: number
+      _importance: number
+      created_at: number
+    }>
+  > {
     try {
       if (this.debug) console.log(`Searching for: ${query}`)
       const queryEmbedding = await this.embeddings.embedQuery(query)
@@ -326,16 +339,24 @@ ${entry.content}
 
           if (!entry) return null
 
+          // Base similarity score (from vector search)
+          const similarity = 1 - result.distances[index] // Convert distance to similarity
+
+          // Include importance and creation timestamp in the result object for later ranking
           return {
             pageContent: entry.content,
             id: originalId,
-            _similarity: 1 - result.distances[index] // Convert distance to similarity
+            _similarity: similarity,
+            _importance: entry.importance || 0,
+            created_at: entry.created_at || 0
           }
         })
         .filter(Boolean) as Array<{
         pageContent: string
         id: string
         _similarity: number
+        _importance: number
+        created_at: number
       }>
 
       if (this.debug) console.log(`Returning ${results.length} results`)
@@ -392,15 +413,112 @@ ${entry.content}
   async upsertText(text: string, id: string, targetId: string): Promise<number> {
     if (this.debug) console.log(`Upserting text`)
 
+    // Read the target entry first to get its importance
+    let importance = 0
+    try {
+      const filePath = join(this.knowledgePath, `${targetId}.md`)
+      const entry = await this.readMarkdownFile(filePath)
+      importance = entry.importance || 0
+      if (this.debug)
+        console.log(`Retrieved importance ${importance} from existing entry ${targetId}`)
+    } catch (error) {
+      if (this.debug) console.log(`Could not retrieve importance from ${targetId}:`, error)
+    }
+
+    // Delete the old entry
     await this.deleteByIds([targetId])
-    return this.addTexts([text], [id])
+
+    // Create the new entry with preserved importance
+    try {
+      const markdownEntry: KnowledgeEntry = {
+        id,
+        content: text,
+        metadata: {},
+        created_at: Math.floor(Date.now() / 1000),
+        importance
+      }
+
+      await this.writeMarkdownFile(markdownEntry)
+
+      // Add to index
+      const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200
+      })
+
+      const chunks = await splitter.splitText(text)
+      let insertCount = 0
+
+      for (let j = 0; j < chunks.length; j++) {
+        const chunk = chunks[j]
+        const chunkId = `${id}_chunk_${j}`
+
+        try {
+          // Get embedding vector
+          const embedding = await this.embeddings.embedQuery(chunk)
+
+          // Add to HNSW index
+          const indexId = this.nextId++
+          this.index.addPoint(embedding, indexId)
+          this.idToDocId.set(indexId, chunkId)
+          this.docIdToId.set(chunkId, indexId)
+
+          insertCount++
+        } catch (error) {
+          console.error('Chunk insertion error:', error)
+        }
+      }
+
+      // Save the index
+      await this.saveIndex()
+
+      return insertCount
+    } catch (error) {
+      console.error('Error in upsertText:', error)
+      return 0
+    }
   }
 
   async search(
     query: string,
     k = 20
-  ): Promise<Array<{ pageContent: string; id: string; _similarity: number }>> {
+  ): Promise<
+    Array<{
+      pageContent: string
+      id: string
+      _similarity: number
+      _importance: number
+      created_at: number
+    }>
+  > {
     return this.similaritySearch(query.slice(0, 100), k)
+  }
+
+  async increaseImportance(id: string, amount = 1): Promise<boolean> {
+    try {
+      if (this.debug) console.log(`Increasing importance for ID: ${id}`)
+
+      const filePath = join(this.knowledgePath, `${id}.md`)
+
+      try {
+        const entry = await this.readMarkdownFile(filePath)
+
+        // Increase importance
+        entry.importance = (entry.importance || 0) + amount
+
+        // Write back to file
+        await this.writeMarkdownFile(entry)
+
+        if (this.debug) console.log(`Importance updated for ${id} to ${entry.importance}`)
+        return true
+      } catch (error) {
+        console.error(`Error increasing importance for ID ${id}:`, error)
+        return false
+      }
+    } catch (error) {
+      console.error(`Error in increaseImportance:`, error)
+      return false
+    }
   }
 
   close(): void {
