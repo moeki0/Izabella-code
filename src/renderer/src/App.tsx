@@ -17,9 +17,17 @@ const chatProps = {
     window.electron.ipcRenderer.on('start-search', (_, data) => callback(data))
     return () => window.electron.ipcRenderer.removeAllListeners('start-search')
   },
-  registerSearchQueryListener: (callback: (data: { results: Array<string> }) => void) => {
+  registerSearchQueryListener: (
+    callback: (data: { originalQuery: string; optimizedQuery: string }) => void
+  ) => {
     window.electron.ipcRenderer.on('search-query', (_, data) => callback(data))
     return () => window.electron.ipcRenderer.removeAllListeners('search-query')
+  },
+  registerSearchResultListener: (
+    callback: (data: { results: Array<Record<string, unknown>>; query: string }) => void
+  ) => {
+    window.electron.ipcRenderer.on('search-result', (_, data) => callback(data))
+    return () => window.electron.ipcRenderer.removeAllListeners('search-result')
   },
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => {
     window.electron.ipcRenderer.on('knowledge-saved', (_, data) => callback(data))
