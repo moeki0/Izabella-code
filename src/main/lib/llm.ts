@@ -198,7 +198,7 @@ export const chat = async (
   // Extract message content from the last 7 messages (or fewer if not available)
   const recentMessageContents = recentMessages
     .filter((message) => message.role === 'assistant' || message.role === 'user')
-    .slice(0, 7)
+    .slice(0, 3)
     .map((msg) => msg.content || '')
     .filter((content) => content && content.trim() !== '')
 
