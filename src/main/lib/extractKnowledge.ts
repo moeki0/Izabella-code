@@ -75,7 +75,7 @@ export async function saveExtractedKnowledge(
       await saveToKnowledgeBase({
         text: contentToSave,
         id: id,
-        similarityThreshold: 0.5
+        similarityThreshold: 0.65
       })
 
       log.info(`Saved knowledge entry: ${id}`)
