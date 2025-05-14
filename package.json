@@ -1,6 +1,6 @@
 {
   "name": "izabella",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Lightweight LLM Chat application for MacOS 💬",
   "main": "./out/main/index.js",
   "author": "example.com",
