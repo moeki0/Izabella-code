@@ -2,6 +2,8 @@ import { createTool } from '@mastra/core'
 import { z } from 'zod'
 import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
 import { store } from './store'
+import { google } from '@ai-sdk/google'
+import { generateObject } from 'ai'
 
 let knowledgeStore: MarkdownKnowledgeStore | null = null
 
@@ -21,9 +23,50 @@ export interface KnowledgeSearchAndUpsertParams {
 }
 
 export interface KnowledgeOperationResult {
-  action: 'inserted' | 'updated'
+  action: 'inserted' | 'updated' | 'merged'
   id: string
   originalId?: string
+}
+
+// Helper function to merge knowledge texts
+async function mergeKnowledge(existingText: string, newText: string): Promise<string> {
+  try {
+    const model = google('gemini-2.0-flash-lite')
+
+    const systemPrompt = `あなたは2つのナレッジテキストをマージする専門家です。以下のルールに従ってください：
+1. 既存の情報と新しい情報の両方を維持するように努めてください
+2. 情報に矛盾がある場合は、新しい情報を優先してください
+3. 重複を排除し、情報を整理してください
+4. 結果は簡潔で読みやすく、整形してください
+5. 元のテキストのスタイルとトーンを維持してください`
+
+    const userPrompt = `既存のナレッジ:
+---
+${existingText}
+---
+
+新しいナレッジ:
+---
+${newText}
+---
+
+これらの情報をマージして、重複を排除し、矛盾がある場合は新しい情報を優先した統合テキストを作成してください。`
+
+    const response = await generateObject({
+      model,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      schema: z.object({
+        merged_text: z.string().describe('マージされたナレッジテキスト')
+      })
+    })
+
+    return response.object.merged_text
+  } catch (error) {
+    console.error('Error merging knowledge:', error)
+    // Fallback to using the new text if merging fails
+    return newText
+  }
 }
 
 export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams): Promise<string> {
@@ -35,14 +78,33 @@ export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams
     const searchResults = await knowledgeStore.search(text)
 
     if (searchResults.length > 0 && searchResults[0]._similarity > similarityThreshold) {
+      // Found similar existing knowledge
+      const existingId = searchResults[0].id
+      const existingText = searchResults[0].pageContent
+
+      // Merge the existing text with the new text
+      const mergedText = await mergeKnowledge(existingText, text)
+
+      // Update with merged content
+      await knowledgeStore.upsertText(mergedText, id, existingId)
+
+      return JSON.stringify({
+        action: 'merged',
+        id: id,
+        originalId: existingId
+      })
+    } else if (searchResults.length > 0 && searchResults[0]._similarity > 0.5) {
+      // Found somewhat similar content, but not similar enough to merge automatically
       await knowledgeStore.upsertText(text, id, searchResults[0].id)
 
       return JSON.stringify({
         action: 'updated',
-        id: id
+        id: id,
+        originalId: searchResults[0].id
       })
     }
 
+    // No similar content found, insert as new
     await knowledgeStore.addTexts([text], [id])
 
     return JSON.stringify({
