@@ -15,7 +15,7 @@ import { KnowledgeSidebar } from './KnowledgeSidebar'
 import { MemorySidebar } from './MemorySidebar'
 import { SettingsSidebar } from './SettingsSidebar'
 import { ToolsSidebar } from './ToolsSidebar'
-import { useIntl, getIntl, localizeDateTime } from '../lib/locale'
+import { useIntl, getIntl } from '../lib/locale'
 import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
 
@@ -85,9 +85,14 @@ export interface ChatProps {
   link: (href: string) => void
   interrupt: () => void
   randomUUID: () => string
-  registerSearchQueryListener: (callback: (data: { results: Array<string> }) => void) => () => void
+  registerSearchQueryListener: (
+    callback: (data: { originalQuery: string; optimizedQuery: string }) => void
+  ) => () => void
   registerStartSearchListener: (
     callback: (data: { prompt: string; status: string }) => void
+  ) => () => void
+  registerSearchResultListener: (
+    callback: (data: { results: Array<Record<string, unknown>>; query: string }) => void
   ) => () => void
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
   registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
@@ -140,6 +145,7 @@ function Chat({
   registerRetryListener,
   registerSourceListener,
   registerStartSearchListener,
+  registerSearchResultListener,
   showMessageContextMenu,
   mermaidInit,
   mermaidRun,
@@ -304,9 +310,46 @@ function Chat({
       })
     })
 
+    const unsubscribeSearchResult = registerSearchResultListener((data) => {
+      // When search results are received
+      setIsSearching(false)
+
+      // Add search results as a tool message
+      setMessages((prev) => {
+        // Remove any existing search-result messages
+        const filteredMessages = prev.filter(
+          (message) => !(message.role === 'tool' && message.tool_name === 'search_result')
+        )
+
+        const newMessage = {
+          role: 'tool' as const,
+          tool_name: 'search_result',
+          tool_req: JSON.stringify({
+            query: data.query
+          }),
+          tool_res: JSON.stringify({
+            results: data.results
+          }),
+          open: true
+        }
+        const updatedMessages = [...filteredMessages, newMessage]
+
+        // Update original messages if not showing search result
+        if (!isShowingSearchResult) {
+          const filteredOriginalMessages = originalMessages.filter(
+            (message) => !(message.role === 'tool' && message.tool_name === 'search_result')
+          )
+          setOriginalMessages([...filteredOriginalMessages, newMessage])
+        }
+
+        return updatedMessages
+      })
+    })
+
     const unsubscribeSearchQuery = registerSearchQueryListener((data) => {
       // When we get the search query results, set searching to false
       setIsSearching(false)
+      setOptimizedSearchQuery(data.optimizedQuery)
 
       // 検索クエリをユーザーに表示するためにツールメッセージとしても追加
       setMessages((prev) => {
@@ -318,9 +361,11 @@ function Chat({
         const newMessage = {
           role: 'tool' as const,
           tool_name: 'knowledge_search',
-          tool_req: JSON.stringify({}),
+          tool_req: JSON.stringify({
+            prompt: data.originalQuery
+          }),
           tool_res: JSON.stringify({
-            results: data.results
+            optimizedQuery: data.optimizedQuery
           }),
           open: true
         }
@@ -473,11 +518,18 @@ function Chat({
           }
 
           if (messageInfo.created_at) {
-            // システムのロケールに合わせて日時をフォーマット
+            // 日本語形式に変換（より読みやすく）
             const date = new Date(messageInfo.created_at)
 
-            // ロケールに応じた日時フォーマットを使用
-            const formattedDate = localizeDateTime(date)
+            // 年月日と時刻を組み合わせた読みやすいフォーマット
+            const formattedDate = `${date.toLocaleDateString('ja-JP', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })} ${date.toLocaleTimeString('ja-JP', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}`
 
             console.log('日付を設定:', formattedDate)
             setLatestMessageDate(formattedDate)
@@ -574,6 +626,7 @@ function Chat({
       unsubscribeMessageSaved()
       unsubscribeSearchQuery()
       unsubscribeStartSearch()
+      unsubscribeSearchResult()
     }
   }, [
     messages,
@@ -598,6 +651,7 @@ function Chat({
     isShowingSearchResult,
     registerSearchQueryListener,
     registerStartSearchListener,
+    registerSearchResultListener,
     originalMessages
   ])
 

@@ -205,6 +205,31 @@ function Messages({
                   </div>
                 </div>
               )}
+              {message.role === 'tool' && message.tool_name === 'search_result' && (
+                <div className="knowledge">
+                  <div className="knowledge-icon">
+                    <FiSearch size={14} />
+                  </div>
+                  <div className="knowledge-main">
+                    {intl.formatMessage({ id: 'searchResults' }) || 'Search Results'}:
+                  </div>
+                  <div className="knowledge-sub">
+                    {message.tool_res &&
+                      (() => {
+                        try {
+                          const response = JSON.parse(message.tool_res)
+                          if (response.results && Array.isArray(response.results)) {
+                            return response.results.join(', ')
+                          }
+                          return ''
+                        } catch (error) {
+                          console.error('Error parsing search results:', error)
+                          return ''
+                        }
+                      })()}
+                  </div>
+                </div>
+              )}
               {isSearching &&
                 !messages.some((m) => m.role === 'tool' && m.tool_name === 'start_search') && (
                   <div className="knowledge searching-animation" style={{ marginTop: '10px' }}>
@@ -220,7 +245,7 @@ function Messages({
               {message.role === 'tool' && message.tool_name === 'knowledge_search' && (
                 <div className="knowledge">
                   <div className="knowledge-icon">
-                    <FiSearch size={14} />
+                    <FiBookOpen size={14} />
                   </div>
                   <div className="knowledge-main">
                     {intl.formatMessage({ id: 'searchKnowledge' })}:
@@ -232,7 +257,7 @@ function Messages({
                         try {
                           const response = JSON.parse(message.tool_res)
 
-                          return response.results.join(',')
+                          return response.optimizedQuery
                         } catch (error) {
                           console.error('Error parsing search query data:', error)
                           return ''
@@ -251,6 +276,7 @@ function Messages({
                 message.tool_name !== 'memory_compression' &&
                 message.tool_name !== 'search_query_generation' &&
                 message.tool_name !== 'knowledge_search' &&
+                message.tool_name !== 'search_result' &&
                 message.tool_name !== 'start_search' && (
                   <div className="tool">
                     <div className="tool-name">
