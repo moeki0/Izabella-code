@@ -14,7 +14,7 @@ export const knowledgeEntrySchema = z.object({
   content: z
     .string()
     .describe(
-      'ナレッジとして保存すべき具体的なテキスト内容。会話から関連部分を正確に抽出するか、簡潔に要約してください。'
+      'ナレッジとして保存すべき具体的なテキスト内容。会話から関連部分を正確に抽出。かなり長くても大丈夫です。'
     ),
   relevance_score: z
     .number()
