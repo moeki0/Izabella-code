@@ -32,10 +32,10 @@ export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams
 
     const knowledgeStore = getKnowledgeStore()
 
-    const searchResults = await knowledgeStore.search(text, 1)
+    const searchResults = await knowledgeStore.search(text)
 
     if (searchResults.length > 0 && searchResults[0]._similarity > similarityThreshold) {
-      await knowledgeStore.upsertTexts([text], [id])
+      await knowledgeStore.upsertText(text, id, searchResults[0].id)
 
       return JSON.stringify({
         action: 'updated',

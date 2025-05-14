@@ -1,16 +1,7 @@
 import { z } from 'zod'
 
 export const knowledgeEntrySchema = z.object({
-  title: z.string().describe(`抽出した情報の簡潔な名前
-
-- 内容の要約
-- 英数字、日本語の平仮名・漢字のみ使用可
-- 長さは100文字以内
-
-例:
-- 東京の2023年8月の気象データ
-- ChatGPTのAPIリファレンス
-- プロジェクト計画の設計フェーズ`),
+  id: z.string().describe(`抽出した情報の簡潔なID(英数字とハイフン)`),
   content: z
     .string()
     .describe(

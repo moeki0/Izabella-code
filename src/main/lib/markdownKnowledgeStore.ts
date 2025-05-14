@@ -389,15 +389,11 @@ ${entry.content}
     return this.addDocuments(texts, ids)
   }
 
-  async upsertTexts(texts: string[], ids: string[]): Promise<number> {
-    if (this.debug) console.log(`Upserting ${texts.length} texts`)
+  async upsertText(text: string, id: string, targetId: string): Promise<number> {
+    if (this.debug) console.log(`Upserting text`)
 
-    if (texts.length !== ids.length) {
-      throw new Error('Texts and ids must have the same length')
-    }
-
-    await this.deleteByIds(ids)
-    return this.addTexts(texts, ids)
+    await this.deleteByIds([targetId])
+    return this.addTexts([text], [id])
   }
 
   async search(

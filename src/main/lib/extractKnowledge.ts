@@ -65,17 +65,17 @@ export async function saveExtractedKnowledge(
 
     for (const entry of knowledge_entries) {
       if (entry.relevance_score < 3) {
-        log.info(`Skipping low relevance entry: ${entry.title}`)
+        log.info(`Skipping low relevance entry: ${entry.id}`)
         continue
       }
 
       const contentToSave = entry.content
-      const id = entry.title || (await generateKnowledgeId(entry.content, 'knowledge'))
+      const id = entry.id || (await generateKnowledgeId(entry.content, 'knowledge'))
 
       await saveToKnowledgeBase({
         text: contentToSave,
         id: id,
-        similarityThreshold: 0.7
+        similarityThreshold: 0.5
       })
 
       log.info(`Saved knowledge entry: ${id}`)
