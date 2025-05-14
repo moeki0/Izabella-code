@@ -196,9 +196,10 @@ export const chat = async (
 
   // Enhance instructions with vector search results based on user prompt and recent message history
   // Extract message content from the last 7 messages (or fewer if not available)
-  const recentMessageContents = formattedMessages
+  const recentMessageContents = recentMessages
+    .filter((message) => message.role === 'assistant' || message.role === 'user')
     .slice(0, 7)
-    .map((msg) => msg.content)
+    .map((msg) => msg.content || '')
     .filter((content) => content && content.trim() !== '')
 
   baseInstructions = await enhanceInstructionsWithKnowledge(
