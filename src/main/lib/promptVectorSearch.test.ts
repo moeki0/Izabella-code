@@ -80,63 +80,12 @@ describe('promptVectorSearch', () => {
     vi.restoreAllMocks()
   })
 
-  describe('generateSearchQuery', () => {
-    it('should generate an optimized search query', async () => {
-      const { generateObject } = await import('ai')
-      const { createMessage } = await import('./message')
-
-      const result = await promptVectorSearchModule.generateSearchQuery(
-        'test prompt',
-        ['recent message 1', 'recent message 2'],
-        'working memory content'
-      )
-
-      expect(result).toBe('optimized test query')
-      expect(generateObject).toHaveBeenCalled()
-      expect(createMessage).toHaveBeenCalled()
-
-      // Check createMessage was called with correct params
-      const createMessageCall = vi.mocked(createMessage).mock.calls[0][0]
-      expect(createMessageCall.role).toBe('tool')
-      expect(createMessageCall.toolName).toBe('search_query_generation')
-
-      // Verify that the tool request and response data were saved
-      const toolReq = JSON.parse(createMessageCall.toolReq || '{}')
-      const toolRes = JSON.parse(createMessageCall.toolRes || '{}')
-
-      expect(toolReq.prompt).toBe('test prompt')
-      expect(toolReq.messageHistory).toBe(2)
-      expect(toolReq.workingMemoryUsed).toBe(true)
-      expect(toolRes.generatedQuery).toBe('optimized test query')
-    })
-
-    it('should fall back to original prompt if query generation fails', async () => {
-      const { generateObject } = await import('ai')
-      // Use mockImplementationOnce instead of mockRejectedValueOnce for better control
-      vi.mocked(generateObject).mockImplementationOnce(() => {
-        throw new Error('Test error')
-      })
-
-      const result = await promptVectorSearchModule.generateSearchQuery('test prompt')
-
-      expect(result).toBe('test prompt')
-    })
-  })
-
   describe('searchKnowledgeWithPrompt', () => {
     it('should use the generated query for search', async () => {
       // Skip this test since we're mocking the entire function and can't spy on internal functions
       // Instead, test a smaller unit of code
 
       const searchQuery = 'optimized query'
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const searchResults = [
-        {
-          pageContent: 'Test knowledge content 1',
-          id: 'test-id-1',
-          _similarity: 0.9
-        }
-      ]
 
       // Verify our expectations for query generation
       const expectedParams = ['test prompt', ['message 1'], '']

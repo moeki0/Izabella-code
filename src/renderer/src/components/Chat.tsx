@@ -85,9 +85,7 @@ export interface ChatProps {
   link: (href: string) => void
   interrupt: () => void
   randomUUID: () => string
-  registerSearchQueryListener: (
-    callback: (data: { originalQuery: string; optimizedQuery: string }) => void
-  ) => () => void
+  registerSearchQueryListener: (callback: (data: { results: Array<string> }) => void) => () => void
   registerStartSearchListener: (
     callback: (data: { prompt: string; status: string }) => void
   ) => () => void
@@ -309,7 +307,6 @@ function Chat({
     const unsubscribeSearchQuery = registerSearchQueryListener((data) => {
       // When we get the search query results, set searching to false
       setIsSearching(false)
-      setOptimizedSearchQuery(data.optimizedQuery)
 
       // 検索クエリをユーザーに表示するためにツールメッセージとしても追加
       setMessages((prev) => {
@@ -321,11 +318,9 @@ function Chat({
         const newMessage = {
           role: 'tool' as const,
           tool_name: 'knowledge_search',
-          tool_req: JSON.stringify({
-            prompt: data.originalQuery
-          }),
+          tool_req: JSON.stringify({}),
           tool_res: JSON.stringify({
-            optimizedQuery: data.optimizedQuery
+            results: data.results
           }),
           open: true
         }

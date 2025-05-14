@@ -232,7 +232,7 @@ function Messages({
                         try {
                           const response = JSON.parse(message.tool_res)
 
-                          return response.optimizedQuery
+                          return response.results.join(',')
                         } catch (error) {
                           console.error('Error parsing search query data:', error)
                           return ''

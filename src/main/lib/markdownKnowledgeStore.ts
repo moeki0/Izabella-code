@@ -278,7 +278,7 @@ ${entry.content}
 
   async similaritySearch(
     query: string,
-    k = 5
+    k = 20
   ): Promise<Array<{ pageContent: string; id: string; _similarity: number }>> {
     try {
       if (this.debug) console.log(`Searching for: ${query}`)
@@ -355,6 +355,7 @@ ${entry.content}
         // Delete the markdown file
         const filePath = join(this.knowledgePath, `${id}.md`)
         if (this.debug) console.log(`Deleting file: ${filePath}`)
+        await fs.readFile(filePath)
         await fs.unlink(filePath)
 
         // Remove from index

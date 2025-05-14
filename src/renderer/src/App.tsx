@@ -17,9 +17,7 @@ const chatProps = {
     window.electron.ipcRenderer.on('start-search', (_, data) => callback(data))
     return () => window.electron.ipcRenderer.removeAllListeners('start-search')
   },
-  registerSearchQueryListener: (
-    callback: (data: { originalQuery: string; optimizedQuery: string }) => void
-  ) => {
+  registerSearchQueryListener: (callback: (data: { results: Array<string> }) => void) => {
     window.electron.ipcRenderer.on('search-query', (_, data) => callback(data))
     return () => window.electron.ipcRenderer.removeAllListeners('search-query')
   },
