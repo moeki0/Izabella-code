@@ -21,7 +21,6 @@ export interface PromptSearchResult {
 
 export interface SearchQueryResult {
   originalQuery: string
-  optimizedQuery: string
   results: PromptSearchResult[]
 }
 
@@ -57,7 +56,6 @@ export async function searchKnowledgeWithQueryInfo(
   limit = 7,
   similarityThreshold = 0.1
 ): Promise<SearchQueryResult> {
-  const optimizedQuery = await generateSearchQuery(prompt, recentMessages)
   const results = await searchKnowledgeWithPrompt(
     prompt,
     recentMessages,
@@ -67,7 +65,6 @@ export async function searchKnowledgeWithQueryInfo(
 
   return {
     originalQuery: [prompt, ...recentMessages.join('|n')].join('\n'),
-    optimizedQuery,
     results
   }
 }
@@ -123,9 +120,6 @@ export async function enhanceInstructionsWithKnowledge(
   const relevantKnowledgeSection = `
 # プロンプト関連のナレッジ情報
 以下はプロンプトに関連する既存のナレッジベースからの情報です。この情報を回答に活用してください：
-
-検索クエリ: "${searchData.originalQuery}"
-> 最適化されたクエリ: "${searchData.optimizedQuery}"
 
 ${searchData.results
   .map(
