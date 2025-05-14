@@ -29,7 +29,9 @@ export async function extractKnowledgeFromConversation(
 - 会話の文脈全体を考慮して、情報の重要性を判断してください。
 - 特に、ユーザーが自身の状況、好み、過去の経験、プロジェクトの詳細、技術的な課題やアイデアについて言及した箇所に注意してください。
 - 提案や決定事項、問題提起なども重要な情報です。
-- アシスタントが生成した役立つコンテンツはあとで再利用できるように記録してください。`
+- アシスタントが生成した役立つコンテンツはあとで再利用できるように記録してください。
+- どのプロジェクトの話なのか名前空間をナレッジのタイトルや本文に保存してください
+`
 
   try {
     const model = google('gemini-2.0-flash')
@@ -75,7 +77,7 @@ export async function saveExtractedKnowledge(
       await saveToKnowledgeBase({
         text: contentToSave,
         id: id,
-        similarityThreshold: 0.85
+        similarityThreshold: 0.7
       })
 
       log.info(`Saved knowledge entry: ${id}`)
