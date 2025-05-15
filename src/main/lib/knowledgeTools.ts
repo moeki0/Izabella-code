@@ -1,14 +1,14 @@
 import { createTool } from '@mastra/core'
 import { z } from 'zod'
-import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
+import { KnowledgeStore } from './knowledgeStore'
 import { store } from './store'
 
-let knowledgeStore: MarkdownKnowledgeStore | null = null
+let knowledgeStore: KnowledgeStore | null = null
 
-const getKnowledgeStore = (): MarkdownKnowledgeStore => {
+const getKnowledgeStore = (): KnowledgeStore => {
   if (!knowledgeStore) {
     const openaiApiKey = store.get('apiKeys.openai') as string
-    knowledgeStore = new MarkdownKnowledgeStore(openaiApiKey)
+    knowledgeStore = new KnowledgeStore(openaiApiKey)
   }
   return knowledgeStore
 }

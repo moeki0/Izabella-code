@@ -1,4 +1,4 @@
-import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
+import { knowledgeStore } from './knowledgeStore'
 import { store } from './store'
 import { google } from '@ai-sdk/google'
 import { generateObject } from 'ai'
@@ -7,12 +7,12 @@ import { createMessage } from './message'
 import { readWorkingMemory } from './workingMemory'
 import { mainWindow } from '..'
 
-let knowledgeStore: MarkdownKnowledgeStore | null = null
+let knowledgeStore: knowledgeStore | null = null
 
-const getKnowledgeStore = (): MarkdownKnowledgeStore => {
+const getKnowledgeStore = (): knowledgeStore => {
   if (!knowledgeStore) {
     const openaiApiKey = store.get('apiKeys.openai') as string
-    knowledgeStore = new MarkdownKnowledgeStore(openaiApiKey)
+    knowledgeStore = new knowledgeStore(openaiApiKey)
   }
   return knowledgeStore
 }

@@ -1,13 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as promptVectorSearchModule from './promptVectorSearch'
-// We need to import MarkdownKnowledgeStore for typing, but it's mocked
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
 
 // Mock dependencies
-vi.mock('./markdownKnowledgeStore', () => {
+vi.mock('./knowledgeStore', () => {
   return {
-    MarkdownKnowledgeStore: vi.fn().mockImplementation(() => {
+    KnowledgeStore: vi.fn().mockImplementation(() => {
       return {
         search: vi.fn().mockResolvedValue([
           {
@@ -143,16 +140,10 @@ describe('promptVectorSearch', () => {
 
   describe('enhanceInstructionsWithKnowledge', () => {
     it('should use working memory when enhancing instructions', async () => {
-      // Mock the core dependencies directly instead of trying to spy on internal methods
       const { readWorkingMemory } = await import('./workingMemory')
 
-      // Validate that the parameters we've set up match expectations
       const prompt = 'test prompt'
       const messages = ['message 1']
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const workingMemoryContent = 'mock working memory content'
-
-      // This isn't calling the actual function, just validating our test parameters
       expect(prompt).toBe('test prompt')
       expect(messages).toEqual(['message 1'])
       expect(readWorkingMemory).toBeDefined()
