@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { handleToolsGet } from './handleToolsGet'
 import { beforeEach } from 'node:test'
 
-vi.mock('../lib/llm', () => ({
+vi.mock('../lib/initializeMCP', () => ({
   tools: {
     tool1: {
       description: 'Tool 1 description'

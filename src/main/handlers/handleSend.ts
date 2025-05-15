@@ -1,4 +1,4 @@
-import { agent, chat, detectSearchNeed, model } from '../lib/llm'
+import { chat } from '../lib/chat'
 import { mainWindow } from '..'
 import { createMessage, getMessages } from '../lib/message'
 import { processConversationForKnowledge } from '../lib/extractKnowledge'
@@ -125,19 +125,14 @@ async function processMessageContent(
 
 export const handleSend = async (_, input): Promise<void> => {
   try {
-    // Get the most recent messages to find the previous theme
     const recentMessages = await getMessages(2)
     let previousTheme: string | undefined = undefined
 
     if (recentMessages.length > 0) {
       const lastMessage = recentMessages[0]
       previousTheme = getThemeFromMetadata(lastMessage)
-      console.log(
-        `前回のテーマ: ${previousTheme || 'なし'}, 最新メッセージのID: ${lastMessage.id || '未定義'}`
-      )
     }
 
-    // Create user message with empty metadata for now
     let id: string | undefined = undefined
     id = await createMessage({
       role: 'user',
@@ -145,28 +140,21 @@ export const handleSend = async (_, input): Promise<void> => {
       metadata: JSON.stringify({})
     })
 
-    const useSearchGrounding = await detectSearchNeed(input)
-    const m = await model(useSearchGrounding)
-    const stream = await chat(await agent(m, useSearchGrounding), input, useSearchGrounding)
-
     let content = ''
     let sourcesArray: Array<Record<string, unknown>> = []
-    // ユーザーメッセージにはテーマ情報はないが、日付情報は送信
     mainWindow.webContents.send('message-saved', id, {
       created_at: new Date().toISOString()
     })
 
     globalThis.Interrupt = false
 
-    for await (const chunk of stream.fullStream) {
+    for await (const chunk of (await chat(input)).fullStream) {
       if (chunk.type === 'error') {
         throw chunk.error
       }
       if (globalThis.interrupt) {
         globalThis.interrupt = false
         if (content.length > 0) {
-          // 中断時も同様の処理を行うが、テーマは抽出しない
-          // メッセージを保存
           id = await createMessage({
             role: 'assistant',
             content,

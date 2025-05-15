@@ -1,4 +1,4 @@
-import { tools } from '../lib/llm'
+import { tools } from '../lib/initializeMCP'
 import { store } from '../lib/store'
 import log from 'electron-log/main'
 

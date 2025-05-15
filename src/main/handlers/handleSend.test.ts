@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { handleSend } from './handleSend'
-import { chat } from '../lib/llm'
+import { chat } from '../lib/chat'
 import { createMessage } from '../lib/message'
 import { mainWindow } from '..'
 import { StreamReturn } from '@mastra/core'
@@ -30,12 +30,8 @@ vi.mock('../lib/store', () => ({
   }
 }))
 
-vi.mock('../lib/llm', () => ({
-  chat: vi.fn(),
-  tools: {},
-  detectSearchNeed: vi.fn().mockResolvedValue(false),
-  model: vi.fn().mockResolvedValue({}),
-  agent: vi.fn().mockResolvedValue({})
+vi.mock('../lib/chat', () => ({
+  chat: vi.fn()
 }))
 
 // Mock vectorStoreTools to prevent actual API calls
@@ -154,7 +150,7 @@ describe('handleSend', () => {
     const calls = vi.mocked(createMessage).mock.calls
     const toolCall = calls.find(
       (call) => call[0] && call[0].role === 'tool' && call[0].toolName === 'search_knowledge'
-    )
+    )!
     expect(toolCall).toBeTruthy()
     expect(toolCall[0].toolReq).toBe(JSON.stringify({ test: true }))
     expect(toolCall[0].toolRes).toBe(JSON.stringify({ success: true }))
@@ -168,7 +164,7 @@ describe('handleSend', () => {
 
     // エラーメッセージが送信されていることを確認
     const calls = vi.mocked(mainWindow.webContents.send).mock.calls
-    const errorCall = calls.find((call) => call[0] === 'error')
+    const errorCall = calls.find((call) => call[0] === 'error')!
     expect(errorCall).toBeTruthy()
     expect(errorCall[1]).toBe('Error: Test error')
   })
@@ -197,7 +193,7 @@ describe('handleSend', () => {
 
     const knowledgeToolCall = calls.find(
       (call) => call[0] && call[0].role === 'tool' && call[0].toolName === 'knowledge_record'
-    )
+    )!
     expect(knowledgeToolCall).toBeTruthy()
     expect(knowledgeToolCall[0].toolReq).toBe(
       JSON.stringify({ conversation_id: 'test-message-id' })
@@ -226,7 +222,7 @@ describe('handleSend', () => {
     const calls = vi.mocked(createMessage).mock.calls
     const memoryToolCall = calls.find(
       (call) => call[0] && call[0].role === 'tool' && call[0].toolName === 'memory_update'
-    )
+    )!
     expect(memoryToolCall).toBeTruthy()
     expect(memoryToolCall[0].toolReq).toBe(JSON.stringify({ conversation_id: 'test-message-id' }))
     expect(memoryToolCall[0].toolRes).toBe(JSON.stringify({ updated: true }))

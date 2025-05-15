@@ -1,5 +1,5 @@
+import { tools } from '../lib/initializeMCP'
 import { store } from '../lib/store'
-import { tools } from '../lib/llm'
 
 export const handleToolsEnabledGet = (): {
   name: string

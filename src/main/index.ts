@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import pkg, { BrowserWindow } from 'electron'
+const { app, ipcMain } = pkg
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { handleInit } from './handlers/handleInit'
 import { handleSend } from './handlers/handleSend'
@@ -21,8 +22,8 @@ import {
 import { handleSearchMessages } from './handlers/handleSearchMessages'
 import { handleGetMessageContext } from './handlers/handleGetMessageContext'
 import { handleMessageContext } from './handlers/handleMessageContext'
-import { initializeMCP } from './lib/llm'
 import { getLocale, setLocale, initLocale, getPreferredLocale } from './lib/intl'
+import { initializeMCP } from './lib/initializeMCP'
 
 // Set API keys from store
 const updateApiKeys = (): void => {

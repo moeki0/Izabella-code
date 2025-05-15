@@ -1,6 +1,6 @@
-import { createTool } from '@mastra/core'
 import { z } from 'zod'
 import { searchMessages, SearchMessagesParams } from './message'
+import { createTool } from '@mastra/core'
 
 export const messageSearch: unknown = createTool({
   id: 'search_message',

@@ -1,4 +1,4 @@
-import { tools } from '../lib/llm'
+import { tools } from '../lib/initializeMCP'
 import { getMessages, Message } from '../lib/message'
 
 const waitForTools = async (): Promise<void> => {
