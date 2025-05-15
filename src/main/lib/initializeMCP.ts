@@ -29,6 +29,4 @@ export const initializeMCP = async (): Promise<void> => {
   tools = { ...messageTools, ...mcpTools }
 }
 
-initializeMCP()
-
 export { mcp, tools }

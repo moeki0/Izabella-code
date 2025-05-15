@@ -1,14 +1,8 @@
-import { tools } from '../lib/initializeMCP'
+import { initializeMCP } from '../lib/initializeMCP'
 import { getMessages, Message } from '../lib/message'
 
-const waitForTools = async (): Promise<void> => {
-  while (!tools) {
-    await new Promise((resolve) => setTimeout(resolve, 100))
-  }
-}
-
 export const handleInit = async (): Promise<{ messages: Array<Message> }> => {
-  await waitForTools()
+  await initializeMCP()
 
   const messages = await getMessages()
 
