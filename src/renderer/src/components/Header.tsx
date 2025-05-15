@@ -45,10 +45,6 @@ function Header({
   return (
     <header role="banner" className={className}>
       <div className="header-title">
-        <div>
-          {currentTheme && <div className="header-theme">{currentTheme}</div>}
-          {latestMessageDate && <div className="header-date">{latestMessageDate}</div>}
-        </div>
       </div>
       <div className="header-actions">
         {toggleSearchSidebar && (

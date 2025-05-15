@@ -4,8 +4,6 @@ import { createMessage, getMessages } from '../lib/message'
 import { processConversationForKnowledge } from '../lib/extractKnowledge'
 import { processConversationForWorkingMemory } from '../lib/generateWorkingMemory'
 import { checkAndCompressWorkingMemory } from '../lib/compressWorkingMemory'
-import { extractTheme, getThemeFromMetadata } from '../lib/extractTheme'
-import { cleanContentForDisplay } from '../lib/cleanContent'
 
 export type Assistant = {
   name: string
@@ -14,99 +12,28 @@ export type Assistant = {
   autoApprove: boolean
 }
 
-/**
- * コンテンツからテーマを抽出して保存する関数
- * @param originalContent メッセージのコンテンツ
- * @param sourcesArray ソース情報の配列
- * @param previousTheme 以前のテーマ（存在する場合）
- */
 async function extractAndSaveTheme(
   originalContent: string,
   sourcesArray: Array<Record<string, unknown>>,
-  previousTheme?: string
 ): Promise<void> {
   try {
-    // テーマの抽出
-    const theme = await extractMessageTheme(originalContent, previousTheme)
-    const metadata = { theme }
-
-    // Store message with metadata (オリジナルコンテンツを保存)
-    const savedMessageId = await createMessage({
+    await createMessage({
       role: 'assistant',
       content: originalContent,
       sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined,
-      metadata: JSON.stringify(metadata)
-    })
-
-    // 保存が完了したらテーマ情報をUIに送信
-    mainWindow.webContents.send('message-saved', savedMessageId, {
-      theme: metadata.theme
     })
   } catch (error) {
     console.error('テーマ抽出またはメッセージ保存エラー:', error)
   }
 }
 
-/**
- * メッセージの内容からテーマを抽出する関数
- * @param content メッセージの内容
- * @param previousTheme 以前のテーマ（存在する場合）
- * @returns 抽出されたテーマ
- */
-async function extractMessageTheme(content: string, previousTheme?: string): Promise<string> {
-  // LLMがJSON形式でメタデータを提供しているかチェック
-  if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
-    try {
-      const jsonObj = JSON.parse(content.trim())
-      if (jsonObj.metadata && jsonObj.metadata.theme) {
-        const theme = jsonObj.metadata.theme
-        console.log(`LLM出力のJSONからテーマを直接抽出しました: ${theme}`)
-        return theme
-      }
-    } catch {
-      // JSONパースエラー、通常の抽出に進む
-    }
-  }
-
-  // 過去5件のメッセージを取得
-  const recentMessagesForTheme = await getMessages()
-  const formattedMessages = recentMessagesForTheme
-    .reverse()
-    .map((message) => ({
-      role: message.role === 'user' ? 'user' : 'assistant',
-      content: message.content || ''
-    }))
-    .filter((message) => message.content.trim() !== '')
-
-  // 現在のメッセージも追加
-  formattedMessages.push({
-    role: 'assistant',
-    content: cleanContentForDisplay(content)
-  })
-
-  const theme = await extractTheme(formattedMessages, previousTheme)
-  console.log(`抽出されたテーマ: ${theme} (前のテーマ: ${previousTheme || 'なし'})`)
-
-  return theme
-}
-
-/**
- * メッセージコンテンツの処理を行う共通関数
- * @param content メッセージのコンテンツ
- * @param sourcesArray ソース情報の配列
- * @param previousTheme 以前のテーマ（存在する場合）
- * @param id メッセージID
- */
 async function processMessageContent(
   content: string,
   sourcesArray: Array<Record<string, unknown>>,
-  previousTheme: string | undefined,
   id: string | undefined
 ): Promise<void> {
-  // 空のコンテンツは処理しない
   if (content.length === 0) return
 
-  // ソース情報の送信
   if (sourcesArray.length > 0) {
     mainWindow.webContents.send('source', {
       sources: sourcesArray,
@@ -114,25 +41,16 @@ async function processMessageContent(
     })
   }
 
-  // 日付情報を先に通知（現在時刻をUTCではなくローカル時間で）
   const now = new Date()
   mainWindow.webContents.send('message-saved', id, {
     created_at: now.toISOString()
   })
 
-  await extractAndSaveTheme(content, sourcesArray, previousTheme)
+  await extractAndSaveTheme(content, sourcesArray)
 }
 
 export const handleSend = async (_, input): Promise<void> => {
   try {
-    const recentMessages = await getMessages(2)
-    let previousTheme: string | undefined = undefined
-
-    if (recentMessages.length > 0) {
-      const lastMessage = recentMessages[0]
-      previousTheme = getThemeFromMetadata(lastMessage)
-    }
-
     let id: string | undefined = undefined
     id = await createMessage({
       role: 'user',
@@ -215,24 +133,18 @@ export const handleSend = async (_, input): Promise<void> => {
         }
       }
       if (chunk.type === 'text-delta') {
-        // オリジナルのコンテンツには常に追加
         content += chunk.textDelta
-
-        // すべてのテキストをそのままクライアントに送信
-        // フロントエンド側でJSONの処理を行う
         mainWindow.webContents.send('stream', chunk.textDelta)
       }
       if (chunk.type === 'step-finish') {
         mainWindow.webContents.send('step-finish')
-        // リファクタリングした共通関数を使用
-        await processMessageContent(content, sourcesArray, previousTheme, id)
+        await processMessageContent(content, sourcesArray, id)
         content = ''
         sourcesArray = []
       }
       if (chunk.type === 'finish') {
         mainWindow.webContents.send('finish')
-        // リファクタリングした共通関数を使用
-        await processMessageContent(content, sourcesArray, previousTheme, id)
+        await processMessageContent(content, sourcesArray, id)
 
         // 処理後にcontentをクリア
         content = ''

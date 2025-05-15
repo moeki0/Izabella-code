@@ -15,24 +15,6 @@ export const formatMessageForLLM = (message: {
     return null
   }
   let contentToUse = message.content || ''
-  if (message.metadata) {
-    let content = contentToUse
-    try {
-      const parsed = JSON.parse(contentToUse)
-      if (parsed.content) {
-        content = parsed.content
-      }
-    } catch {
-      // Content is not JSON, use as is
-    }
-    const metadata = JSON.parse(message.metadata)
-    const combinedObj = {
-      content: content,
-      metadata: metadata
-    }
-
-    contentToUse = JSON.stringify(combinedObj)
-  }
 
   return {
     role: message.role === 'user' ? 'user' : 'assistant',
