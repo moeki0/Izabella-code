@@ -4,6 +4,7 @@ import { knowledgeExtractionSchema, KnowledgeExtractionResult } from './knowledg
 import { saveToKnowledgeBase } from './knowledgeTools'
 import log from 'electron-log/main'
 import { generateKnowledgeId } from './generateKnowledgeId'
+import { z } from 'zod'
 
 interface ConversationMessage {
   role: 'user' | 'assistant'
@@ -50,6 +51,45 @@ export async function extractKnowledgeFromConversation(
   }
 }
 
+/**
+ * 長いテキストを要約して縮小する
+ */
+async function compressKnowledge(text: string): Promise<string> {
+  try {
+    const model = google('gemini-2.0-flash-lite')
+
+    const systemPrompt = `あなたは長いナレッジテキストを要約する専門家です。以下のルールに従ってください：
+1. 重要な情報を全て保持してください
+2. 冗長な表現、例示、詳細な説明を簡潔にしてください
+3. 全体の意味と文脈を維持してください
+4. 結果は半分程度に圧縮してください
+5. 元のテキストのスタイルとトーンを維持してください`
+
+    const userPrompt = `以下のナレッジテキストを要約して簡潔にしてください：
+---
+${text}
+---
+
+重要な情報を全て保持しながら、冗長さを排除し、半分程度に圧縮してください`
+
+    const response = await generateObject({
+      model,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      schema: z.object({
+        compressed_text: z.string().describe('圧縮されたナレッジテキスト')
+      })
+    })
+
+    log.info('Knowledge compression completed')
+    return response.object.compressed_text
+  } catch (error) {
+    log.error('Error compressing knowledge:', error)
+    // Fallback to original text if compression fails
+    return text
+  }
+}
+
 export async function saveExtractedKnowledge(
   extractionResult: KnowledgeExtractionResult
 ): Promise<string[]> {
@@ -69,13 +109,21 @@ export async function saveExtractedKnowledge(
         continue
       }
 
-      const contentToSave = entry.content
+      let contentToSave = entry.content
+
+      // 1000文字以上の場合は圧縮する
+      if (contentToSave.length > 1000) {
+        log.info(`Compressing long knowledge entry: ${entry.id} (${contentToSave.length} chars)`)
+        contentToSave = await compressKnowledge(contentToSave)
+        log.info(`Compressed to ${contentToSave.length} chars`)
+      }
+
       const id = entry.id || (await generateKnowledgeId(entry.content, 'knowledge'))
 
       await saveToKnowledgeBase({
         text: contentToSave,
         id: id,
-        similarityThreshold: 0.65
+        similarityThreshold: 0.8
       })
 
       log.info(`Saved knowledge entry: ${id}`)
