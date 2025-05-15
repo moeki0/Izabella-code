@@ -33,7 +33,7 @@ export interface KnowledgeOperationResult {
 // Helper function to merge knowledge texts
 async function mergeKnowledge(existingText: string, newText: string): Promise<string> {
   try {
-    const model = google('gemini-2.0-flash-lite')
+    const model = google('gemini-2.0-flash')
 
     const systemPrompt = `あなたは2つのナレッジテキストをマージする専門家です。以下のルールに従ってください：
 1. 既存の情報と新しい情報の両方を維持するように努めてください

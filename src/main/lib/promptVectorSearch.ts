@@ -50,13 +50,13 @@ export async function generateSearchQuery(
 3. 本質的な検索意図を抽出する
 4. 単なる入力のコピーではなく、検索効率を高めるための最適化されたクエリにする
 
-入力: ${prompt}
-
 メッセージ履歴:
 ${recentMessages.join('\n\n')}
 
 ワーキングメモリ:
 ${workingMemory}
+
+入力（最重要）: ${prompt}
 
 最適な検索クエリを生成してください。`
     })

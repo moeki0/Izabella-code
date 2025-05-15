@@ -36,7 +36,7 @@ let tools
 
 export const detectSearchNeed = async (input: string): Promise<boolean> => {
   try {
-    const model = google('gemini-2.0-flash-lite')
+    const model = google('gemini-2.0-flash')
     const recentMessages = await getMessages(3)
     const result = await generateObject({
       model,
@@ -199,7 +199,7 @@ export const chat = async (
   // Extract message content from the last 7 messages (or fewer if not available)
   const recentMessageContents = recentMessages
     .filter((message) => message.role === 'assistant' || message.role === 'user')
-    .slice(0, 3)
+    .slice(0, 2)
     .map((msg) => msg.content || '')
     .filter((content) => content && content.trim() !== '')
 
