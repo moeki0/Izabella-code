@@ -14,7 +14,7 @@ export const formatMessageForLLM = (message: {
   if (message.role === 'tool') {
     return null
   }
-  let contentToUse = message.content || ''
+  const contentToUse = message.content || ''
 
   return {
     role: message.role === 'user' ? 'user' : 'assistant',

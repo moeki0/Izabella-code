@@ -43,6 +43,6 @@ describe('handleSearchMessages', () => {
 
     expect(result.success).toBe(false)
     expect(result.data).toBeNull()
-    expect(result.error).toBe('Search failed')
+    expect(result.error).toBe(error.message)
   })
 })

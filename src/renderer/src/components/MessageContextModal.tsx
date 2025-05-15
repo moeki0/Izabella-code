@@ -42,6 +42,7 @@ const MessageContextModal: React.FC<MessageContextModalProps> = ({
         } else {
           setError(result.error || 'Failed to load message context')
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         setError('An unexpected error occurred')
       } finally {

@@ -38,14 +38,11 @@ function Header({
   toggleSettingsSidebar,
   isSettingsSidebarOpen,
   toggleToolsSidebar,
-  isToolsSidebarOpen,
-  currentTheme,
-  latestMessageDate
+  isToolsSidebarOpen
 }: Props): React.JSX.Element {
   return (
     <header role="banner" className={className}>
-      <div className="header-title">
-      </div>
+      <div className="header-title"></div>
       <div className="header-actions">
         {toggleSearchSidebar && (
           <button

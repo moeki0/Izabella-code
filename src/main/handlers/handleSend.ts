@@ -14,13 +14,13 @@ export type Assistant = {
 
 async function extractAndSaveTheme(
   originalContent: string,
-  sourcesArray: Array<Record<string, unknown>>,
+  sourcesArray: Array<Record<string, unknown>>
 ): Promise<void> {
   try {
     await createMessage({
       role: 'assistant',
       content: originalContent,
-      sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined,
+      sources: sourcesArray.length > 0 ? JSON.stringify(sourcesArray) : undefined
     })
   } catch (error) {
     console.error('テーマ抽出またはメッセージ保存エラー:', error)

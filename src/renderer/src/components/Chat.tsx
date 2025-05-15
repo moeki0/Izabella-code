@@ -122,6 +122,7 @@ export interface ChatProps {
   mermaidRun: typeof mermaid.run
   highlightAll: typeof hljs.highlightAll
   approveToolCall: (approved: boolean) => void
+
   setComponentId?: (componentId: string) => void
   initialSettingsSidebarOpen?: boolean
 }
@@ -150,6 +151,7 @@ function Chat({
   mermaidInit,
   mermaidRun,
   highlightAll,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   approveToolCall,
   interrupt,
   registerSearchQueryListener,
@@ -170,7 +172,7 @@ function Chat({
   // 保存されたナレッジIDのリストは通知コンポーネントで管理するように変更
   // const [savedKnowledgeIds, setSavedKnowledgeIds] = useState<string[]>([])
 
-  const [pendingTool, setPendingTool] = useState<{
+  const [, setPendingTool] = useState<{
     toolName: string
     args: string
   } | null>(null)

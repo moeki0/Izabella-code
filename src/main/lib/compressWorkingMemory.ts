@@ -1,7 +1,11 @@
 import { generateObject } from 'ai'
 import { z } from 'zod'
 import { google } from '@ai-sdk/google'
-import { DEFAULT_WORKING_MEMORY_TEMPLATE, readWorkingMemory, updateWorkingMemory } from './workingMemory'
+import {
+  DEFAULT_WORKING_MEMORY_TEMPLATE,
+  readWorkingMemory,
+  updateWorkingMemory
+} from './workingMemory'
 import { mainWindow } from '..'
 
 const MEMORY_CHARACTER_LIMIT = 8000

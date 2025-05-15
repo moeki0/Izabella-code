@@ -6,7 +6,8 @@ export async function generateKnowledgeId(content: string): Promise<string> {
   try {
     const model = openai('gpt-4.1-nano-2025-04-14')
     const maxLength = 5000
-    const truncatedContent = content.length > maxLength ? content.substring(0, maxLength) + '... (truncated)' : content
+    const truncatedContent =
+      content.length > maxLength ? content.substring(0, maxLength) + '... (truncated)' : content
     const prompt = `
 このテキストの内容を分析して、簡潔で記述的なIDを生成してください。
 このIDはナレッジベースで使用され、内容を短く表現する必要があります。

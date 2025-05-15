@@ -46,7 +46,7 @@ export class KnowledgeStore {
       const dim = 1536
       this.index = new HierarchicalNSW('cosine', dim)
       this.initOrLoadIndex()
-    } catch (error) {
+    } catch {
       const dim = 1536
       const maxElements = 100000
       this.index = new HierarchicalNSW('cosine', dim)
@@ -87,7 +87,7 @@ export class KnowledgeStore {
         Object.entries(mapping.docIdToId).map(([key, value]) => [key, Number(value)])
       )
       this.nextId = mapping.nextId
-    } catch (error) {
+    } catch {
       const dim = 1536
       const maxElements = 100000
       this.index = new HierarchicalNSW('cosine', dim)
@@ -120,8 +120,8 @@ export class KnowledgeStore {
 
       const mappingPath = `${this.indexPath}.mapping`
       await fs.writeFile(mappingPath, JSON.stringify(mappingData))
-    } catch (error) {
-    }
+      // eslint-disable-next-line no-empty
+    } catch {}
   }
 
   private async readMarkdownFile(filePath: string): Promise<KnowledgeEntry> {
@@ -163,11 +163,7 @@ ${yaml.dump(frontmatter)}---
 ${entry.content}
 `
     const filePath = join(this.knowledgePath, `${entry.id}.md`)
-    try {
-      await fs.writeFile(filePath, content, 'utf-8')
-    } catch (error) {
-      throw error
-    }
+    await fs.writeFile(filePath, content, 'utf-8')
   }
 
   async addDocuments(texts: string[], ids: string[]): Promise<number> {
@@ -195,7 +191,7 @@ ${entry.content}
 
       try {
         await this.writeMarkdownFile(markdownEntry)
-      } catch (error) {
+      } catch {
         continue
       }
 
@@ -210,8 +206,8 @@ ${entry.content}
           this.idToDocId.set(id, chunkId)
           this.docIdToId.set(chunkId, id)
           insertCount++
-        } catch (error) {
-          console.error('ドキュメント挿入エラー:', error)
+        } catch (err) {
+          console.error('ドキュメント挿入エラー:', err)
         }
       }
     }
@@ -284,8 +280,8 @@ ${entry.content}
       }>
 
       return results
-    } catch (error) {
-      console.error('検索エラー:', error)
+    } catch (err) {
+      console.error('検索エラー:', err)
       return []
     }
   }
@@ -326,7 +322,7 @@ ${entry.content}
       const filePath = join(this.knowledgePath, `${targetId}.md`)
       const entry = await this.readMarkdownFile(filePath)
       importance = entry.importance || 0
-    } catch (error) {
+    } catch {
       // nothing to do
     }
 
@@ -373,8 +369,8 @@ ${entry.content}
       await this.saveIndex()
 
       return insertCount
-    } catch (error) {
-      console.error('Error in upsertText:', error)
+    } catch (err) {
+      console.error('Error in upsertText:', err)
       return 0
     }
   }
@@ -405,14 +401,14 @@ ${entry.content}
         }
         entry.importance = (entry.importance || 0) + amount
         return true
-      } catch (error) {
+      } catch {
         return false
       }
-    } catch (error) {
+    } catch {
       return false
     }
   }
 
-  close(): void {
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  close(): void {}
 }

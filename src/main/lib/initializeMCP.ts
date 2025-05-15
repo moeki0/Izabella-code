@@ -2,6 +2,7 @@ import { MCPConfiguration } from '@mastra/mcp'
 import { messageSearch } from './messageSearchTool'
 import { store } from './store'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let tools: Record<string, any>
 let mcp: MCPConfiguration
 

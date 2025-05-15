@@ -124,8 +124,7 @@ describe('handleSend', () => {
     expect(createMessage).toHaveBeenCalledWith({
       role: 'assistant',
       content: 'Hello',
-      sources: undefined,
-      metadata: '{"theme":"一般的な会話"}'
+      sources: undefined
     })
   })
 

@@ -78,6 +78,7 @@ export async function processConversationForWorkingMemory(
     }
     await updateWorkingMemory(updatedMemoryResult)
     return true
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return false
   }
