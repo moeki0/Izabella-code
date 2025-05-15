@@ -728,6 +728,7 @@ function Chat({
       initialized &&
       !(!running && input.replaceAll(/[\s\n\r]+/g, '').length === 0)
     ) {
+      e.preventDefault()
       sendMessage()
     }
   }
@@ -994,32 +995,6 @@ function Chat({
           <div className="error">
             <div className="error-text">{error}</div>
             <FiX color="white" data-testid="close-error" onClick={() => setError(null)} size={20} />
-          </div>
-        )}
-        {pendingTool && (
-          <div className="tool-confirmation">
-            <div className="tool-confirmation-text">
-              {intl.formatMessage({ id: 'toolConfirmation' }, { toolName: pendingTool.toolName })}
-            </div>
-            <div className="tool-confirmation-buttons">
-              <button
-                onClick={() => {
-                  approveToolCall(false)
-                  setPendingTool(null)
-                  setRunning(false)
-                }}
-              >
-                {intl.formatMessage({ id: 'no' })}
-              </button>
-              <button
-                onClick={() => {
-                  approveToolCall(true)
-                  setPendingTool(null)
-                }}
-              >
-                {intl.formatMessage({ id: 'yes' })}
-              </button>
-            </div>
           </div>
         )}
       </div>

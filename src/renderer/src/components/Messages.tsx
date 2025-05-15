@@ -31,8 +31,8 @@ function getDisplayableContent(content: string): string {
   if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
     try {
       const jsonObj = JSON.parse(content.trim())
+      console.log(jsonObj)
       if (jsonObj.content) {
-        // JSONオブジェクトからのコンテンツは改行を明示的に削除
         return jsonObj.content.replace(/[\r\n]+/g, ' ')
       }
     } catch {
@@ -40,7 +40,6 @@ function getDisplayableContent(content: string): string {
     }
   }
 
-  // 通常のテキストメッセージでも改行を正規化
   return content.replaceAll(/(\\r|\\n)/g, '\n')
 }
 
@@ -102,54 +101,6 @@ function Messages({
                 handleContextMenu(e, displayContent, message.id, message.role === 'assistant')
               }}
             >
-              {message.role === 'tool' && message.tool_name === 'update_knowledge_index' && (
-                <div className="knowledge">
-                  <div className="knowledge-icon">
-                    <FiBookOpen size={14} />
-                  </div>
-                  <div>
-                    {message.tool_res
-                      ? intl.formatMessage({ id: 'knowledgeIndexUpdated' })
-                      : intl.formatMessage({ id: 'updatingKnowledgeIndex' })}
-                  </div>
-                </div>
-              )}
-              {message.role === 'tool' && message.tool_name === 'upsert_knowledge' && (
-                <div className="knowledge">
-                  <div className="knowledge-icon">
-                    <FiBookOpen size={14} />
-                  </div>
-                  <div>
-                    {message.tool_res
-                      ? intl.formatMessage({ id: 'knowledgeSaved' })
-                      : intl.formatMessage({ id: 'savingKnowledge' })}
-                  </div>
-                </div>
-              )}
-              {message.role === 'tool' && message.tool_name === 'search_knowledge' && (
-                <div className="knowledge">
-                  <div className="knowledge-icon">
-                    <FiSearch size={14} />
-                  </div>
-                  <div>
-                    {message.tool_res
-                      ? intl.formatMessage({ id: 'knowledgeFound' })
-                      : intl.formatMessage({ id: 'searchingKnowledge' })}
-                  </div>
-                </div>
-              )}
-              {message.role === 'tool' && message.tool_name === 'replace_memory' && (
-                <div className="knowledge">
-                  <div className="knowledge-icon">
-                    <FiSmile size={14} />
-                  </div>
-                  <div>
-                    {message.tool_res
-                      ? intl.formatMessage({ id: 'memorySaved' })
-                      : intl.formatMessage({ id: 'updatingMemory' })}
-                  </div>
-                </div>
-              )}
               {message.role === 'tool' && message.tool_name === 'knowledge_record' && (
                 <div className="knowledge">
                   <div className="knowledge-icon">

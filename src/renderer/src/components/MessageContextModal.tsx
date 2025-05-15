@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Message } from './Messages'
-import { FiBookOpen, FiSearch, FiSmile, FiTool, FiX } from 'react-icons/fi'
+import { FiSearch, FiSmile, FiTool, FiX } from 'react-icons/fi'
 import { useIntl } from '../lib/locale'
 import orderBy from 'lodash/orderBy'
 import HighlightedMarkdown from './HighlightedMarkdown'
@@ -32,12 +32,9 @@ const MessageContextModal: React.FC<MessageContextModalProps> = ({
         const result = await window.api.getMessageContext(messageId, 20)
 
         if (result.success && result.data) {
-          // reasoningブロックを含むメッセージを除外
           const filteredMessages = result.data.filter((message) => {
-            // contentがnullの場合はフィルタリングしない
             if (!message.content) return true
 
-            // ```reasoning```ブロックを含むメッセージを除外
             return !message.content.includes('```reasoning')
           })
 
@@ -46,7 +43,6 @@ const MessageContextModal: React.FC<MessageContextModalProps> = ({
           setError(result.error || 'Failed to load message context')
         }
       } catch (err) {
-        console.error('Error fetching message context:', err)
         setError('An unexpected error occurred')
       } finally {
         setIsLoading(false)
@@ -56,17 +52,14 @@ const MessageContextModal: React.FC<MessageContextModalProps> = ({
     fetchMessageContext()
   }, [messageId])
 
-  // メッセージリスト内での対象メッセージの存在確認（ハイライト表示に利用）
   messages.findIndex((msg) => msg.id === messageId)
 
-  // モーダル外をクリックしたら閉じる
   const handleModalClick = (e: React.MouseEvent): void => {
     if (e.target === e.currentTarget) {
       onClose()
     }
   }
 
-  // コンテキストメニューを表示
   const handleContextMenu = (
     e: React.MouseEvent,
     text: string,
@@ -78,20 +71,6 @@ const MessageContextModal: React.FC<MessageContextModalProps> = ({
       showMessageContextMenu(text, msgId, isAssistantMessage)
     }
   }
-
-  // ESCキーで閉じる
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [onClose])
 
   return (
     <div className="message-context-modal-overlay" onClick={handleModalClick}>
@@ -136,30 +115,6 @@ const MessageContextModal: React.FC<MessageContextModalProps> = ({
                       )
                     }}
                   >
-                    {message.role === 'tool' && message.tool_name === 'update_knowledge_index' && (
-                      <div className="knowledge">
-                        <div className="knowledge-icon">
-                          <FiBookOpen size={14} />
-                        </div>
-                        <div>
-                          {message.tool_res
-                            ? intl.formatMessage({ id: 'knowledgeIndexUpdated' })
-                            : intl.formatMessage({ id: 'updatingKnowledgeIndex' })}
-                        </div>
-                      </div>
-                    )}
-                    {message.role === 'tool' && message.tool_name === 'upsert_knowledge' && (
-                      <div className="knowledge">
-                        <div className="knowledge-icon">
-                          <FiBookOpen size={14} />
-                        </div>
-                        <div>
-                          {message.tool_res
-                            ? intl.formatMessage({ id: 'knowledgeSaved' })
-                            : intl.formatMessage({ id: 'savingKnowledge' })}
-                        </div>
-                      </div>
-                    )}
                     {message.role === 'tool' && message.tool_name === 'search_knowledge' && (
                       <div className="knowledge">
                         <div className="knowledge-icon">

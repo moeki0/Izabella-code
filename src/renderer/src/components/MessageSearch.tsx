@@ -25,7 +25,6 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
   const searchRef = useRef<HTMLDivElement>(null)
   const intl = useIntl()
 
-  // 検索実行
   const handleSearch = async (page = 1): Promise<void> => {
     if (!searchQuery.trim()) {
       setSearchResults([])
@@ -34,35 +33,28 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
 
     setIsSearching(true)
     try {
-      // 検索クエリにタイムスタンプを追加して、キャッシュの問題を回避
       const timestamp = new Date().getTime()
 
       const result = await window.api.searchMessages({
-        query: searchQuery + ' ' + timestamp, // 毎回異なるクエリになるように
+        query: searchQuery + ' ' + timestamp,
         page: page,
         itemsPerPage: 10
       })
 
       if (result.success && result.data) {
-        // reasoningブロックを含むメッセージを除外
         const filteredMessages = (result.data.messages as MessageSearchResult[]).filter(
           (message) => {
-            // contentが空の場合はスキップしない
             if (!message.content) return true
-
-            // ```reasoning```ブロックを含むメッセージを除外
             return !message.content.includes('```reasoning')
           }
         )
 
-        // 検索結果を設定
         if (page === 1) {
           setSearchResults(filteredMessages)
         } else {
           setSearchResults((prev) => [...prev, ...filteredMessages])
         }
 
-        // 調整された合計数を設定
         const adjustedTotal = Math.max(
           0,
           result.data.total - (result.data.messages.length - filteredMessages.length)
@@ -86,10 +78,8 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
     }
   }
 
-  // Enterキーで検索実行
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
-      // 検索結果をリセットして新しく検索
       setCurrentPage(1)
       handleSearch(1)
     }
