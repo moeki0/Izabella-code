@@ -5,7 +5,6 @@ import {
   updateKnowledge,
   deleteKnowledge
 } from './knowledgeTools'
-import log from 'electron-log/main'
 import { Agent } from '@mastra/core'
 
 interface ConversationMessage {
@@ -24,7 +23,6 @@ export async function processConversationForKnowledge(
       delete_knowledge: deleteKnowledge
     }
 
-    // 知識抽出と管理を単一のエージェントに統合する
     const model = google('gemini-2.5-flash-preview-04-17')
     const agent = new Agent({
       instructions: `
@@ -74,62 +72,48 @@ export async function processConversationForKnowledge(
       tools
     })
 
-    // 会話履歴を文字列に変換
     const conversationString = conversationHistory
       .map((msg) => `${msg.role}: ${msg.content}`)
       .join('\n\n')
 
-    // エージェントに会話履歴を渡して処理
     const stream = await agent.stream(
       [
         {
           role: 'user',
-          content: `以下の会話履歴を分析し、重要な知識を抽出して処理してください。そして、作成または更新した知識エントリのIDリストを返してください。
+          content: `
+以下の会話履歴を分析し、重要な知識を抽出して処理してください。そして、作成または更新した知識エントリのIDリストを返してください。
 
 会話履歴:
 ${conversationString}`
         }
       ],
       {
-        maxSteps: 30, // 抽出と処理の両方を行うため十分なステップ数を確保
+        maxSteps: 30,
         providerOptions: {
           google: {
             thinkingConfig: {
-              thinkingBudget: 2048 // より複雑なタスクのための大きなthinking budget
+              thinkingBudget: 2048
             }
           }
         }
       }
     )
 
-    // 処理されたIDs
     const processedIds: string[] = []
-
     for await (const chunk of stream.fullStream) {
-      console.log(chunk)
       if (chunk.type === 'tool-result') {
-        try {
-          const result = JSON.parse(chunk.result)
-          if (
-            result.action === 'created' ||
-            result.action === 'updated' ||
-            result.action === 'merged'
-          ) {
-            processedIds.push(result.id)
-            log.info(`Knowledge processed: ${result.action} - ${result.id}`)
-          } else if (result.action === 'deleted') {
-            log.info(`Knowledge deleted: ${result.deleted?.join(', ')}`)
-          }
-        } catch (err) {
-          log.error('Error parsing tool result:', err)
+        const result = JSON.parse(chunk.result)
+        if (
+          result.action === 'created' ||
+          result.action === 'updated' ||
+          result.action === 'merged'
+        ) {
+          processedIds.push(result.id)
         }
       }
     }
-
-    log.info(`Knowledge processing complete. Processed ${processedIds.length} entries.`)
     return processedIds
   } catch (error) {
-    log.error('Error processing conversation for knowledge:', error)
     return []
   }
 }
