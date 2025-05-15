@@ -4,6 +4,8 @@ import { MarkdownKnowledgeStore } from './markdownKnowledgeStore'
 import { store } from './store'
 import { google } from '@ai-sdk/google'
 import { generateObject } from 'ai'
+import { generateKnowledgeId } from './generateKnowledgeId'
+import log from 'electron-log/main'
 
 let knowledgeStore: MarkdownKnowledgeStore | null = null
 
@@ -63,9 +65,25 @@ ${newText}
 
     return response.object.merged_text
   } catch (error) {
-    console.error('Error merging knowledge:', error)
+    log.error('Error merging knowledge:', error)
     // Fallback to using the new text if merging fails
     return newText
+  }
+}
+
+// Helper function to generate a new ID for merged content
+async function generateIdForMergedContent(mergedText: string): Promise<string> {
+  try {
+    // Generate a new ID based on the merged content
+    const newId = await generateKnowledgeId(mergedText)
+    log.info(`Generated new ID for merged content: ${newId}`)
+    return newId
+  } catch (error) {
+    log.error('Error generating ID for merged content:', error)
+    // Create a fallback ID using timestamp
+    const fallbackId = `merged-knowledge-${Date.now()}`
+    log.info(`Using fallback ID: ${fallbackId}`)
+    return fallbackId
   }
 }
 
@@ -85,12 +103,15 @@ export async function saveToKnowledgeBase(params: KnowledgeSearchAndUpsertParams
       // Merge the existing text with the new text
       const mergedText = await mergeKnowledge(existingText, text)
 
-      // Update with merged content
-      await knowledgeStore.upsertText(mergedText, id, existingId)
+      // Generate a new ID based on the merged content
+      const mergedId = await generateIdForMergedContent(mergedText)
+
+      // Update with merged content and new ID
+      await knowledgeStore.upsertText(mergedText, mergedId, existingId)
 
       return JSON.stringify({
         action: 'merged',
-        id: id,
+        id: mergedId,
         originalId: existingId
       })
     } else if (searchResults.length > 0 && searchResults[0]._similarity > 0.5) {

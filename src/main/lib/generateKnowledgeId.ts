@@ -2,7 +2,7 @@ import { openai } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 
-export async function generateKnowledgeId(content: string, toolName: string): Promise<string> {
+export async function generateKnowledgeId(content: string): Promise<string> {
   try {
     const model = openai('gpt-4.1-nano-2025-04-14')
 
@@ -14,8 +14,6 @@ export async function generateKnowledgeId(content: string, toolName: string): Pr
     const prompt = `
 このテキストの内容を分析して、簡潔で記述的なIDを生成してください。
 このIDはナレッジベースで使用され、内容を短く表現する必要があります。
-
-このデータはツール「${toolName}」の結果です。
 
 内容:
 ${truncatedContent}
@@ -40,6 +38,6 @@ ${truncatedContent}
   } catch (error) {
     console.error('Error generating knowledge ID:', error)
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-    return `tool-result-${toolName}-${timestamp}`
+    return `tool-result-${timestamp}`
   }
 }

@@ -118,7 +118,7 @@ export async function saveExtractedKnowledge(
         log.info(`Compressed to ${contentToSave.length} chars`)
       }
 
-      const id = entry.id || (await generateKnowledgeId(entry.content, 'knowledge'))
+      const id = await generateKnowledgeId(entry.content)
 
       await saveToKnowledgeBase({
         text: contentToSave,
