@@ -2,29 +2,23 @@ import { generateObject } from 'ai'
 import { z } from 'zod'
 import { google } from '@ai-sdk/google'
 import { readWorkingMemory, updateWorkingMemory } from './workingMemory'
-import log from 'electron-log/main'
 
 interface ConversationMessage {
   role: 'user' | 'assistant'
   content: string
 }
 
-/**
- * 会話履歴とワーキングメモリを元に、更新されたワーキングメモリを生成する
- */
 export async function generateUpdatedWorkingMemory(
   conversationHistory: ConversationMessage[]
-): Promise<string | Error> {
+): Promise<string | void> {
   try {
-    // 会話履歴が短すぎる場合は処理しない
     if (conversationHistory.length < 2) {
-      return new Error('会話履歴が不十分です')
+      return
     }
 
-    // 現在のワーキングメモリを取得
     const currentMemory = await readWorkingMemory()
-
-    const systemPrompt = `あなたは、AIアシスタントIZABELLAのワーキングメモリを更新する専門家です。
+    const systemPrompt = `
+あなたは、AIアシスタントIZABELLAのワーキングメモリを更新する専門家です。
 ワーキングメモリには、これまでの会話から得られた重要な情報を保存し、IZABELLAが後で参照できるようにします。
 
 以下の現在のワーキングメモリと最近の会話履歴に基づいて、ワーキングメモリを更新してください。
@@ -40,10 +34,7 @@ export async function generateUpdatedWorkingMemory(
 
 最終的な出力としては、すべてのセクションを含む完全なワーキングメモリの内容を返してください。`
 
-    // LLMを使用してワーキングメモリを更新
     const model = google('gemini-2.0-flash')
-
-    // 会話履歴をフォーマット
     const formattedMessages = [
       {
         role: 'system' as const,
@@ -51,7 +42,8 @@ export async function generateUpdatedWorkingMemory(
       },
       {
         role: 'user' as const,
-        content: `現在のワーキングメモリ:
+        content: `
+現在のワーキングメモリ:
 ${currentMemory}
 
 最近の会話履歴:
@@ -67,42 +59,26 @@ ${conversationHistory.map((msg) => `${msg.role}: ${msg.content}`).join('\n\n')}`
       })
     })
 
-    log.info('Working memory generation result:', result)
-
     return result.object.updated_memory
-  } catch (error) {
-    log.error('Error generating working memory:', error)
-    return error as Error
+  } catch {
+    return
   }
 }
 
-/**
- * 会話履歴からワーキングメモリを更新して保存する
- * @returns 更新が成功したかどうか
- */
 export async function processConversationForWorkingMemory(
   conversationHistory: ConversationMessage[]
 ): Promise<boolean> {
   try {
-    // 会話履歴が短すぎる場合は処理しない
     if (conversationHistory.length < 2) {
       return false
     }
-
     const updatedMemoryResult = await generateUpdatedWorkingMemory(conversationHistory)
-
-    if (updatedMemoryResult instanceof Error) {
-      log.error('Working memory generation failed:', updatedMemoryResult)
+    if (updatedMemoryResult === undefined) {
       return false
     }
-
-    // ワーキングメモリを更新
     await updateWorkingMemory(updatedMemoryResult)
-    log.info('Working memory updated successfully')
-
     return true
   } catch (error) {
-    log.error('Error processing conversation for working memory:', error)
     return false
   }
 }

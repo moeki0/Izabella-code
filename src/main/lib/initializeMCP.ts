@@ -3,7 +3,7 @@ import { replaceWorkingMemoryTool } from './workingMemoryTool'
 import { messageSearch } from './messageSearchTool'
 import { store } from './store'
 
-let tools
+let tools: Record<string, any>
 let mcp: MCPConfiguration
 
 export const initializeMCP = async (): Promise<void> => {

@@ -18,30 +18,26 @@ export async function extractTheme(
 ): Promise<string> {
   try {
     const model = google('gemini-2.5-flash-preview-04-17')
-
     const messages = recentMessages.slice(-6)
-
     const messagesText = messages
       .map((msg) => `${msg.role === 'user' ? 'ユーザー' : 'アシスタント'}: ${msg.content}`)
       .join('\n\n')
-
     const prompt = `
-    あなたは会話のテーマを抽出するシステムです。
-    会話内容とワーキングメモリの両方を考慮して、最も関連性の高いテーマを抽出してください。特に、会話がワーキングメモリ内のプロジェクトやタスクに関連する場合は、それらの名称をテーマに含めることを検討してください。
-    以下のユーザーとアシスタントの会話から、その会話の全体的なテーマを抽出してください。テーマは固有名詞も含めて具体的にしてください。
-    会話内容と関連性の高いワーキングメモリの情報（例: プロジェクト名）を含めて具体的に記述してください。
+あなたは会話のテーマを抽出するシステムです。
+会話内容とワーキングメモリの両方を考慮して、最も関連性の高いテーマを抽出してください。特に、会話がワーキングメモリ内のプロジェクトやタスクに関連する場合は、それらの名称をテーマに含めることを検討してください。
+以下のユーザーとアシスタントの会話から、その会話の全体的なテーマを抽出してください。テーマは固有名詞も含めて具体的にしてください。
+会話内容と関連性の高いワーキングメモリの情報（例: プロジェクト名）を含めて具体的に記述してください。
 
-    ワーキングメモリ:
-    ${await readWorkingMemory()}
+ワーキングメモリ:
+${await readWorkingMemory()}
 
-    以前のテーマ: ${previousTheme || 'なし'}
+以前のテーマ: ${previousTheme || 'なし'}
 
-    === 最近の会話 ===
-    ${messagesText}
-    ================
+=== 最近の会話 ===
+${messagesText}
+==================
 
-    会話のテーマは何ですか？前回と同じテーマの場合はそのまま返してください。
-    `
+会話のテーマは何ですか？前回と同じテーマの場合はそのまま返してください。`
 
     const result = await generateObject({
       model,
@@ -54,7 +50,6 @@ export async function extractTheme(
 
     return result.object.theme
   } catch (error) {
-    console.error('Error extracting theme:', error)
     return previousTheme || '一般的な会話'
   }
 }
@@ -65,7 +60,6 @@ export function parseMessageMetadata(message: Message): Record<string, unknown> 
   try {
     return JSON.parse(message.metadata)
   } catch {
-    console.error('Error parsing message metadata')
     return {}
   }
 }
@@ -73,9 +67,6 @@ export function parseMessageMetadata(message: Message): Record<string, unknown> 
 export function getThemeFromMetadata(message: Message): string | undefined {
   const metadata = parseMessageMetadata(message)
   const theme = metadata.theme as string | undefined
-  console.log(
-    `メタデータからテーマを取得: メッセージID=${message.id || '未定義'}, メタデータ=${message.metadata || 'なし'}, テーマ=${theme || 'なし'}`
-  )
   return theme
 }
 
@@ -83,11 +74,9 @@ export function createMessageContent(message: Message): string {
   if (!message.content) return ''
 
   try {
-    // Check if the content is already JSON
     const parsed = JSON.parse(message.content)
     return parsed.content || ''
   } catch {
-    // If it's not JSON, return the content as is
     return message.content
   }
 }
