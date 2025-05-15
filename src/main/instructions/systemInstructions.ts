@@ -1,14 +1,7 @@
-import { readWorkingMemory, getLatestKnowledgeFiles } from '../lib/workingMemory'
+import { readWorkingMemory } from '../lib/workingMemory'
 
 export const systemInstructions = async (): Promise<string> => {
   const workingMemoryContent = await readWorkingMemory()
-  const latestKnowledgeFiles = await getLatestKnowledgeFiles(40)
-
-  // Format the knowledge files as a bulleted list
-  const knowledgeFilesList =
-    latestKnowledgeFiles.length > 0
-      ? latestKnowledgeFiles.map((file) => `- ${file.replace(/.md$/, '')}`).join('\n')
-      : '- No knowledge files found'
 
   return `
 # 基本事項
@@ -22,11 +15,6 @@ ${workingMemoryContent}
 # マークダウン記法
 * GitHub Flavored Markdown
 * Mermaid
-
-# 最新のナレッジ
-以下のナレッジリストを参考にナレッジベースからsearch_knowledgeツールを使って取得してください。
-以下は最近更新された40件のナレッジのリストです:
-${knowledgeFilesList}
 
 # 応答生成のガイドライン
 * ツール実行後、その結果をユーザーに分かりやすく報告してください。

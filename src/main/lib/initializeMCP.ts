@@ -1,5 +1,4 @@
 import { MCPConfiguration } from '@mastra/mcp'
-import { replaceWorkingMemoryTool } from './workingMemoryTool'
 import { messageSearch } from './messageSearchTool'
 import { store } from './store'
 
@@ -25,11 +24,8 @@ export const initializeMCP = async (): Promise<void> => {
   const messageTools = {
     search_message: messageSearch
   }
-  const workingMemoryTools = {
-    replace_memory: replaceWorkingMemoryTool
-  }
   const mcpTools = await mcp.getTools()
-  tools = { ...messageTools, ...workingMemoryTools, ...mcpTools }
+  tools = { ...messageTools, ...mcpTools }
 }
 
 initializeMCP()

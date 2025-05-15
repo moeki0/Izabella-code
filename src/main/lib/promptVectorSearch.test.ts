@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as promptVectorSearchModule from './promptVectorSearch'
 
-// Mock dependencies
 vi.mock('./knowledgeStore', () => {
   return {
     KnowledgeStore: vi.fn().mockImplementation(() => {

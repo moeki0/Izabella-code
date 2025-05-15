@@ -75,7 +75,6 @@ export async function getLatestKnowledgeFiles(limit = 40): Promise<string[]> {
   try {
     const knowledgePath = getKnowledgePath()
 
-    // Ensure the knowledge directory exists
     try {
       await fs.access(knowledgePath)
     } catch {
@@ -83,13 +82,8 @@ export async function getLatestKnowledgeFiles(limit = 40): Promise<string[]> {
       return [] // Return empty array if directory was just created
     }
 
-    // Read all files in the knowledge directory
     const files = await fs.readdir(knowledgePath)
-
-    // Filter only markdown files
     const markdownFiles = files.filter((file) => file.endsWith('.md'))
-
-    // Get file stats for each markdown file to sort by modification time
     const fileStats = await Promise.all(
       markdownFiles.map(async (filename) => {
         const filePath = join(knowledgePath, filename)
@@ -100,11 +94,7 @@ export async function getLatestKnowledgeFiles(limit = 40): Promise<string[]> {
         }
       })
     )
-
-    // Sort files by modification time (newest first)
     fileStats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime())
-
-    // Get the filenames of the latest N files
     const latestFiles = fileStats.slice(0, limit).map((file) => file.filename)
 
     return latestFiles
@@ -113,15 +103,3 @@ export async function getLatestKnowledgeFiles(limit = 40): Promise<string[]> {
     return []
   }
 }
-
-// Legacy functions to maintain compatibility with existing code
-export const getKnowledgeIndexPath = (): string =>
-  join(app.getPath('userData'), 'knowledge-index.md')
-export const DEFAULT_KNOWLEDGE_INDEX_TEMPLATE = ''
-export const ensureKnowledgeIndexExists = async (): Promise<void> => {}
-export const readKnowledgeIndex = async (): Promise<string> => ''
-export const getKnowledgeIndexContent = async (): Promise<string> => ''
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const updateKnowledgeIndex = async (_: string): Promise<void> => {}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const replaceKnowledgeIndex = async (_oldText: string, _newText: string): Promise<void> => {}

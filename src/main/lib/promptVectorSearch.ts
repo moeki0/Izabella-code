@@ -1,4 +1,4 @@
-import { knowledgeStore } from './knowledgeStore'
+import { KnowledgeStore } from './knowledgeStore'
 import { store } from './store'
 import { google } from '@ai-sdk/google'
 import { generateObject } from 'ai'
@@ -7,12 +7,12 @@ import { createMessage } from './message'
 import { readWorkingMemory } from './workingMemory'
 import { mainWindow } from '..'
 
-let knowledgeStore: knowledgeStore | null = null
+let knowledgeStore: KnowledgeStore | null = null
 
-const getKnowledgeStore = (): knowledgeStore => {
+const getKnowledgeStore = (): KnowledgeStore => {
   if (!knowledgeStore) {
     const openaiApiKey = store.get('apiKeys.openai') as string
-    knowledgeStore = new knowledgeStore(openaiApiKey)
+    knowledgeStore = new KnowledgeStore(openaiApiKey)
   }
   return knowledgeStore
 }
@@ -61,7 +61,6 @@ ${workingMemory}
 最適な検索クエリを生成してください。`
     })
 
-    // Save the generated query as a tool message
     await createMessage({
       role: 'tool',
       toolName: 'search_query_generation',
@@ -95,50 +94,32 @@ export async function searchKnowledgeWithPrompt(
 ): Promise<PromptSearchResult[]> {
   try {
     const knowledgeStore = getKnowledgeStore()
-
     const searchQuery = await generateSearchQuery(prompt, recentMessages, workingMemory)
-
     const results = await knowledgeStore.search(searchQuery, limit)
-
     mainWindow.webContents.send('search-query', {
       originalQuery: prompt,
       optimizedQuery: searchQuery
     })
 
-    // Filter results by similarity threshold
     const filteredResults = results.filter((result) => result._similarity >= similarityThreshold)
 
-    // Increase importance for each referenced knowledge entry
     for (const result of filteredResults) {
       await knowledgeStore.increaseImportance(result.id)
     }
 
-    // Calculate combined score using similarity, importance and freshness
-    // Rerank results based on combined score
     const rankedResults = [...filteredResults].sort((a, b) => {
-      // Get creation timestamps with proper type handling
-      // Define an interface to safely access created_at
       interface KnowledgeSearchResult {
         _similarity: number
         _importance: number
         created_at: number
       }
-
       const createdAtA = (a as KnowledgeSearchResult).created_at || 0
       const createdAtB = (b as KnowledgeSearchResult).created_at || 0
-
-      // Normalize timestamps (newer = higher value)
       const now = Math.floor(Date.now() / 1000)
       const maxAge = 60 * 60 * 24 * 365 // 1 year in seconds
-
-      // Calculate freshness score (0-1 range, 1 = newest)
       const freshnessA = Math.max(0, Math.min(1, 1 - (now - createdAtA) / maxAge))
       const freshnessB = Math.max(0, Math.min(1, 1 - (now - createdAtB) / maxAge))
-
-      // Calculate importance normalization
       const maxImportance = Math.max(...filteredResults.map((r) => r._importance || 0)) || 1
-
-      // Calculate combined score (60% similarity, 20% normalized importance, 20% freshness)
       const scoreA =
         0.9 * a._similarity + 0.05 * ((a._importance || 0) / maxImportance) + 0.05 * freshnessA
       const scoreB =
@@ -199,7 +180,6 @@ export async function enhanceInstructionsWithKnowledge(
     console.error('Failed to send start-search event to renderer:', error)
   }
 
-  // Get working memory to provide context for the search
   let workingMemory = ''
   try {
     workingMemory = await readWorkingMemory()
@@ -207,7 +187,6 @@ export async function enhanceInstructionsWithKnowledge(
     console.error('Failed to read working memory:', error)
   }
 
-  // Get search results with query information
   const searchData = await searchKnowledgeWithQueryInfo(
     prompt,
     recentMessages,
@@ -220,7 +199,6 @@ export async function enhanceInstructionsWithKnowledge(
     return baseInstructions
   }
 
-  // Create a message showing the search process
   await createMessage({
     role: 'tool',
     toolName: 'knowledge_search',
@@ -235,7 +213,6 @@ export async function enhanceInstructionsWithKnowledge(
     })
   })
 
-  // Send search query information to the renderer process
   try {
     if (mainWindow) {
       mainWindow.webContents.send('search-result', {
@@ -246,7 +223,6 @@ export async function enhanceInstructionsWithKnowledge(
     console.error('Failed to send search query to renderer:', error)
   }
 
-  // Format the search results into a section to be included in the instructions
   const relevantKnowledgeSection = `
 # プロンプト関連のナレッジ情報
 以下はプロンプトに関連する既存のナレッジベースからの情報です。この情報を回答に活用してください：
@@ -256,7 +232,6 @@ export async function enhanceInstructionsWithKnowledge(
 
 ${searchData.results
   .map((result) => {
-    // Create a readable date string for the created_at timestamp
     let dateStr = ''
     if (result.created_at) {
       const date = new Date(result.created_at * 1000)
@@ -269,15 +244,11 @@ ${result.content.slice(0, 1000)}
   })
   .join('\n')}
 `
-
-  // Find where to insert the relevant knowledge in the base instructions
   const insertPoint = baseInstructions.indexOf('# ナレッジ')
   if (insertPoint === -1) {
-    // If the marker isn't found, append to the end
     return `${baseInstructions}\n${relevantKnowledgeSection}`
   }
 
-  // Insert the relevant knowledge just before the # ナレッジ section
   return (
     baseInstructions.slice(0, insertPoint) +
     relevantKnowledgeSection +
