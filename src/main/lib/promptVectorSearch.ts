@@ -212,7 +212,7 @@ export async function enhanceInstructionsWithKnowledge(
     prompt,
     recentMessages,
     20,
-    0.1,
+    0.5,
     workingMemory
   )
 

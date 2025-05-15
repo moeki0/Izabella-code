@@ -4,7 +4,12 @@ import { store } from './store'
 import { Agent, LanguageModel, StreamReturn } from '@mastra/core'
 import { google } from '@ai-sdk/google'
 import log from 'electron-log/main'
-import { searchKnowledge, vectorDelete } from './knowledgeTools'
+import {
+  searchKnowledge,
+  createKnowledge,
+  updateKnowledge,
+  deleteKnowledge
+} from './knowledgeTools'
 import { messageSearch } from './messageSearchTool'
 import { webSearchInstructions } from '../instructions/webSearchInstructions'
 import { systemInstructions } from '../instructions/systemInstructions'
@@ -69,10 +74,6 @@ export const initializeMCP = async (): Promise<void> => {
     servers: mcpServers || {}
   })
 
-  const knowledgeTools = {
-    search_knowledge: searchKnowledge,
-    delete_knowledge: vectorDelete
-  }
   const messageTools = {
     search_message: messageSearch
   }
@@ -80,7 +81,7 @@ export const initializeMCP = async (): Promise<void> => {
     replace_memory: replaceWorkingMemoryTool
   }
   const mcpTools = await mcp.getTools()
-  tools = { ...messageTools, ...workingMemoryTools, ...mcpTools, ...knowledgeTools }
+  tools = { ...messageTools, ...workingMemoryTools, ...mcpTools }
 }
 
 export const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {

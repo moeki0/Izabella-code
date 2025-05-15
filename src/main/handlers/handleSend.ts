@@ -120,9 +120,7 @@ async function processMessageContent(
     created_at: now.toISOString()
   })
 
-  // テーマ抽出と保存を非同期で実行（await せずにバックグラウンドで処理）
-  // クライアントへのレスポンス性を優先するため、保存完了を待たない
-  extractAndSaveTheme(content, sourcesArray, previousTheme)
+  await extractAndSaveTheme(content, sourcesArray, previousTheme)
 }
 
 export const handleSend = async (_, input): Promise<void> => {
@@ -255,7 +253,6 @@ export const handleSend = async (_, input): Promise<void> => {
         try {
           const recentMessages = await getMessages(10)
           const formattedMessages = recentMessages
-            .reverse()
             .map((message) => ({
               role: message.role === 'user' ? ('user' as const) : ('assistant' as const),
               content: message.content || ''
@@ -263,7 +260,9 @@ export const handleSend = async (_, input): Promise<void> => {
             .filter((message) => message.content.trim() !== '')
 
           // 別のLLMでナレッジを抽出して保存する処理
-          const savedKnowledgeIds = await processConversationForKnowledge(formattedMessages)
+          const savedKnowledgeIds = await processConversationForKnowledge(
+            formattedMessages.slice(0, 2).reverse()
+          )
 
           // 保存されたナレッジIDをUIに通知
           if (savedKnowledgeIds.length > 0) {
