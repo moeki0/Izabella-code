@@ -14,11 +14,6 @@ import { updateElectronApp } from 'update-electron-app'
 import { store } from './lib/store'
 import { initializeConfig } from './lib/initializeConfig'
 import { handleDeleteMessage } from './handlers/handleDeleteMessage'
-import { handleSummarize } from './handlers/handleMemory'
-import {
-  handleGetMemoryContent,
-  handleSummarizeMemoryContent
-} from './handlers/handleMemoryContent'
 import { handleSearchMessages } from './handlers/handleSearchMessages'
 import { handleGetMessageContext } from './handlers/handleGetMessageContext'
 import { handleMessageContext } from './handlers/handleMessageContext'
@@ -88,9 +83,6 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('get-config', (_, name) => store.get(name))
   ipcMain.handle('delete-message', handleDeleteMessage)
-  ipcMain.handle('summarize', () => handleSummarize())
-  ipcMain.handle('summarizeMemoryContent', () => handleSummarizeMemoryContent())
-  ipcMain.handle('getMemoryContent', () => handleGetMemoryContent())
   ipcMain.handle('search-messages', handleSearchMessages)
   ipcMain.handle('get-message-context', handleGetMessageContext)
   ipcMain.handle('message-context', handleMessageContext)

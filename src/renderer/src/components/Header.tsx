@@ -53,24 +53,6 @@ function Header({
             <FiSearch size={18} />
           </button>
         )}
-        {toggleMemorySidebar && (
-          <button
-            className={`header-icon-button ${isMemorySidebarOpen ? 'header-button-active' : ''}`}
-            onClick={toggleMemorySidebar}
-            aria-label="Toggle memory"
-          >
-            <FiSmile size={18} />
-          </button>
-        )}
-        {toggleKnowledgeSidebar && (
-          <button
-            className={`header-icon-button ${isKnowledgeSidebarOpen ? 'header-button-active' : ''}`}
-            onClick={toggleKnowledgeSidebar}
-            aria-label="Toggle knowledge"
-          >
-            <FiBookOpen size={18} />
-          </button>
-        )}
         {toggleToolsSidebar && (
           <button
             className={`header-icon-button ${isToolsSidebarOpen ? 'header-button-active' : ''}`}

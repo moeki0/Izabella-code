@@ -11,8 +11,6 @@ import hljs from 'highlight.js'
 import mermaid from 'mermaid'
 import Messages from './Messages'
 import MessageSearch from './MessageSearch'
-import { KnowledgeSidebar } from './KnowledgeSidebar'
-import { MemorySidebar } from './MemorySidebar'
 import { SettingsSidebar } from './SettingsSidebar'
 import { ToolsSidebar } from './ToolsSidebar'
 import { useIntl, getIntl } from '../lib/locale'
@@ -151,8 +149,6 @@ function Chat({
   mermaidInit,
   mermaidRun,
   highlightAll,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  approveToolCall,
   interrupt,
   registerSearchQueryListener,
   initialSettingsSidebarOpen
@@ -988,8 +984,6 @@ function Chat({
           />
         </div>
       )}
-      <KnowledgeSidebar isOpen={isKnowledgeSidebarOpen} onClose={toggleKnowledgeSidebar} />
-      <MemorySidebar isOpen={isMemorySidebarOpen} onClose={toggleMemorySidebar} />
       <SettingsSidebar isOpen={isSettingsSidebarOpen} onClose={toggleSettingsSidebar} />
       <ToolsSidebar isOpen={isToolsSidebarOpen} onClose={toggleToolsSidebar} />
       <div className="banner">

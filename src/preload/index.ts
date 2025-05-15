@@ -47,14 +47,6 @@ const api = {
     data: Array<Message> | null
     error: string | null
   }> => ipcRenderer.invoke('get-message-context', messageId, count),
-  summarize: (): Promise<Array<{ title: string; content: string }>> =>
-    ipcRenderer.invoke('summarize'),
-  summarizeMemoryContent: (): Promise<Array<{ title: string; content: string }>> =>
-    ipcRenderer.invoke('summarizeMemoryContent'),
-  getMemoryContent: (): Promise<string> => ipcRenderer.invoke('getMemoryContent'),
-  getKnowledgeIndexContent: (): Promise<string> => ipcRenderer.invoke('getKnowledgeIndexContent'),
-  updateKnowledgeIndexContent: (content: string): Promise<boolean> =>
-    ipcRenderer.invoke('updateKnowledgeIndex', content),
   getLocale: (): Promise<string> => ipcRenderer.invoke('get-locale'),
   setLocale: (locale: string): Promise<string> => ipcRenderer.invoke('set-locale', locale)
 }

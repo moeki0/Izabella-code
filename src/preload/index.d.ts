@@ -32,10 +32,6 @@ interface API {
     data: Array<Message> | null
     error: string | null
   }>
-  summarize: () => Promise<Array<{ title: string; content: string }>>
-  summarizeMemoryContent: () => Promise<Array<{ title: string; content: string }>>
-  getMemoryContent: () => Promise<string>
-  getKnowledgeIndexContent: () => Promise<string>
   updateKnowledgeIndexContent: (content: string) => Promise<boolean>
   getLocale: () => Promise<string>
   setLocale: (locale: string) => Promise<string>
