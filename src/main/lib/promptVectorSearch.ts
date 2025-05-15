@@ -140,9 +140,9 @@ export async function searchKnowledgeWithPrompt(
 
       // Calculate combined score (60% similarity, 20% normalized importance, 20% freshness)
       const scoreA =
-        0.6 * a._similarity + 0.2 * ((a._importance || 0) / maxImportance) + 0.2 * freshnessA
+        0.9 * a._similarity + 0.05 * ((a._importance || 0) / maxImportance) + 0.05 * freshnessA
       const scoreB =
-        0.6 * b._similarity + 0.2 * ((b._importance || 0) / maxImportance) + 0.2 * freshnessB
+        0.9 * b._similarity + 0.05 * ((b._importance || 0) / maxImportance) + 0.05 * freshnessB
 
       return scoreB - scoreA // Sort descending
     })
