@@ -211,7 +211,7 @@ export async function searchKnowledgeWithPrompt(
     }
 
     // 5. 抽象概念検索と通常検索の両方を実行
-    let abstractKnowledgeResults: KnowledgeSearchResult[] = abstractResults.flatMap(
+    const abstractKnowledgeResults: KnowledgeSearchResult[] = abstractResults.flatMap(
       (r) => r.results
     )
 
@@ -219,7 +219,7 @@ export async function searchKnowledgeWithPrompt(
     const normalSearchResults = await knowledgeStore.search(searchQuery, limit)
 
     // 両方の結果を結合
-    let results: KnowledgeSearchResult[] = [...abstractKnowledgeResults, ...normalSearchResults]
+    const results: KnowledgeSearchResult[] = [...abstractKnowledgeResults, ...normalSearchResults]
 
     mainWindow.webContents.send('search-query', {
       originalQuery: prompt,
@@ -452,7 +452,31 @@ export async function enhanceInstructionsWithKnowledge(
   try {
     // 検索結果をメッセージとしてデータベースに保存
     const resultsForRenderer = {
-      results: searchData.normalResults ? searchData.normalResults.map((result) => result.id) : []
+      // すべての結果ID
+      results: searchData.results.map((result) => result.id),
+
+      // 抽象ナレッジのID
+      abstractResults: searchData.abstractResults
+        ? searchData.abstractResults.map((result) => result.id)
+        : [],
+
+      // 通常検索結果のID（抽象ナレッジに関連するエピソードを除外）
+      normalResults: searchData.normalResults
+        ? searchData.normalResults
+            .filter((result) => {
+              // 抽象ナレッジのエピソードは除外
+              if (result.related_entries && result.related_entries.length > 0) {
+                // 抽象ナレッジを親に持つエピソードかチェック
+                for (const abstractResult of searchData.abstractResults || []) {
+                  if (abstractResult.related_entries?.includes(result.id)) {
+                    return false // 除外
+                  }
+                }
+              }
+              return true // 含める
+            })
+            .map((result) => result.id)
+        : []
     }
 
     // 検索結果をツールメッセージとして保存
@@ -493,7 +517,9 @@ export async function enhanceInstructionsWithKnowledge(
           ? searchData.abstractResults.map((r) => r.id)
           : [],
         prompt: searchData.originalQuery,
-        optimizedQuery: searchData.optimizedQuery
+        optimizedQuery: searchData.optimizedQuery,
+        // 抽象ナレッジのエピソードIDリストも含める
+        episodeIds: [...abstractRelatedEpisodeIds]
       })
 
       // 抽象概念の解析結果も送信（互換性のため）
@@ -517,6 +543,29 @@ export async function enhanceInstructionsWithKnowledge(
   // Further separate into abstract and episodic knowledge
   const abstractResults = searchData.results.filter((result) => result.is_abstract)
 
+  // エピソードの内容を取得する関数
+  async function getEpisodeContent(episodeId: string): Promise<string | null> {
+    try {
+      const episodeEntry = await getKnowledgeStore().getEntryById(episodeId)
+      if (episodeEntry) {
+        return episodeEntry.content
+      }
+    } catch (error) {
+      console.error(`エピソード内容取得エラー (ID: ${episodeId}):`, error)
+    }
+    return null
+  }
+
+  // 抽象ナレッジに関連するエピソードのIDを集める
+  const abstractRelatedEpisodeIds = new Set<string>()
+  for (const result of abstractResults) {
+    if (result.related_entries && result.related_entries.length > 0) {
+      for (const episodeId of result.related_entries) {
+        abstractRelatedEpisodeIds.add(episodeId)
+      }
+    }
+  }
+
   // Format knowledge section
   const relevantKnowledgeSection = `
 # プロンプト関連のナレッジ情報
@@ -530,36 +579,51 @@ ${
     ? `## 抽象ナレッジ
 抽象化された一般的な概念や情報:
 
-${abstractResults
-  .map((result) => {
+${await Promise.all(
+  abstractResults.map(async (result) => {
     let dateStr = ''
     if (result.created_at) {
       const date = new Date(result.created_at * 1000)
       dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
     }
 
-    // Include related episodic entries if available
-    const relatedEpisodes =
-      result.related_entries && result.related_entries.length > 0
-        ? `\n\n関連エピソード: ${result.related_entries.join(', ')}`
-        : ''
+    // エピソードの内容を取得して表示する
+    let episodeContent = ''
+    if (result.related_entries && result.related_entries.length > 0) {
+      const episodeContents = await Promise.all(
+        result.related_entries.map(async (episodeId) => {
+          const content = await getEpisodeContent(episodeId)
+          if (content) {
+            return `#### エピソード: ${episodeId}
+${content.slice(0, 500)}...`
+          }
+          return null
+        })
+      )
+
+      // null以外のエピソード内容を結合
+      const validEpisodeContents = episodeContents.filter(Boolean)
+      if (validEpisodeContents.length > 0) {
+        episodeContent = `\n\n関連エピソード内容:\n${validEpisodeContents.join('\n\n')}`
+      }
+    }
 
     return `### ${result.id} (抽象ナレッジ, 類似度: ${result.similarity.toFixed(2)}${
       result.importance ? `, 重要度: ${result.importance}` : ''
     }${dateStr ? `, 作成日: ${dateStr}` : ''})
-${result.content.slice(0, 1000)}${relatedEpisodes}
+${result.content.slice(0, 1000)}${episodeContent}
 `
   })
-  .join('\n')}`
+).then((results) => results.join('\n'))}`
     : ''
 }
 
 ${
-  relatedResults.filter((r) => !r.is_abstract).length > 0
+  relatedResults.filter((r) => !r.is_abstract && !abstractRelatedEpisodeIds.has(r.id)).length > 0
     ? `## 関連エピソードナレッジ
 
 ${relatedResults
-  .filter((r) => !r.is_abstract)
+  .filter((r) => !r.is_abstract && !abstractRelatedEpisodeIds.has(r.id)) // 抽象ナレッジのエピソードは除外
   .map((result) => {
     let dateStr = ''
     if (result.created_at) {
@@ -584,14 +648,15 @@ ${result.content.slice(0, 1000)}${relatedAbstracts}
 }
 
 ${
-  chronoResults.length > 0
+  chronoResults.filter((r) => !abstractRelatedEpisodeIds.has(r.id)).length > 0
     ? `## その他のナレッジ
 
 ${
-  chronoResults.length > 0
+  chronoResults.filter((r) => !abstractRelatedEpisodeIds.has(r.id)).length > 0
     ? `### 時間的近似ナレッジ
 
 ${chronoResults
+  .filter((r) => !abstractRelatedEpisodeIds.has(r.id)) // 抽象ナレッジのエピソードは除外
   .map((result) => {
     let dateStr = ''
     if (result.created_at) {
