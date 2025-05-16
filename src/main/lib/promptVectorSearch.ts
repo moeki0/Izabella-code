@@ -128,13 +128,60 @@ export async function searchKnowledgeWithPrompt(
       return scoreB - scoreA // Sort descending
     })
 
-    return rankedResults.map((result) => ({
+    // Convert to standard format
+    const relevantResults = rankedResults.map((result) => ({
       content: result.pageContent,
       id: result.id,
       similarity: result._similarity,
       importance: result._importance || 0,
       created_at: result.created_at || 0
     }))
+
+    // Get IDs of already found results to avoid duplicates
+    const foundIds = relevantResults.map((result) => result.id)
+
+    // 1. Add unrelated knowledge (random entries)
+    const unrelatedCount = Math.min(3, Math.max(1, Math.floor(limit * 0.1))) // About 10% of limit or at least 1
+    const randomEntries = await knowledgeStore.getRandomEntries(unrelatedCount, foundIds)
+    const unrelatedResults = randomEntries.map((result) => ({
+      content: result.pageContent,
+      id: result.id,
+      similarity: 0, // Mark as unrelated
+      importance: result._importance || 0,
+      created_at: result.created_at || 0
+    }))
+
+    // 2. Add chronologically close knowledge if we have any relevant results
+    let chronologicalResults: PromptSearchResult[] = []
+    if (relevantResults.length > 0) {
+      // Use the timestamp of the most relevant result as reference
+      const referenceResult = relevantResults[0]
+      const referenceTimestamp = referenceResult.created_at || 0
+
+      // Exclude both relevant and unrelated results we already have
+      const allFoundIds = [...foundIds, ...unrelatedResults.map((r) => r.id)]
+
+      const chronoCount = Math.min(3, Math.max(1, Math.floor(limit * 0.1))) // About 10% of limit or at least 1
+      const chronoEntries = await knowledgeStore.getChronologicallyCloseEntries(
+        referenceTimestamp,
+        chronoCount,
+        allFoundIds
+      )
+
+      chronologicalResults = chronoEntries.map((result) => ({
+        content: result.pageContent,
+        id: result.id,
+        similarity: 0.1, // Low but non-zero similarity
+        importance: result._importance || 0,
+        created_at: result.created_at || 0
+      }))
+    }
+
+    // Combine all results, keeping overall limit in mind
+    const combinedResults = [...relevantResults, ...unrelatedResults, ...chronologicalResults]
+
+    // Ensure we don't exceed the total limit
+    return combinedResults.slice(0, limit)
   } catch (error) {
     console.error('プロンプトベクトル検索エラー:', error)
     return []
@@ -223,6 +270,14 @@ export async function enhanceInstructionsWithKnowledge(
     console.error('Failed to send search query to renderer:', error)
   }
 
+  // Separate results by type
+  const relatedResults = searchData.results.filter((result) => result.similarity > 0.1)
+  const chronoResults = searchData.results.filter(
+    (result) => result.similarity > 0 && result.similarity <= 0.1
+  )
+  const unrelatedResults = searchData.results.filter((result) => result.similarity <= 0)
+
+  // Format knowledge section
   const relevantKnowledgeSection = `
 # プロンプト関連のナレッジ情報
 以下はプロンプトに関連する既存のナレッジベースからの情報です。この情報を回答に活用してください：
@@ -230,7 +285,11 @@ export async function enhanceInstructionsWithKnowledge(
 検索クエリ: "${searchData.originalQuery}"
 > 最適化されたクエリ: "${searchData.optimizedQuery}"
 
-${searchData.results
+${
+  relatedResults.length > 0
+    ? `## 関連ナレッジ
+
+${relatedResults
   .map((result) => {
     let dateStr = ''
     if (result.created_at) {
@@ -238,11 +297,59 @@ ${searchData.results
       dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
     }
 
-    return `## ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
+    return `### ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
 ${result.content.slice(0, 1000)}
 `
   })
-  .join('\n')}
+  .join('\n')}`
+    : ''
+}
+
+${
+  chronoResults.length > 0 || unrelatedResults.length > 0
+    ? `## その他のナレッジ
+
+${
+  chronoResults.length > 0
+    ? `### 時間的近似ナレッジ
+
+${chronoResults
+  .map((result) => {
+    let dateStr = ''
+    if (result.created_at) {
+      const date = new Date(result.created_at * 1000)
+      dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
+    }
+
+    return `#### ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
+${result.content.slice(0, 1000)}
+`
+  })
+  .join('\n')}`
+    : ''
+}
+
+${
+  unrelatedResults.length > 0
+    ? `### 無関係ナレッジ
+
+${unrelatedResults
+  .map((result) => {
+    let dateStr = ''
+    if (result.created_at) {
+      const date = new Date(result.created_at * 1000)
+      dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
+    }
+
+    return `#### ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
+${result.content.slice(0, 1000)}
+`
+  })
+  .join('\n')}`
+    : ''
+}`
+    : ''
+}
 `
   const insertPoint = baseInstructions.indexOf('# ナレッジ')
   if (insertPoint === -1) {

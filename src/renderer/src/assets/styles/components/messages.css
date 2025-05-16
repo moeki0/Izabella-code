@@ -284,6 +284,28 @@ main {
   overflow-x: hidden;
   max-width: 600px;
   text-wrap: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.other-knowledge {
+  display: inline-block;
+  color: #555;
+  margin-left: 6px;
+  font-weight: 500;
+  background-color: rgba(240, 240, 240, 0.8);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.other-knowledge-container {
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.knowledge-ids {
+  font-size: 11px;
 }
 
 .query-label {

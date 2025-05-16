@@ -390,6 +390,142 @@ ${entry.content}
     return this.similaritySearch(query.slice(0, 100), k)
   }
 
+  async getRandomEntries(
+    count = 3,
+    excludeIds: string[] = []
+  ): Promise<
+    Array<{
+      pageContent: string
+      id: string
+      _similarity: number
+      _importance: number
+      created_at: number
+    }>
+  > {
+    try {
+      const allFiles = await fs.readdir(this.knowledgePath)
+      const mdFiles = allFiles.filter((file) => file.endsWith('.md'))
+
+      const excludeIdSet = new Set(excludeIds)
+      const validFiles = mdFiles.filter((file) => {
+        const id = file.replace('.md', '')
+        return !excludeIdSet.has(id)
+      })
+
+      if (validFiles.length === 0) return []
+
+      // Shuffle the array
+      for (let i = validFiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[validFiles[i], validFiles[j]] = [validFiles[j], validFiles[i]]
+      }
+
+      // Take the first 'count' files
+      const selectedFiles = validFiles.slice(0, Math.min(count, validFiles.length))
+
+      const results: Array<{
+        pageContent: string
+        id: string
+        _similarity: number
+        _importance: number
+        created_at: number
+      }> = []
+
+      for (const file of selectedFiles) {
+        try {
+          const filePath = join(this.knowledgePath, file)
+          const entry = await this.readMarkdownFile(filePath)
+          results.push({
+            pageContent: entry.content,
+            id: entry.id,
+            _similarity: 0, // Not relevant for random entries
+            _importance: entry.importance || 0,
+            created_at: entry.created_at || 0
+          })
+        } catch (error) {
+          console.error(`Error reading markdown file: ${file}`, error)
+        }
+      }
+
+      return results
+    } catch (error) {
+      console.error('Error getting random entries:', error)
+      return []
+    }
+  }
+
+  async getChronologicallyCloseEntries(
+    referenceTimestamp: number,
+    count = 3,
+    excludeIds: string[] = [],
+    timeWindow = 60 * 60 * 6 // 6 hours in seconds
+  ): Promise<
+    Array<{
+      pageContent: string
+      id: string
+      _similarity: number
+      _importance: number
+      created_at: number
+    }>
+  > {
+    try {
+      const allFiles = await fs.readdir(this.knowledgePath)
+      const mdFiles = allFiles.filter((file) => file.endsWith('.md'))
+
+      const excludeIdSet = new Set(excludeIds)
+      const entries: Array<{
+        id: string
+        content: string
+        created_at: number
+        importance: number
+        timeDiff: number
+      }> = []
+
+      for (const file of mdFiles) {
+        const id = file.replace('.md', '')
+        if (excludeIdSet.has(id)) continue
+
+        try {
+          const filePath = join(this.knowledgePath, file)
+          const entry = await this.readMarkdownFile(filePath)
+
+          // Calculate absolute time difference
+          const timeDiff = Math.abs(entry.created_at - referenceTimestamp)
+
+          // Only consider entries within the time window
+          if (timeDiff <= timeWindow) {
+            entries.push({
+              id: entry.id,
+              content: entry.content,
+              created_at: entry.created_at,
+              importance: entry.importance || 0,
+              timeDiff
+            })
+          }
+        } catch (error) {
+          console.error(`Error reading markdown file: ${file}`, error)
+        }
+      }
+
+      // Sort by closest in time (smallest timeDiff first)
+      entries.sort((a, b) => a.timeDiff - b.timeDiff)
+
+      // Take the top entries
+      const closestEntries = entries.slice(0, Math.min(count, entries.length))
+
+      return closestEntries.map((entry) => ({
+        pageContent: entry.content,
+        id: entry.id,
+        _similarity: 0, // Not relevant for chronological entries
+        _importance: entry.importance,
+        created_at: entry.created_at
+      }))
+    } catch (error) {
+      console.error('Error getting chronologically close entries:', error)
+      return []
+    }
+  }
+
   async increaseImportance(id: string, amount = 1): Promise<boolean> {
     try {
       const filePath = join(this.knowledgePath, `${id}.md`)

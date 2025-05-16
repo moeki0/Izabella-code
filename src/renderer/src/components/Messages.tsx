@@ -157,29 +157,64 @@ function Messages({
                 </div>
               )}
               {message.role === 'tool' && message.tool_name === 'search_result' && (
-                <div className="knowledge">
-                  <div className="knowledge-icon">
-                    <FiSearch size={14} />
-                  </div>
-                  <div className="knowledge-main">
-                    {intl.formatMessage({ id: 'searchResults' }) || 'Search Results'}:
-                  </div>
-                  <div className="knowledge-sub">
-                    {message.tool_res &&
-                      (() => {
-                        try {
-                          const response = JSON.parse(message.tool_res)
-                          if (response.results && Array.isArray(response.results)) {
-                            return response.results.join(', ')
+                <>
+                  <div className="knowledge">
+                    <div className="knowledge-icon">
+                      <FiBookOpen size={14} />
+                    </div>
+                    <div className="knowledge-main">
+                      {intl.formatMessage({ id: 'searchResults' }) || 'Search Results'}:
+                    </div>
+                    <div className="knowledge-sub">
+                      {message.tool_res &&
+                        (() => {
+                          try {
+                            const response = JSON.parse(message.tool_res)
+                            if (response.results && Array.isArray(response.results)) {
+                              // Show only the first 3 results in the main line
+                              return response.results.slice(0, 3).join(', ')
+                            }
+                            return ''
+                          } catch (error) {
+                            console.error('Error parsing search results:', error)
+                            return ''
                           }
-                          return ''
-                        } catch (error) {
-                          console.error('Error parsing search results:', error)
-                          return ''
-                        }
-                      })()}
+                        })()}
+                    </div>
                   </div>
-                </div>
+
+                  {/* Display "その他のナレッジ" on a separate line if there are more than 3 results */}
+                  {message.tool_res &&
+                    (() => {
+                      try {
+                        const response = JSON.parse(message.tool_res)
+                        if (
+                          response.results &&
+                          Array.isArray(response.results) &&
+                          response.results.length > 3
+                        ) {
+                          const otherResults = response.results.slice(3)
+                          return (
+                            <div className="knowledge other-knowledge-container">
+                              <div className="knowledge-icon">
+                                <FiBookOpen size={14} />
+                              </div>
+                              <div className="knowledge-main">
+                                {intl.formatMessage({ id: 'otherKnowledge' })}:
+                              </div>
+                              <div className="knowledge-sub knowledge-ids">
+                                {otherResults.join(', ')} ({otherResults.length} 件)
+                              </div>
+                            </div>
+                          )
+                        }
+                        return null
+                      } catch (error) {
+                        console.error('Error parsing other knowledge results:', error)
+                        return null
+                      }
+                    })()}
+                </>
               )}
               {isSearching &&
                 !messages.some((m) => m.role === 'tool' && m.tool_name === 'start_search') && (
@@ -196,7 +231,7 @@ function Messages({
               {message.role === 'tool' && message.tool_name === 'knowledge_search' && (
                 <div className="knowledge">
                   <div className="knowledge-icon">
-                    <FiBookOpen size={14} />
+                    <FiSearch size={14} />
                   </div>
                   <div className="knowledge-main">
                     {intl.formatMessage({ id: 'searchKnowledge' })}:
