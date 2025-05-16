@@ -20,7 +20,12 @@ export const knowledgeEntrySchema = z.object({
     .int()
     .min(0)
     .default(0)
-    .describe('ナレッジの蓄積的な重要度。参照されるたびに増加します。')
+    .describe('ナレッジの蓄積的な重要度。参照されるたびに増加します。'),
+  abstract: z
+    .array(z.string())
+    .optional()
+    .describe('このエピソード記憶に関連する抽象記憶のIDの配列'),
+  is_abstract: z.boolean().optional().default(false).describe('抽象記憶かどうかを示すフラグ')
 })
 
 export const knowledgeExtractionSchema = z.object({
@@ -31,5 +36,26 @@ export const knowledgeExtractionSchema = z.object({
     )
 })
 
+export const abstractKnowledgeSchema = z.object({
+  id: z.string().describe('抽象記憶の一意なID'),
+  content: z.string().describe('会話履歴から抽象化された概念や重要な情報'),
+  episode: z.array(z.string()).describe('この抽象記憶に関連するエピソード記憶のIDの配列'),
+  is_abstract: z.literal(true).describe('これが抽象記憶であることを示す')
+})
+
+export const abstractionRequestSchema = z.object({
+  conversations: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string()
+      })
+    )
+    .describe('抽象化するユーザーとアシスタントの会話履歴'),
+  knowledge_ids: z.array(z.string()).describe('抽象化するエピソード記憶のID')
+})
+
 export type KnowledgeEntry = z.infer<typeof knowledgeEntrySchema>
 export type KnowledgeExtractionResult = z.infer<typeof knowledgeExtractionSchema>
+export type AbstractKnowledge = z.infer<typeof abstractKnowledgeSchema>
+export type AbstractionRequest = z.infer<typeof abstractionRequestSchema>

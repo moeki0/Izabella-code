@@ -94,6 +94,28 @@ export interface ChatProps {
   ) => () => void
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
   registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
+  registerAbstractConceptsListener: (
+    callback: (data: { concepts: string[]; prompt: string }) => void
+  ) => () => void
+  registerAbstractConceptsSearchListener: (
+    callback: (data: {
+      concepts: string[]
+      prompt: string
+      optimizedQuery: string
+      abstractResults: string[]
+    }) => void
+  ) => () => void
+  registerAbstractionGenerationListener: (
+    callback: (data: {
+      abstractions: Array<{
+        content: string
+        rationale: string
+      }>
+      episodeIds: string[]
+      messageId?: string
+      userMessageId?: string
+    }) => void
+  ) => () => void
   registerStreamListener: (callback: (chunk: string) => void) => () => void
   registerToolCallListener: (
     callback: (content: { toolName: string; args: string }, pending: boolean) => void
@@ -139,6 +161,9 @@ function Chat({
   registerMessageSavedListener,
   registerKnowledgeSavedListener,
   registerMemoryUpdatedListener,
+  registerAbstractConceptsListener,
+  registerAbstractConceptsSearchListener,
+  registerAbstractionGenerationListener,
   registerTitleListener,
   registerNewThreadListener,
   registerRetryListener,
@@ -421,6 +446,161 @@ function Chat({
       })
     })
 
+    const unsubscribeAbstractConceptsSearch = registerAbstractConceptsSearchListener((data) => {
+      // 抽象概念検索結果をメッセージとして表示
+      setMessages((prev) => {
+        // 同じプロンプトに対する抽象概念検索メッセージがすでに存在するかチェック
+        const promptExists = prev.some(
+          (msg) =>
+            msg.role === 'tool' &&
+            msg.tool_name === 'abstract_concepts_search' &&
+            msg.tool_req &&
+            (() => {
+              try {
+                const req = JSON.parse(msg.tool_req)
+                return req.prompt === data.prompt
+              } catch {
+                return false
+              }
+            })()
+        )
+
+        // 既存のメッセージがある場合は上書き、なければ追加
+        if (promptExists) {
+          return prev.map((msg) => {
+            if (
+              msg.role === 'tool' &&
+              msg.tool_name === 'abstract_concepts_search' &&
+              msg.tool_req &&
+              (() => {
+                try {
+                  const req = JSON.parse(msg.tool_req)
+                  return req.prompt === data.prompt
+                } catch {
+                  return false
+                }
+              })()
+            ) {
+              return {
+                ...msg,
+                tool_res: JSON.stringify({
+                  optimizedQuery: data.optimizedQuery,
+                  abstractConcepts: data.concepts,
+                  abstractResults: data.abstractResults
+                }),
+                open: true
+              }
+            }
+            return msg
+          })
+        }
+
+        const newMessage = {
+          role: 'tool' as const,
+          tool_name: 'abstract_concepts_search',
+          tool_req: JSON.stringify({
+            prompt: data.prompt
+          }),
+          tool_res: JSON.stringify({
+            optimizedQuery: data.optimizedQuery,
+            abstractConcepts: data.concepts,
+            abstractResults: data.abstractResults
+          }),
+          open: true
+        }
+        const updatedMessages = [...prev, newMessage]
+
+        // 検索結果表示中でない場合はオリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
+      })
+    })
+
+    const unsubscribeAbstractConcepts = registerAbstractConceptsListener((data) => {
+      // 抽象概念をメッセージとして表示
+      setMessages((prev) => {
+        // 同じプロンプトに対する抽象概念メッセージがすでに存在するかチェック
+        const promptExists = prev.some(
+          (msg) =>
+            msg.role === 'tool' &&
+            msg.tool_name === 'abstract_concepts' &&
+            msg.tool_req &&
+            (() => {
+              try {
+                const req = JSON.parse(msg.tool_req)
+                return req.prompt === data.prompt
+              } catch {
+                return false
+              }
+            })()
+        )
+
+        // 既存のメッセージがある場合は追加しない
+        if (promptExists) {
+          return prev
+        }
+
+        const newMessage = {
+          role: 'tool' as const,
+          tool_name: 'abstract_concepts',
+          tool_req: JSON.stringify({
+            prompt: data.prompt
+          }),
+          tool_res: JSON.stringify({
+            concepts: data.concepts
+          }),
+          open: true
+        }
+        const updatedMessages = [...prev, newMessage]
+        return updatedMessages
+      })
+    })
+
+    const unsubscribeAbstractionGeneration = registerAbstractionGenerationListener((data) => {
+      // 抽象化生成プロセスをメッセージとして表示
+      setMessages((prev) => {
+        const newMessage = {
+          id: data.messageId, // メッセージIDを設定
+          role: 'tool' as const,
+          tool_name: 'abstraction_generation',
+          tool_req: JSON.stringify({
+            episodeIds: data.episodeIds,
+            userMessageId: data.userMessageId
+          }),
+          tool_res: JSON.stringify({
+            abstractions: data.abstractions
+          }),
+          open: true
+        }
+
+        // 関連するユーザーメッセージの直後に挿入する
+        const updatedMessages = [...prev]
+        if (data.userMessageId) {
+          const userMessageIndex = updatedMessages.findIndex((msg) => msg.id === data.userMessageId)
+          if (userMessageIndex >= 0) {
+            // ユーザーメッセージの直後に挿入
+            updatedMessages.splice(userMessageIndex + 1, 0, newMessage)
+          } else {
+            // 見つからない場合は最後に追加
+            updatedMessages.push(newMessage)
+          }
+        } else {
+          // 関連メッセージがない場合は最後に追加
+          updatedMessages.push(newMessage)
+        }
+
+        // 検索結果表示中でない場合はオリジナルメッセージも更新
+        if (!isShowingSearchResult) {
+          setOriginalMessages(updatedMessages)
+        }
+
+        return updatedMessages
+      })
+    })
+
     const unsubscribeStream = registerStreamListener((chunk) => {
       setLoading(false)
       // アシスタントの応答開始時に検索中フラグをリセット
@@ -611,6 +791,9 @@ function Chat({
     return () => {
       unsubscribeKnowledgeSaved()
       unsubscribeMemoryUpdated()
+      unsubscribeAbstractConcepts()
+      unsubscribeAbstractConceptsSearch()
+      unsubscribeAbstractionGeneration()
       unsubscribeStream()
       unsubscribeToolCall()
       unsubscribeStepFinish()
@@ -646,6 +829,9 @@ function Chat({
     registerMessageSavedListener,
     registerKnowledgeSavedListener,
     registerMemoryUpdatedListener,
+    registerAbstractConceptsListener,
+    registerAbstractConceptsSearchListener,
+    registerAbstractionGenerationListener,
     isShowingSearchResult,
     registerSearchQueryListener,
     registerStartSearchListener,

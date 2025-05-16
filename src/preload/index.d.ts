@@ -58,7 +58,15 @@ export const validChannels = [
   'tool-approval',
   'source',
   'message-deleted',
-  'search-query'
+  'search-query',
+  'start-search',
+  'search-result',
+  'knowledge-saved',
+  'memory-updated',
+  'message-saved',
+  'abstraction-generation',
+  'abstract-concepts',
+  'abstract-concepts-search'
 ] as const
 
 export type ValidChannel = (typeof validChannels)[number]

@@ -145,6 +145,136 @@ function Messages({
                   <div>{intl.formatMessage({ id: 'memoryCompressed' })}</div>
                 </div>
               )}
+              {message.role === 'tool' && message.tool_name === 'abstract_concepts' && (
+                <div className="knowledge">
+                  <div className="knowledge-icon">
+                    <FiBookOpen size={14} />
+                  </div>
+                  <div className="knowledge-main">
+                    {intl.formatMessage({ id: 'abstractConceptsExtraction' }) || '抽象概念の抽出'}:
+                  </div>
+                  <div className="knowledge-sub">
+                    {message.tool_res &&
+                      (() => {
+                        try {
+                          const response = JSON.parse(message.tool_res)
+                          if (response.concepts && Array.isArray(response.concepts)) {
+                            return response.concepts.join(', ')
+                          }
+                          return ''
+                        } catch (error) {
+                          console.error('Error parsing abstract concepts response:', error)
+                          return ''
+                        }
+                      })()}
+                  </div>
+                </div>
+              )}
+              {message.role === 'tool' && message.tool_name === 'abstract_concepts_search' && (
+                <div className="knowledge">
+                  <div className="knowledge-icon">
+                    <FiSearch size={14} />
+                  </div>
+                  <div className="knowledge-main">
+                    {intl.formatMessage({ id: 'abstractConceptsSearch' }) ||
+                      '抽象ナレッジが見つかりました'}
+                    :
+                  </div>
+                  <div className="knowledge-sub">
+                    {message.tool_res &&
+                      (() => {
+                        try {
+                          const response = JSON.parse(message.tool_res)
+                          if (response.abstractResults && Array.isArray(response.abstractResults)) {
+                            return response.abstractResults.join(', ')
+                          }
+                          return ''
+                        } catch (error) {
+                          console.error('Error parsing abstract concepts search response:', error)
+                          return ''
+                        }
+                      })()}
+                  </div>
+                </div>
+              )}
+              {message.role === 'tool' && message.tool_name === 'abstraction_generation' && (
+                <div className="abstract">
+                  <div className="knowledge">
+                    <div className="knowledge-icon">
+                      <FiBookOpen size={14} />
+                    </div>
+                    <div className="knowledge-main">
+                      {intl.formatMessage({ id: 'abstractKnowledgeGeneration' }) ||
+                        '抽象ナレッジを生成'}
+                      :
+                    </div>
+                    <div className="knowledge-sub">
+                      {message.tool_res &&
+                        (() => {
+                          try {
+                            const response = JSON.parse(message.tool_res)
+                            if (response.abstractions && Array.isArray(response.abstractions)) {
+                              return response.abstractions
+                                .map((a) => {
+                                  const firstLine = a.content.split('\n')[0] // 最初の行だけを表示
+                                  return firstLine
+                                })
+                                .join(', ')
+                            }
+                            return ''
+                          } catch (error) {
+                            console.error('Error parsing abstraction generation response:', error)
+                            return ''
+                          }
+                        })()}
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`toggle-abstraction-${i}`}
+                      className="abstraction-toggle"
+                      onClick={() => handleToolClick(i)}
+                    >
+                      {message.open ? (
+                        <FiChevronUp color="#777" size={16} />
+                      ) : (
+                        <FiChevronDown color="#777" size={16} />
+                      )}
+                    </button>
+                  </div>
+
+                  {message.open &&
+                    message.tool_res &&
+                    (() => {
+                      try {
+                        const response = JSON.parse(message.tool_res)
+                        if (response.abstractions && Array.isArray(response.abstractions)) {
+                          return (
+                            <div className="abstraction-details">
+                              {response.abstractions.map((abstraction, index) => (
+                                <div key={index} className="abstraction-item">
+                                  <h4>{abstraction.content}</h4>
+                                  <p className="abstraction-rationale">{abstraction.rationale}</p>
+                                  {abstraction.knowledgeId && (
+                                    <p className="abstraction-id">
+                                      <strong>
+                                        {intl.formatMessage({ id: 'knowledgeId' }) || 'ナレッジID'}:
+                                      </strong>{' '}
+                                      {abstraction.knowledgeId}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        }
+                        return null
+                      } catch (error) {
+                        console.error('Error parsing abstraction details:', error)
+                        return null
+                      }
+                    })()}
+                </div>
+              )}
               {message.role === 'tool' && message.tool_name === 'start_search' && (
                 <div className="knowledge searching-animation">
                   <div className="knowledge-icon">
@@ -170,11 +300,8 @@ function Messages({
                         (() => {
                           try {
                             const response = JSON.parse(message.tool_res)
-                            if (response.results && Array.isArray(response.results)) {
-                              // Show only the first 3 results in the main line
-                              return response.results.slice(0, 3).join(', ')
-                            }
-                            return ''
+                            // Show only the first 3 results in the main line
+                            return response.results.slice(0, 3).join(', ')
                           } catch (error) {
                             console.error('Error parsing search results:', error)
                             return ''
@@ -188,12 +315,15 @@ function Messages({
                     (() => {
                       try {
                         const response = JSON.parse(message.tool_res)
-                        if (
-                          response.results &&
-                          Array.isArray(response.results) &&
-                          response.results.length > 3
-                        ) {
-                          const otherResults = response.results.slice(3)
+                        const resultsToCheck =
+                          response.normalResults && Array.isArray(response.normalResults)
+                            ? response.normalResults
+                            : response.results && Array.isArray(response.results)
+                              ? response.results
+                              : []
+
+                        if (resultsToCheck.length > 3) {
+                          const otherResults = resultsToCheck.slice(3)
                           return (
                             <div className="knowledge other-knowledge-container">
                               <div className="knowledge-icon">
@@ -263,6 +393,9 @@ function Messages({
                 message.tool_name !== 'search_query_generation' &&
                 message.tool_name !== 'knowledge_search' &&
                 message.tool_name !== 'search_result' &&
+                message.tool_name !== 'abstraction_generation' &&
+                message.tool_name !== 'abstract_concepts' &&
+                message.tool_name !== 'abstract_concepts_search' &&
                 message.tool_name !== 'start_search' && (
                   <div className="tool">
                     <div className="tool-name">

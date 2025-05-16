@@ -23,6 +23,71 @@ export interface PromptSearchResult {
   similarity: number
   importance?: number
   created_at?: number
+  is_abstract?: boolean
+  related_entries?: string[]
+}
+
+export async function extractAbstractConcepts(
+  prompt: string,
+  recentMessages: string[] = []
+): Promise<string[]> {
+  try {
+    const geminiModel = 'gemini-2.0-flash'
+    const model = google(geminiModel)
+
+    const result = await generateObject({
+      model,
+      schema: z.object({
+        concepts: z.array(z.string()).describe('抽出された抽象的な概念のリスト')
+      }),
+      temperature: 0,
+      prompt: `
+# 会話から抽象的傾向・パターンを抽出するタスク
+
+あなたの役割は、ユーザーとアシスタントの会話から、具体的な事象や事例に基づいて、より抽象的・一般的な傾向やパターンを見出すことです。
+単なる内容の要約ではなく、会話から読み取れる深層的な特性、行動パターン、思考傾向などを抽出してください。
+抽象化とは、個別の具体例から背後にある一般的な法則や傾向を見出すプロセスです。
+
+## 抽象化の優れた例：
+- 具体例：「書籍の整理方法について質問し、提案された方法を試している」
+  抽象化：「体系的な情報管理への関心が高く、新しい整理手法を積極的に取り入れる傾向がある」
+
+- 具体例：「特定の技術的な問題について詳細に質問し、複数の解決策を比較検討している」
+  抽象化：「技術的課題に対して多角的な視点から分析する思考パターンを持ち、最適解を模索する探究心がある」
+
+- 具体例：「同じ質問を繰り返し、異なる表現で説明を求めている」
+  抽象化：「概念を完全に理解するまで繰り返し確認する学習スタイルを持ち、多様な説明方法から理解を深めようとする」
+
+## 避けるべき抽象化の例：
+- 単なる要約：「ユーザーは技術的な質問をした」（具体的すぎて抽象化になっていない）
+- 過度な一般化：「ユーザーは知識に興味がある」（抽象度が高すぎて具体的な洞察がない）
+- 根拠のない推測：「ユーザーは完璧主義者である」（十分な証拠なしに性格特性を断定）
+
+メッセージ履歴:
+${recentMessages.join('\n\n')}
+
+入力（最重要）: ${prompt}
+
+会話から抽出された抽象的な概念をリスト形式（3-5個程度）で出力してください。`
+    })
+
+    // UIに抽象化プロセスの結果を表示
+    try {
+      if (mainWindow) {
+        mainWindow.webContents.send('abstract-concepts', {
+          concepts: result.object.concepts,
+          prompt: prompt
+        })
+      }
+    } catch (error) {
+      console.error('Failed to send abstract concepts to renderer:', error)
+    }
+
+    return result.object.concepts
+  } catch (error) {
+    console.error('抽象概念抽出エラー:', error)
+    return [prompt] // Fallback to original prompt as a single concept
+  }
 }
 
 export async function generateSearchQuery(
@@ -83,6 +148,9 @@ export interface SearchQueryResult {
   originalQuery: string
   optimizedQuery: string
   results: PromptSearchResult[]
+  abstractResults?: PromptSearchResult[]
+  normalResults?: PromptSearchResult[]
+  abstractConcepts?: string[]
 }
 
 export async function searchKnowledgeWithPrompt(
@@ -94,25 +162,102 @@ export async function searchKnowledgeWithPrompt(
 ): Promise<PromptSearchResult[]> {
   try {
     const knowledgeStore = getKnowledgeStore()
+
+    // 1. メッセージ履歴から抽象的な概念を抽出
+    const abstractConcepts = await extractAbstractConcepts(prompt, recentMessages)
+
+    // 2. 通常の検索クエリも生成（フォールバック用）
     const searchQuery = await generateSearchQuery(prompt, recentMessages, workingMemory)
-    const results = await knowledgeStore.search(searchQuery, limit)
+
+    // 3. 抽象概念とヒットした抽象ナレッジを格納する配列
+    interface KnowledgeSearchResult {
+      pageContent: string
+      id: string
+      _similarity: number
+      _importance: number
+      created_at: number
+    }
+
+    interface ConceptSearchResult {
+      concept: string
+      results: KnowledgeSearchResult[]
+    }
+
+    const abstractResults: ConceptSearchResult[] = []
+
+    // 4. 各抽象概念で検索を実行
+    for (const concept of abstractConcepts) {
+      const conceptResults = await knowledgeStore.search(
+        concept,
+        Math.ceil(limit / abstractConcepts.length)
+      )
+      // 抽象ナレッジのみをフィルタリング
+      const filteredAbstractResults = await Promise.all(
+        conceptResults
+          .filter((r) => r._similarity >= similarityThreshold)
+          .map(async (result) => {
+            const entry = await knowledgeStore.getEntryById(result.id)
+            if (entry && entry.is_abstract) {
+              return result
+            }
+            return null
+          })
+      )
+
+      abstractResults.push({
+        concept,
+        results: filteredAbstractResults.filter(Boolean)
+      })
+    }
+
+    // 5. 抽象概念検索と通常検索の両方を実行
+    let abstractKnowledgeResults: KnowledgeSearchResult[] = abstractResults.flatMap(
+      (r) => r.results
+    )
+
+    // 通常の検索クエリを使用（常に実行）
+    const normalSearchResults = await knowledgeStore.search(searchQuery, limit)
+
+    // 両方の結果を結合
+    let results: KnowledgeSearchResult[] = [...abstractKnowledgeResults, ...normalSearchResults]
+
     mainWindow.webContents.send('search-query', {
       originalQuery: prompt,
       optimizedQuery: searchQuery
     })
 
+    // 通常のフィルタリングとランク付けのロジックを使用
     const filteredResults = results.filter((result) => result._similarity >= similarityThreshold)
 
     for (const result of filteredResults) {
       await knowledgeStore.increaseImportance(result.id)
     }
 
-    const rankedResults = [...filteredResults].sort((a, b) => {
-      interface KnowledgeSearchResult {
-        _similarity: number
-        _importance: number
-        created_at: number
+    // 抽象ナレッジに関連するエピソード（具体）ナレッジを取得
+    const episodicResults: KnowledgeSearchResult[] = []
+    for (const result of filteredResults) {
+      const entry = await knowledgeStore.getEntryById(result.id)
+      if (entry && entry.is_abstract && entry.episode && entry.episode.length > 0) {
+        // 関連エピソードナレッジを取得
+        for (const episodeId of entry.episode) {
+          const episodeEntry = await knowledgeStore.getEntryById(episodeId)
+          if (episodeEntry) {
+            episodicResults.push({
+              pageContent: episodeEntry.content,
+              id: episodeEntry.id,
+              _similarity: 0.85, // 高めのスコアを設定（抽象ナレッジに関連する具体ナレッジとして）
+              _importance: episodeEntry.importance || 0,
+              created_at: episodeEntry.created_at || 0
+            })
+          }
+        }
       }
+    }
+
+    // 抽象ナレッジと関連エピソードナレッジを結合
+    const combinedResults = [...filteredResults, ...episodicResults]
+
+    const rankedResults = [...combinedResults].sort((a, b) => {
       const createdAtA = (a as KnowledgeSearchResult).created_at || 0
       const createdAtB = (b as KnowledgeSearchResult).created_at || 0
       const now = Math.floor(Date.now() / 1000)
@@ -134,22 +279,18 @@ export async function searchKnowledgeWithPrompt(
       id: result.id,
       similarity: result._similarity,
       importance: result._importance || 0,
-      created_at: result.created_at || 0
+      created_at: result.created_at || 0,
+      is_abstract: false, // Default value, will be updated if needed
+      related_entries: [] // Will store related episodic entries if this is an abstract
     }))
 
     // Get IDs of already found results to avoid duplicates
     const foundIds = relevantResults.map((result) => result.id)
 
-    // 1. Add unrelated knowledge (random entries)
-    const unrelatedCount = Math.min(3, Math.max(1, Math.floor(limit * 0.1))) // About 10% of limit or at least 1
-    const randomEntries = await knowledgeStore.getRandomEntries(unrelatedCount, foundIds)
-    const unrelatedResults = randomEntries.map((result) => ({
-      content: result.pageContent,
-      id: result.id,
-      similarity: 0, // Mark as unrelated
-      importance: result._importance || 0,
-      created_at: result.created_at || 0
-    }))
+    // Get abstract and episodic knowledge relationships
+    await enrichWithAbstractEpisodicRelationships(relevantResults, knowledgeStore)
+
+    // No more random entries
 
     // 2. Add chronologically close knowledge if we have any relevant results
     let chronologicalResults: PromptSearchResult[] = []
@@ -158,8 +299,8 @@ export async function searchKnowledgeWithPrompt(
       const referenceResult = relevantResults[0]
       const referenceTimestamp = referenceResult.created_at || 0
 
-      // Exclude both relevant and unrelated results we already have
-      const allFoundIds = [...foundIds, ...unrelatedResults.map((r) => r.id)]
+      // Exclude relevant results we already have
+      const allFoundIds = [...foundIds]
 
       const chronoCount = Math.min(3, Math.max(1, Math.floor(limit * 0.1))) // About 10% of limit or at least 1
       const chronoEntries = await knowledgeStore.getChronologicallyCloseEntries(
@@ -173,18 +314,52 @@ export async function searchKnowledgeWithPrompt(
         id: result.id,
         similarity: 0.1, // Low but non-zero similarity
         importance: result._importance || 0,
-        created_at: result.created_at || 0
+        created_at: result.created_at || 0,
+        is_abstract: false,
+        related_entries: []
       }))
+
+      // Also get abstract and episodic relationships for chronological results
+      await enrichWithAbstractEpisodicRelationships(chronologicalResults, knowledgeStore)
     }
 
     // Combine all results, keeping overall limit in mind
-    const combinedResults = [...relevantResults, ...unrelatedResults, ...chronologicalResults]
+    const finalResults = [...relevantResults, ...chronologicalResults]
 
     // Ensure we don't exceed the total limit
-    return combinedResults.slice(0, limit)
+    return finalResults.slice(0, limit)
   } catch (error) {
     console.error('プロンプトベクトル検索エラー:', error)
     return []
+  }
+}
+
+// Helper function to enrich search results with abstract/episodic relationships
+async function enrichWithAbstractEpisodicRelationships(
+  results: PromptSearchResult[],
+  knowledgeStore: KnowledgeStore
+): Promise<void> {
+  for (const result of results) {
+    try {
+      // Get the full knowledge entry
+      const entry = await knowledgeStore.getEntryById(result.id)
+      if (!entry) continue
+
+      // Update abstract flag
+      result.is_abstract = entry.is_abstract || false
+
+      // Handle abstract entries - get related episodic entries
+      if (entry.is_abstract && entry.episode && entry.episode.length > 0) {
+        result.related_entries = entry.episode
+      }
+
+      // Handle episodic entries - get related abstract entries
+      else if (entry.abstract && entry.abstract.length > 0) {
+        result.related_entries = entry.abstract
+      }
+    } catch (error) {
+      console.error(`エントリーの関係情報取得エラー (ID: ${result.id}):`, error)
+    }
   }
 }
 
@@ -195,8 +370,14 @@ export async function searchKnowledgeWithQueryInfo(
   similarityThreshold = 0.1,
   workingMemory: string
 ): Promise<SearchQueryResult> {
+  // 1. 抽象概念を抽出
+  const abstractConcepts = await extractAbstractConcepts(prompt, recentMessages)
+
+  // 2. 通常の検索クエリを生成
   const optimizedQuery = await generateSearchQuery(prompt, recentMessages, workingMemory)
-  const results = await searchKnowledgeWithPrompt(
+
+  // 3. 検索実行
+  const allResults = await searchKnowledgeWithPrompt(
     prompt,
     recentMessages,
     limit,
@@ -204,10 +385,18 @@ export async function searchKnowledgeWithQueryInfo(
     workingMemory
   )
 
+  // 4. 抽象概念の検索結果と通常の検索結果を分離
+  const abstractResults = allResults.filter((result) => result.is_abstract)
+  const normalResults = allResults.filter((result) => !result.is_abstract)
+
+  // 5. 結果をまとめる
   return {
     originalQuery: prompt,
     optimizedQuery,
-    results
+    results: allResults,
+    abstractResults,
+    normalResults,
+    abstractConcepts
   }
 }
 
@@ -261,10 +450,59 @@ export async function enhanceInstructionsWithKnowledge(
   })
 
   try {
-    if (mainWindow) {
-      mainWindow.webContents.send('search-result', {
-        results: searchData.results.map((result) => result.id)
+    // 検索結果をメッセージとしてデータベースに保存
+    const resultsForRenderer = {
+      results: searchData.normalResults ? searchData.normalResults.map((result) => result.id) : []
+    }
+
+    // 検索結果をツールメッセージとして保存
+    await createMessage({
+      role: 'tool',
+      toolName: 'search_result',
+      toolReq: JSON.stringify({
+        query: searchData.originalQuery
+      }),
+      toolRes: JSON.stringify(resultsForRenderer)
+    })
+
+    // 抽象概念クエリをツールメッセージとして常に保存（空の場合も）
+    await createMessage({
+      role: 'tool',
+      toolName: 'abstract_concepts_search',
+      toolReq: JSON.stringify({
+        prompt: searchData.originalQuery
+      }),
+      toolRes: JSON.stringify({
+        optimizedQuery: searchData.optimizedQuery,
+        abstractConcepts: searchData.abstractConcepts || [],
+        abstractResults: searchData.abstractResults
+          ? searchData.abstractResults.map((r) => r.id)
+          : []
       })
+    })
+
+    // レンダラーに検索結果を送信
+    if (mainWindow) {
+      // 検索結果の送信
+      mainWindow.webContents.send('search-result', resultsForRenderer)
+
+      // 抽象概念検索結果を常に送信
+      mainWindow.webContents.send('abstract-concepts-search', {
+        concepts: searchData.abstractConcepts || [],
+        abstractResults: searchData.abstractResults
+          ? searchData.abstractResults.map((r) => r.id)
+          : [],
+        prompt: searchData.originalQuery,
+        optimizedQuery: searchData.optimizedQuery
+      })
+
+      // 抽象概念の解析結果も送信（互換性のため）
+      if (searchData.abstractConcepts && searchData.abstractConcepts.length > 0) {
+        mainWindow.webContents.send('abstract-concepts', {
+          concepts: searchData.abstractConcepts,
+          prompt: searchData.originalQuery
+        })
+      }
     }
   } catch (error) {
     console.error('Failed to send search query to renderer:', error)
@@ -275,7 +513,9 @@ export async function enhanceInstructionsWithKnowledge(
   const chronoResults = searchData.results.filter(
     (result) => result.similarity > 0 && result.similarity <= 0.1
   )
-  const unrelatedResults = searchData.results.filter((result) => result.similarity <= 0)
+
+  // Further separate into abstract and episodic knowledge
+  const abstractResults = searchData.results.filter((result) => result.is_abstract)
 
   // Format knowledge section
   const relevantKnowledgeSection = `
@@ -286,10 +526,11 @@ export async function enhanceInstructionsWithKnowledge(
 > 最適化されたクエリ: "${searchData.optimizedQuery}"
 
 ${
-  relatedResults.length > 0
-    ? `## 関連ナレッジ
+  abstractResults.length > 0
+    ? `## 抽象ナレッジ
+抽象化された一般的な概念や情報:
 
-${relatedResults
+${abstractResults
   .map((result) => {
     let dateStr = ''
     if (result.created_at) {
@@ -297,8 +538,16 @@ ${relatedResults
       dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
     }
 
-    return `### ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
-${result.content.slice(0, 1000)}
+    // Include related episodic entries if available
+    const relatedEpisodes =
+      result.related_entries && result.related_entries.length > 0
+        ? `\n\n関連エピソード: ${result.related_entries.join(', ')}`
+        : ''
+
+    return `### ${result.id} (抽象ナレッジ, 類似度: ${result.similarity.toFixed(2)}${
+      result.importance ? `, 重要度: ${result.importance}` : ''
+    }${dateStr ? `, 作成日: ${dateStr}` : ''})
+${result.content.slice(0, 1000)}${relatedEpisodes}
 `
   })
   .join('\n')}`
@@ -306,7 +555,36 @@ ${result.content.slice(0, 1000)}
 }
 
 ${
-  chronoResults.length > 0 || unrelatedResults.length > 0
+  relatedResults.filter((r) => !r.is_abstract).length > 0
+    ? `## 関連エピソードナレッジ
+
+${relatedResults
+  .filter((r) => !r.is_abstract)
+  .map((result) => {
+    let dateStr = ''
+    if (result.created_at) {
+      const date = new Date(result.created_at * 1000)
+      dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
+    }
+
+    // Include related abstract entries if available
+    const relatedAbstracts =
+      result.related_entries && result.related_entries.length > 0
+        ? `\n\n関連抽象ナレッジ: ${result.related_entries.join(', ')}`
+        : ''
+
+    return `### ${result.id} (類似度: ${result.similarity.toFixed(2)}${
+      result.importance ? `, 重要度: ${result.importance}` : ''
+    }${dateStr ? `, 作成日: ${dateStr}` : ''})
+${result.content.slice(0, 1000)}${relatedAbstracts}
+`
+  })
+  .join('\n')}`
+    : ''
+}
+
+${
+  chronoResults.length > 0
     ? `## その他のナレッジ
 
 ${
@@ -321,33 +599,24 @@ ${chronoResults
       dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
     }
 
-    return `#### ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
-${result.content.slice(0, 1000)}
+    // Include information about whether this is abstract or has related entries
+    const typeInfo = result.is_abstract ? '抽象ナレッジ, ' : ''
+    const relatedInfo =
+      result.related_entries && result.related_entries.length > 0
+        ? `\n\n関連${result.is_abstract ? 'エピソード' : '抽象ナレッジ'}: ${result.related_entries.join(', ')}`
+        : ''
+
+    return `#### ${result.id} (${typeInfo}類似度: ${result.similarity.toFixed(2)}${
+      result.importance ? `, 重要度: ${result.importance}` : ''
+    }${dateStr ? `, 作成日: ${dateStr}` : ''})
+${result.content.slice(0, 1000)}${relatedInfo}
 `
   })
   .join('\n')}`
     : ''
 }
 
-${
-  unrelatedResults.length > 0
-    ? `### 無関係ナレッジ
-
-${unrelatedResults
-  .map((result) => {
-    let dateStr = ''
-    if (result.created_at) {
-      const date = new Date(result.created_at * 1000)
-      dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
-    }
-
-    return `#### ${result.id} (類似度: ${result.similarity.toFixed(2)}${result.importance ? `, 重要度: ${result.importance}` : ''}${dateStr ? `, 作成日: ${dateStr}` : ''})
-${result.content.slice(0, 1000)}
 `
-  })
-  .join('\n')}`
-    : ''
-}`
     : ''
 }
 `

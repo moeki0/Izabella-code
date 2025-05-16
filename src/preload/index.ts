@@ -90,13 +90,18 @@ contextBridge.exposeInMainWorld('electron', {
         'title',
         'search-threads-result',
         'search-result',
+        'search-query',
+        'start-search',
         'new-thread',
         'retry',
         'source',
         'message-deleted',
         'knowledge-saved',
         'memory-updated',
-        'message-saved'
+        'message-saved',
+        'abstraction-generation',
+        'abstract-concepts',
+        'abstract-concepts-search'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.on(channel, (_, ...args) => callback(...args))
@@ -113,13 +118,18 @@ contextBridge.exposeInMainWorld('electron', {
         'title',
         'search-threads-result',
         'search-result',
+        'search-query',
+        'start-search',
         'new-thread',
         'retry',
         'source',
         'message-deleted',
         'knowledge-saved',
         'memory-updated',
-        'message-saved'
+        'message-saved',
+        'abstraction-generation',
+        'abstract-concepts',
+        'abstract-concepts-search'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.removeAllListeners(channel)

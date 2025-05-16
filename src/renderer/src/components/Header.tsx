@@ -1,4 +1,4 @@
-import { FiSearch, FiBookOpen, FiSmile, FiSettings, FiTool } from 'react-icons/fi'
+import { FiSearch, FiSettings, FiTool } from 'react-icons/fi'
 
 interface Props {
   title?: string
@@ -31,10 +31,6 @@ function Header({
   className,
   toggleSearchSidebar,
   isSearchSidebarOpen,
-  toggleKnowledgeSidebar,
-  isKnowledgeSidebarOpen,
-  toggleMemorySidebar,
-  isMemorySidebarOpen,
   toggleSettingsSidebar,
   isSettingsSidebarOpen,
   toggleToolsSidebar,
