@@ -8,7 +8,7 @@ import {
 } from './workingMemory'
 import { mainWindow } from '..'
 
-const MEMORY_CHARACTER_LIMIT = 8000
+const MEMORY_CHARACTER_LIMIT = 800
 
 export async function checkAndCompressWorkingMemory(): Promise<boolean> {
   try {
@@ -48,7 +48,7 @@ export async function compressWorkingMemory(): Promise<string | Error> {
     const systemPrompt = `
 あなたは、AIアシスタントIZABELLAのワーキングメモリを圧縮する専門家です。
 ユーザーとの会話から得られた重要な情報が含まれていますが、サイズが大きくなりすぎています。
-4000文字に要約・圧縮してください。
+400文字に要約・圧縮してください。
 
 考慮事項：
 - 最も重要な情報を残し、冗長な情報や詳細な例を削減してください。
@@ -62,7 +62,7 @@ export async function compressWorkingMemory(): Promise<string | Error> {
 ${DEFAULT_WORKING_MEMORY_TEMPLATE}
 =====================================
 
-最終的な出力としては、4000文字のすべてのセクションを含む完全なワーキングメモリの内容を返してください。`
+最終的な出力としては、400文字のすべてのセクションを含む完全なワーキングメモリの内容を返してください。`
 
     const model = google('gemini-2.0-flash')
 
@@ -76,7 +76,7 @@ ${DEFAULT_WORKING_MEMORY_TEMPLATE}
         content: `現在のワーキングメモリ（${currentMemory.length}文字）:
 ${currentMemory}
 
-このワーキングメモリを4000文字に圧縮してください。`
+このワーキングメモリを400文字に圧縮してください。`
       }
     ]
 
