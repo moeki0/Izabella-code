@@ -913,7 +913,15 @@ function Chat({
       !(!running && input.replaceAll(/[\s\n\r]+/g, '').length === 0)
     ) {
       e.preventDefault()
-      sendMessage()
+
+      if (running) {
+        interrupt()
+        setTimeout(() => {
+          sendMessage()
+        }, 100)
+      } else {
+        sendMessage()
+      }
     }
   }
 
