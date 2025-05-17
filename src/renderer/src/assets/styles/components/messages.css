@@ -29,10 +29,6 @@ main {
   padding-inline-start: 20px;
 }
 
-.prompt li {
-  margin: 10px 0;
-}
-
 .prompt blockquote {
   border-left: 4px solid #eee;
   margin-left: 0;
