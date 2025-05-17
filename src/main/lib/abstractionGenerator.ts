@@ -95,14 +95,6 @@ ${conversationHistory}
 `
     })
 
-    // ツールメッセージとして保存
-    const messageId = await createMessage({
-      role: 'tool',
-      toolName: 'abstraction_generation',
-      toolReq: JSON.stringify(request),
-      toolRes: JSON.stringify(result.object)
-    })
-
     // UIにリアルタイムで抽象化生成プロセスを表示
     try {
       if (mainWindow) {

@@ -44,10 +44,10 @@ const chatProps = {
     return () => window.electron.ipcRenderer.removeAllListeners('abstract-concepts')
   },
   registerAbstractConceptsSearchListener: (
-    callback: (data: { 
-      concepts: string[]; 
-      prompt: string; 
-      optimizedQuery: string; 
+    callback: (data: {
+      concepts: string[]
+      prompt: string
+      optimizedQuery: string
       abstractResults: string[]
     }) => void
   ) => {

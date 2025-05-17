@@ -9,8 +9,9 @@
   padding-bottom: 200px;
 }
 
-.prompt-user p {
-  margin: 0;
+.prompt p {
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 
 .user-plain-text {
@@ -386,4 +387,20 @@ code.language-reasoning {
   background-color: rgba(255, 255, 0, 0.3);
   border-radius: 2px;
   padding: 0 2px;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+}
+
+.loading-text {
+  font-size: 12px;
+  color: #666;
+  animation: pulse 1.5s infinite;
+}
+
+.name {
+  font-weight: bold;
 }

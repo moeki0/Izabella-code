@@ -169,14 +169,6 @@ export const handleSend = async (_, input): Promise<void> => {
             mainWindow.webContents.send('knowledge-saved', {
               ids: savedKnowledgeIds
             })
-
-            // ナレッジベースへの記録をツールメッセージとして保存
-            await createMessage({
-              role: 'tool',
-              toolName: 'knowledge_record',
-              toolReq: JSON.stringify({ conversation_id: id }),
-              toolRes: JSON.stringify({ saved_knowledge_ids: savedKnowledgeIds })
-            })
           }
 
           // ワーキングメモリを更新

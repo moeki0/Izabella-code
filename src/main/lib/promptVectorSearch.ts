@@ -126,17 +126,6 @@ ${workingMemory}
 最適な検索クエリを生成してください。`
     })
 
-    await createMessage({
-      role: 'tool',
-      toolName: 'search_query_generation',
-      toolReq: JSON.stringify({
-        prompt,
-        messageHistory: recentMessages.length,
-        workingMemoryUsed: !!workingMemory
-      }),
-      toolRes: JSON.stringify({ generatedQuery: result.object.query })
-    })
-
     return result.object.query
   } catch (error) {
     console.error('検索クエリ生成エラー:', error)
@@ -435,20 +424,6 @@ export async function enhanceInstructionsWithKnowledge(
     return baseInstructions
   }
 
-  await createMessage({
-    role: 'tool',
-    toolName: 'knowledge_search',
-    toolReq: JSON.stringify({
-      prompt: searchData.originalQuery,
-      messageHistory: recentMessages.length,
-      workingMemoryUsed: !!workingMemory
-    }),
-    toolRes: JSON.stringify({
-      optimizedQuery: searchData.optimizedQuery,
-      resultsCount: searchData.results.length
-    })
-  })
-
   try {
     // 検索結果をメッセージとしてデータベースに保存
     const resultsForRenderer = {
@@ -478,32 +453,6 @@ export async function enhanceInstructionsWithKnowledge(
             .map((result) => result.id)
         : []
     }
-
-    // 検索結果をツールメッセージとして保存
-    await createMessage({
-      role: 'tool',
-      toolName: 'search_result',
-      toolReq: JSON.stringify({
-        query: searchData.originalQuery
-      }),
-      toolRes: JSON.stringify(resultsForRenderer)
-    })
-
-    // 抽象概念クエリをツールメッセージとして常に保存（空の場合も）
-    await createMessage({
-      role: 'tool',
-      toolName: 'abstract_concepts_search',
-      toolReq: JSON.stringify({
-        prompt: searchData.originalQuery
-      }),
-      toolRes: JSON.stringify({
-        optimizedQuery: searchData.optimizedQuery,
-        abstractConcepts: searchData.abstractConcepts || [],
-        abstractResults: searchData.abstractResults
-          ? searchData.abstractResults.map((r) => r.id)
-          : []
-      })
-    })
 
     // レンダラーに検索結果を送信
     if (mainWindow) {
