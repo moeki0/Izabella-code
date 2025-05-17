@@ -256,9 +256,8 @@ function Messages({
                                   <p className="abstraction-rationale">{abstraction.rationale}</p>
                                   {abstraction.knowledgeId && (
                                     <p className="abstraction-id">
-                                      <strong>
                                         {intl.formatMessage({ id: 'knowledgeId' }) || 'ナレッジID'}:
-                                      </strong>{' '}
+                                     {' '}
                                       {abstraction.knowledgeId}
                                     </p>
                                   )}

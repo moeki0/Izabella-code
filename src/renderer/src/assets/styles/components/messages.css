@@ -327,14 +327,20 @@ main {
   margin: 0 0 4px 0;
   color: #444;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .abstraction-rationale {
   margin: 0;
-  color: #666;
-  font-size: 13px;
+  color: #888;
+  font-size: 11px;
   line-height: 1.4;
+}
+
+.abstraction-id {
+  color: #aaa;
+  font-size: 10px;
+  font-weight: normal;
 }
 
 .abstraction-toggle {

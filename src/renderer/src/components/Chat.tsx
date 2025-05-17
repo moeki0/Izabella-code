@@ -573,7 +573,7 @@ function Chat({
           tool_res: JSON.stringify({
             abstractions: data.abstractions
           }),
-          open: true
+          open: false
         }
 
         // 関連するユーザーメッセージの直後に挿入する
