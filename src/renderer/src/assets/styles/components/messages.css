@@ -20,15 +20,6 @@
   font-family: inherit;
 }
 
-.prompt-user-bubble {
-  justify-self: right;
-  background-color: rgba(233, 233, 233, 0.5);
-  width: auto;
-  max-width: 500px;
-  border-radius: 20px;
-  padding: 6px 16px;
-}
-
 main {
   padding-bottom: 100px;
 }
@@ -61,25 +52,12 @@ main {
   margin: 0;
 }
 
-.prompt-user-bubble pre code {
-  min-width: 200px;
-  border-radius: 10px;
-  padding: 20px;
-  color: whitesmoke;
-  font-family: monospace;
-  display: block;
-  background-color: #0a1031;
-  overflow-x: scroll;
-  width: 100%;
-  max-width: 100%;
-}
-
 .language-mermaid {
   background-color: white !important;
   border: 1px solid #ddd;
 }
 
-.prompt-assistant pre code {
+.prompt pre code {
   min-width: 200px;
   background-color: #0a1031;
   border-radius: 10px;
