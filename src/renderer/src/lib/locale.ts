@@ -95,7 +95,8 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     tool: 'Tool',
     knowledgeRecorded: 'Knowledge recorded',
     memoryUpdated: 'Memory updated',
-    otherKnowledge: 'Related Knowledges'
+    otherKnowledge: 'Related Knowledges',
+    cmdEnterToSend: 'Press ⌘ + Enter to send'
   },
   ja: {
     app: 'Izabella',
@@ -188,7 +189,8 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     assistant: 'アシスタント',
     tool: 'ツール',
     knowledgeRecorded: 'ナレッジが記録されました',
-    memoryUpdated: 'メモリが更新されました'
+    memoryUpdated: 'メモリが更新されました',
+    cmdEnterToSend: '⌘ + Enter で送信'
   }
 }
 

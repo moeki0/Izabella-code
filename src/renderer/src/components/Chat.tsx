@@ -1156,6 +1156,9 @@ function Chat({
                 onKeyDown={handleKeyDown}
                 placeholder={intl.formatMessage({ id: 'askMeAnything' })}
               />
+              {messages.length > 0 && input.length > 0 && input.length < 40 && (
+                <div className="send-hint">{intl.formatMessage({ id: 'cmdEnterToSend' })}</div>
+              )}
             </div>
           </div>
         </div>
