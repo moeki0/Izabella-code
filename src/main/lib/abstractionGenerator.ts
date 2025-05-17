@@ -2,16 +2,12 @@ import { generateObject } from 'ai'
 import { google } from '@ai-sdk/google'
 import { z } from 'zod'
 import { store } from './store'
-// UUIDの代わりに意味のあるIDを使用するので、import不要
 import { KnowledgeStore } from './knowledgeStore'
 import { AbstractionRequest, AbstractKnowledge } from './knowledgeSchema'
-import { createMessage } from './message'
-import { mainWindow } from '..'
 
 // Generate abstract knowledge from conversations
 export async function generateAbstractions(
-  request: AbstractionRequest,
-  userMessageId?: string // 関連するユーザーメッセージID
+  request: AbstractionRequest
 ): Promise<AbstractKnowledge[]> {
   try {
     // Get the model to use
@@ -23,25 +19,22 @@ export async function generateAbstractions(
       .map((msg) => `${msg.role === 'user' ? 'ユーザー' : 'アシスタント'}: ${msg.content}`)
       .join('\n\n')
 
-    // Generate abstract concepts using LLM
     const result = await generateObject({
       model,
       schema: z.object({
-        abstractions: z.array(
-          z.object({
-            content: z.string().describe('抽象化された概念や傾向、パターンの説明'),
-            rationale: z
-              .string()
-              .describe(
-                'この抽象化が導き出された具体的な事象と、それがより広い文脈でどのような意味を持つかの説明'
-              ),
-            knowledgeId: z
-              .string()
-              .describe(
-                'この抽象化のためのユニークな識別子（英数字、ハイフン、アンダースコアのみ、スペースなし）'
-              )
-          })
-        )
+        abstraction: z.object({
+          content: z.string().describe('抽象化された概念や傾向、パターンの説明'),
+          rationale: z
+            .string()
+            .describe(
+              'この抽象化が導き出された具体的な事象と、それがより広い文脈でどのような意味を持つかの説明'
+            ),
+          knowledgeId: z
+            .string()
+            .describe(
+              'この抽象化のためのユニークな識別子（英数字、ハイフン、アンダースコアのみ、スペースなし）'
+            )
+        })
       }),
       temperature: 0.2,
       prompt: `
@@ -95,67 +88,41 @@ ${conversationHistory}
 `
     })
 
-    // UIにリアルタイムで抽象化生成プロセスを表示
-    try {
-      if (mainWindow) {
-        // メッセージの日付情報を送信
-        const now = new Date()
-        mainWindow.webContents.send('message-saved', messageId, {
-          created_at: now.toISOString()
-        })
-
-        const abstractionsWithIds = result.object.abstractions.map((abstraction) => {
-          return {
-            ...abstraction,
-            knowledgeId: `abstract-${abstraction.knowledgeId}`
-          }
-        })
-
-        mainWindow.webContents.send('abstraction-generation', {
-          abstractions: abstractionsWithIds,
-          episodeIds: request.knowledge_ids,
-          messageId: messageId,
-          userMessageId: userMessageId
-        })
-      }
-    } catch (error) {
-      console.error('Failed to send abstraction generation to renderer:', error)
-    }
-
     // Convert the results to AbstractKnowledge format
-    const abstractKnowledge: AbstractKnowledge[] = result.object.abstractions.map((abstraction) => {
-      // LLMが生成したナレッジIDを使用する
-      // 不正な文字を取り除き、フォーマットを整える
-      let idBase = ''
+    const abstractKnowledge: AbstractKnowledge[] = [result.object.abstraction].map(
+      (abstraction) => {
+        // LLMが生成したナレッジIDを使用する
+        // 不正な文字を取り除き、フォーマットを整える
+        let idBase = ''
 
-      if (abstraction.knowledgeId) {
-        // 生成されたIDをクリーンアップ
-        idBase = abstraction.knowledgeId
-          .toLowerCase()
-          .replace(/[^a-z0-9-_]/g, '-') // 英数字、ハイフン、アンダースコア以外を置換
-          .replace(/--+/g, '-') // 連続したハイフンを1つに
-          .replace(/^-|-$/g, '') // 先頭と末尾のハイフンを削除
-          .slice(0, 50) // 長すぎる場合は切り詰める
-      }
+        if (abstraction.knowledgeId) {
+          // 生成されたIDをクリーンアップ
+          idBase = abstraction.knowledgeId
+            .toLowerCase()
+            .replace(/[^a-z0-9-_]/g, '-') // 英数字、ハイフン、アンダースコア以外を置換
+            .replace(/--+/g, '-') // 連続したハイフンを1つに
+            .replace(/^-|-$/g, '') // 先頭と末尾のハイフンを削除
+            .slice(0, 50) // 長すぎる場合は切り詰める
+        }
 
-      // IDが生成されなかったか短すぎる場合はコンテンツから生成する
-      if (!idBase || idBase.length < 3) {
-        idBase = abstraction.content
-          .split('\n')[0] // 最初の行だけを使用
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, '-') // 英数字とハイフン以外を置換
-          .replace(/--+/g, '-') // 連続したハイフンを1つに
-          .replace(/^-|-$/g, '') // 先頭と末尾のハイフンを削除
-          .slice(0, 40) // 最初の40文字だけを使用
-      }
+        // IDが生成されなかったか短すぎる場合はコンテンツから生成する
+        if (!idBase || idBase.length < 3) {
+          idBase = abstraction.content
+            .split('\n')[0] // 最初の行だけを使用
+            .toLowerCase()
+            .replace(/[^a-z0-9-]/g, '-') // 英数字とハイフン以外を置換
+            .replace(/--+/g, '-') // 連続したハイフンを1つに
+            .replace(/^-|-$/g, '') // 先頭と末尾のハイフンを削除
+            .slice(0, 40) // 最初の40文字だけを使用
+        }
 
-      // IDが短すぎる場合は「abstract」を追加
-      if (idBase.length < 3) {
-        idBase = `abstract-concept-${Date.now()}`
-      }
+        // IDが短すぎる場合は「abstract」を追加
+        if (idBase.length < 3) {
+          idBase = `abstract-concept-${Date.now()}`
+        }
 
-      // より構造化された読みやすいコンテンツフォーマットを使用
-      const formattedContent = `# ${abstraction.content}
+        // より構造化された読みやすいコンテンツフォーマットを使用
+        const formattedContent = `# ${abstraction.content}
 
 ## 抽象化の根拠と具体例
 ${abstraction.rationale}
@@ -163,16 +130,17 @@ ${abstraction.rationale}
 ## 関連するエピソードナレッジ
 ${request.knowledge_ids.join(', ')}`
 
-      // 最終的な抽象ナレッジIDを生成
-      const finalId = `abstract-${idBase}`
+        // 最終的な抽象ナレッジIDを生成
+        const finalId = `abstract-${idBase}`
 
-      return {
-        id: finalId,
-        content: formattedContent,
-        episode: request.knowledge_ids,
-        is_abstract: true
+        return {
+          id: finalId,
+          content: formattedContent,
+          episode: request.knowledge_ids,
+          is_abstract: true
+        }
       }
-    })
+    )
 
     return abstractKnowledge
   } catch (error) {

@@ -96,6 +96,8 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     knowledgeRecorded: 'Knowledge recorded',
     memoryUpdated: 'Memory updated',
     otherKnowledge: 'Related Knowledges',
+    deepResearchMode: 'Deep Research Mode',
+    deepResearchActive: 'Deep Research Active',
     cmdEnterToSend: 'Press ⌘ + Enter to send'
   },
   ja: {
@@ -190,6 +192,8 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     tool: 'ツール',
     knowledgeRecorded: 'ナレッジが記録されました',
     memoryUpdated: 'メモリが更新されました',
+    deepResearchMode: '徹底検索モード',
+    deepResearchActive: '徹底検索中',
     cmdEnterToSend: '⌘ + Enter で送信'
   }
 }

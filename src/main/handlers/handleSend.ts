@@ -176,29 +176,8 @@ export const handleSend = async (_, input): Promise<void> => {
             const memoryUpdated = await processConversationForWorkingMemory(formattedMessages)
 
             if (memoryUpdated) {
-              // ワーキングメモリ更新をツールメッセージとして保存
-              await createMessage({
-                role: 'tool',
-                toolName: 'memory_update',
-                toolReq: JSON.stringify({ conversation_id: id }),
-                toolRes: JSON.stringify({ updated: true })
-              })
-
-              // UI通知を送信
-              mainWindow.webContents.send('memory-updated', {
-                success: true
-              })
-
               try {
-                const wasCompressed = await checkAndCompressWorkingMemory()
-                if (wasCompressed) {
-                  await createMessage({
-                    role: 'tool',
-                    toolName: 'memory_compression',
-                    toolReq: JSON.stringify({ conversation_id: id }),
-                    toolRes: JSON.stringify({ compressed: true })
-                  })
-                }
+                await checkAndCompressWorkingMemory()
               } catch (compressionError) {
                 console.error('Error compressing working memory:', compressionError)
               }

@@ -118,7 +118,7 @@ export const searchKnowledge: unknown = createTool({
   id: 'search_knowledge',
   inputSchema: z.object({
     query: z.string().describe('検索クエリテキスト'),
-    limit: z.number().min(1).default(5).describe('取得する結果の数')
+    limit: z.number().min(1).default(20).describe('取得する結果の数')
   }),
   description:
     'ナレッジデータベースから類似情報を検索して結果を返します。会話のコンテキストに関連する情報を検索するために使用してください。',
