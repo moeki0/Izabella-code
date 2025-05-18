@@ -10,8 +10,7 @@
 }
 
 .prompt p {
-  margin-top: 0;
-  margin-bottom: 20px;
+  margin: 10px 0;
 }
 
 .user-plain-text {
