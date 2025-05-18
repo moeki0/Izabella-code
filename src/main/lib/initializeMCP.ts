@@ -18,9 +18,11 @@ export const initializeMCP = async (): Promise<void> => {
       >
     | undefined
 
-  mcp = new MCPConfiguration({
-    servers: mcpServers || {}
-  })
+  if (!mcp) {
+    mcp = new MCPConfiguration({
+      servers: mcpServers || {}
+    })
+  }
 
   const messageTools = {
     search_message: messageSearch
