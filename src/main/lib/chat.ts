@@ -21,7 +21,7 @@ export const chat = async (input: string): Promise<StreamReturn> => {
     .map(formatMessageForLLM)
     .filter((message): message is MessageType => message !== null)
 
-  const limitedMessages = new TokenLimiter(254000).process(formattedMessages)
+  const limitedMessages = new TokenLimiter(127000).process(formattedMessages)
 
   return await a.stream(limitedMessages, {
     toolChoice: 'auto',
