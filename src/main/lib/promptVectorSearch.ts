@@ -3,7 +3,6 @@ import { store } from './store'
 import { google } from '@ai-sdk/google'
 import { generateObject } from 'ai'
 import { z } from 'zod'
-import { createMessage } from './message'
 import { readWorkingMemory } from './workingMemory'
 import { mainWindow } from '..'
 
@@ -112,7 +111,7 @@ export async function searchKnowledgeWithPrompt(
     }
 
     // 抽象ナレッジと関連エピソードナレッジを結合
-    const combinedResults = [...filteredResults, ...episodicResults]
+    const combinedResults = [...filteredResults]
 
     const rankedResults = [...combinedResults].sort((a, b) => {
       const createdAtA = (a as KnowledgeSearchResult).created_at || 0
@@ -259,7 +258,7 @@ export async function enhanceInstructionsWithKnowledge(
 検索クエリ: "${searchData.originalQuery}"
 > 最適化されたクエリ: "${searchData.optimizedQuery}"
 
-${searchData.normalResults?.map((result) => result.content)}
+${searchData.results?.map((result) => result.content)}
 `
   const insertPoint = baseInstructions.indexOf('# ナレッジ')
   if (insertPoint === -1) {
