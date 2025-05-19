@@ -1,5 +1,6 @@
 import { MCPConfiguration } from '@mastra/mcp'
 import { messageSearch } from './messageSearchTool'
+import { artifactCreate } from './artifactTool'
 import { store } from './store'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,7 +26,8 @@ export const initializeMCP = async (): Promise<void> => {
   }
 
   const messageTools = {
-    search_message: messageSearch
+    search_message: messageSearch,
+    create_artifact: artifactCreate
   }
   const mcpTools = await mcp.getTools()
   tools = { ...messageTools, ...mcpTools }

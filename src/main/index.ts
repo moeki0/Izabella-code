@@ -21,6 +21,10 @@ import { handleSearchGroundingGet } from './handlers/handleSearchGroundingGet'
 import { handleSearchGroundingUpdate } from './handlers/handleSearchGroundingUpdate'
 import { getLocale, setLocale, initLocale, getPreferredLocale } from './lib/intl'
 import { initializeMCP } from './lib/initializeMCP'
+import { handleKnowledgeCreate } from './handlers/handleKnowledgeCreate'
+import { handleKnowledgeUpdate } from './handlers/handleKnowledgeUpdate'
+import { handleKnowledgeDelete } from './handlers/handleKnowledgeDelete'
+import { handleKnowledgeSearch } from './handlers/handleKnowledgeSearch'
 
 // Set API keys from store
 const updateApiKeys = (): void => {
@@ -99,6 +103,12 @@ app.whenReady().then(async () => {
     setLocale(locale)
     return getLocale()
   })
+
+  // ナレッジ関連のハンドラを登録
+  handleKnowledgeCreate()
+  handleKnowledgeUpdate()
+  handleKnowledgeDelete()
+  handleKnowledgeSearch()
 
   // Handler for restarting the application
   ipcMain.handle('restart-app', () => {

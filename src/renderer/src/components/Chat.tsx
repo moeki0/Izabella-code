@@ -13,6 +13,7 @@ import Messages from './Messages'
 import MessageSearch from './MessageSearch'
 import { SettingsSidebar } from './SettingsSidebar'
 import { ToolsSidebar } from './ToolsSidebar'
+import { ArtifactSidebar } from './ArtifactSidebar'
 import { useIntl } from '../lib/locale'
 import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
@@ -180,6 +181,7 @@ function Chat({
   const [isMemorySidebarOpen, setIsMemorySidebarOpen] = useState(false)
   const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false)
   const [isToolsSidebarOpen, setIsToolsSidebarOpen] = useState(false)
+  const [isArtifactSidebarOpen, setIsArtifactSidebarOpen] = useState(false)
 
   const [isShowingSearchResult, setIsShowingSearchResult] = useState(false)
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('')
@@ -198,7 +200,8 @@ function Chat({
     isKnowledgeSidebarOpen ||
     isMemorySidebarOpen ||
     isSettingsSidebarOpen ||
-    isToolsSidebarOpen
+    isToolsSidebarOpen ||
+    isArtifactSidebarOpen
 
   useEffect(() => {
     setIsSettingsSidebarOpen(!!initialSettingsSidebarOpen)
@@ -698,6 +701,7 @@ function Chat({
   const toggleKnowledgeSidebar = useCallback(() => {
     // 他のサイドバーを閉じる
     setIsSearchSidebarOpen(false)
+    setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
@@ -710,6 +714,7 @@ function Chat({
     // 他のサイドバーを閉じる
     setIsSearchSidebarOpen(false)
     setIsKnowledgeSidebarOpen(false)
+    setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
 
@@ -722,6 +727,7 @@ function Chat({
     setIsSearchSidebarOpen(false)
     setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
+    setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
 
     setIsSettingsSidebarOpen((prev) => !prev)
@@ -734,8 +740,21 @@ function Chat({
     setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
+    setIsArtifactSidebarOpen(false)
 
     setIsToolsSidebarOpen((prev) => !prev)
+  }, [])
+
+  // Artifact サイドバーの表示・非表示を切り替える
+  const toggleArtifactSidebar = useCallback(() => {
+    // 他のサイドバーを閉じる
+    setIsSearchSidebarOpen(false)
+    setIsKnowledgeSidebarOpen(false)
+    setIsMemorySidebarOpen(false)
+    setIsSettingsSidebarOpen(false)
+    setIsToolsSidebarOpen(false)
+
+    setIsArtifactSidebarOpen((prev) => !prev)
   }, [])
 
   const intl = useIntl()
@@ -803,6 +822,8 @@ function Chat({
             isSettingsSidebarOpen={isSettingsSidebarOpen}
             toggleToolsSidebar={toggleToolsSidebar}
             isToolsSidebarOpen={isToolsSidebarOpen}
+            toggleArtifactSidebar={toggleArtifactSidebar}
+            isArtifactSidebarOpen={isArtifactSidebarOpen}
             currentTheme={currentTheme}
             latestMessageDate={latestMessageDate}
           />
@@ -848,6 +869,7 @@ function Chat({
       )}
       <SettingsSidebar isOpen={isSettingsSidebarOpen} onClose={toggleSettingsSidebar} />
       <ToolsSidebar isOpen={isToolsSidebarOpen} onClose={toggleToolsSidebar} />
+      <ArtifactSidebar isOpen={isArtifactSidebarOpen} onClose={toggleArtifactSidebar} />
       <div className="banner">
         {error && (
           <div className="error">

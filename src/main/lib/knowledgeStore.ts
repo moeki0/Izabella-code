@@ -387,7 +387,74 @@ ${entry.content}
       created_at: number
     }>
   > {
+    // プレフィックス検索のサポート
+    if (query.startsWith('prefix:')) {
+      const prefix = query.substring(7).trim()
+      return this.searchByPrefix(prefix, k)
+    }
+
+    // 通常の類似度検索
     return this.similaritySearch(query.slice(0, 100), k)
+  }
+
+  // IDのプレフィックスで検索する関数
+  async searchByPrefix(
+    prefix: string,
+    k = 20
+  ): Promise<
+    Array<{
+      pageContent: string
+      id: string
+      _similarity: number
+      _importance: number
+      created_at: number
+    }>
+  > {
+    try {
+      const allFiles = await fs.readdir(this.knowledgePath)
+      const mdFiles = allFiles.filter((file) => file.endsWith('.md'))
+
+      // プレフィックスに一致するファイルをフィルタリング
+      const matchingFiles = mdFiles.filter((file) => {
+        const id = file.replace('.md', '')
+        return id.startsWith(prefix)
+      })
+
+      // 最大k個までのファイルを処理
+      const selectedFiles = matchingFiles.slice(0, Math.min(k, matchingFiles.length))
+
+      const results: Array<{
+        pageContent: string
+        id: string
+        _similarity: number
+        _importance: number
+        created_at: number
+      }> = []
+
+      for (const file of selectedFiles) {
+        try {
+          const filePath = join(this.knowledgePath, file)
+          const entry = await this.readMarkdownFile(filePath)
+          results.push({
+            pageContent: entry.content,
+            id: entry.id,
+            _similarity: 1, // プレフィックス検索では類似度は常に1とする
+            _importance: entry.importance || 0,
+            created_at: entry.created_at || 0
+          })
+        } catch (error) {
+          console.error(`Error reading markdown file: ${file}`, error)
+        }
+      }
+
+      // 作成日時の降順でソート
+      results.sort((a, b) => b.created_at - a.created_at)
+
+      return results
+    } catch (error) {
+      console.error('Error searching by prefix:', error)
+      return []
+    }
   }
 
   async getRandomEntries(

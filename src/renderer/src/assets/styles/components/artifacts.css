@@ -1,0 +1,249 @@
+.artifact-sidebar {
+  width: 300px;
+  max-width: 100%;
+  background-color: rgba(240, 240, 240, 1);
+  color: var(--text);
+}
+
+.artifact-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vw - 60px);
+  padding: 1rem;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.artifact-new-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.artifact-title-input {
+  font-size: 1rem;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.artifact-editor {
+  background: rgba(0, 0, 0, 0.07);
+  border-radius: 4px;
+  min-height: 200px;
+  overflow: hidden;
+}
+
+.artifact-codemirror {
+  height: 100%;
+  min-height: 200px;
+}
+
+.cm-editor {
+  height: 100%;
+}
+
+.artifact-editor .cm-placeholder {
+  color: #999 !important;
+}
+
+.artifact-save-button {
+  padding: 2px 16px;
+  border: none;
+  border-radius: 4px;
+  float: right;
+  background: none;
+}
+
+.artifact-save-button {
+  background-color: rgb(16, 127, 239);
+  color: white;
+}
+
+/* アーティファクトリスト */
+.artifact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.artifact-list h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.artifact-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.artifact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 4px;
+  background-color: var(--item-bg);
+  border: 1px solid var(--border);
+  transition: background-color 0.2s;
+}
+
+.artifact-item:hover {
+  background-color: var(--item-hover-bg);
+}
+
+.artifact-item-title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-button,
+.artifact-item .delete-button {
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-wrap: nowrap;
+  background: none;
+}
+
+.edit-button {
+  color: #333;
+}
+
+.artifact-item .delete-button {
+  color: #d32f2f;
+}
+
+.delete-button {
+  border: none;
+  color: #d32f2f;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+  background: none;
+}
+
+.no-artifacts {
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.artifact-edit-modal {
+  position: fixed;
+  top: 45px;
+  border-top: 1px solid #ddd;
+  left: 0;
+  width: calc(100% - 300px);
+  height: calc(100% - 45px);
+  overflow: scroll;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.artifact-edit-modal-content {
+  position: absolute;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  background: white;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  height: auto;
+}
+
+.artifact-edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.artifact-edit-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 1.2rem;
+}
+
+.close-button:hover,
+.modal-close-button:hover {
+  color: var(--text);
+  background-color: var(--button-hover-bg);
+}
+
+.artifact-edit-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+.artifact-modal-title-input {
+  border: none;
+  font-size: 20px;
+  outline: none;
+  padding: 4px 8px;
+}
+
+.artifact-modal-editor {
+  height: 100%;
+  flex-grow: 1;
+  margin-top: 10px;
+}
+
+.artifact-modal-codemirror {
+  background: none;
+  height: 100%;
+  padding: 4px;
+  overflow: visible;
+}
+
+.cm-editor {
+  height: 100%;
+  max-height: none;
+}

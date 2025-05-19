@@ -37,6 +37,19 @@ interface API {
   updateKnowledgeIndexContent: (content: string) => Promise<boolean>
   getLocale: () => Promise<string>
   setLocale: (locale: string) => Promise<string>
+
+  // アーティファクト関連API
+  createKnowledge: (text: string, id: string) => Promise<{ action: string; id: string }>
+  updateKnowledge: (
+    text: string,
+    id: string,
+    targetId: string
+  ) => Promise<{ action: string; id: string; originalId: string }>
+  deleteKnowledge: (ids: string[]) => Promise<{ deleted: string[]; action: string }>
+  searchKnowledge: (
+    query: string,
+    limit?: number
+  ) => Promise<{ results: Array<{ content: string; id: string; similarity: number }> }>
 }
 
 declare global {

@@ -101,7 +101,21 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     otherKnowledge: 'Related Knowledges',
     deepResearchMode: 'Deep Research Mode',
     deepResearchActive: 'Deep Research Active',
-    cmdEnterToSend: 'Press ⌘ + Enter to send'
+    cmdEnterToSend: 'Press ⌘ + Enter to send',
+    // アーティファクト関連
+    artifacts: 'Artifacts',
+    artifactTitle: 'Title',
+    artifactContent: 'Paste your content here...',
+    save: 'Save',
+    cancel: 'Cancel',
+    savedArtifacts: 'Saved Artifacts',
+    noArtifacts: 'No artifacts saved yet',
+    editArtifact: 'Edit Artifact',
+    confirmDeleteArtifact: 'Are you sure you want to delete this artifact?',
+    deleteArtifactConfirmation: 'Are you sure you want to delete "{title}"?',
+    artifactCreateTool: 'Create Artifact',
+    artifactCreateDesc:
+      'Tool to create and save a new artifact (memo, code, etc.) that can be accessed later.'
   },
   ja: {
     app: 'Izabella',
@@ -200,7 +214,21 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     memoryUpdated: 'メモリが更新されました',
     deepResearchMode: '徹底検索モード',
     deepResearchActive: '徹底検索中',
-    cmdEnterToSend: '⌘ + Enter で送信'
+    cmdEnterToSend: '⌘ + Enter で送信',
+    // アーティファクト関連
+    artifacts: 'アーティファクト',
+    artifactTitle: 'タイトル',
+    artifactContent: 'コンテンツをここに貼り付け...',
+    save: '保存',
+    cancel: 'キャンセル',
+    savedArtifacts: '保存済みアーティファクト',
+    noArtifacts: 'アーティファクトはまだ保存されていません',
+    editArtifact: 'アーティファクトを編集',
+    confirmDeleteArtifact: 'このアーティファクトを削除してもよろしいですか？',
+    deleteArtifactConfirmation: '"{title}"を削除してもよろしいですか？',
+    artifactCreateTool: 'アーティファクト作成',
+    artifactCreateDesc:
+      '後で参照できる新しいアーティファクト（メモやコードなど）を作成し保存するツールです。'
   }
 }
 

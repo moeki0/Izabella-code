@@ -52,7 +52,24 @@ const api = {
     error: string | null
   }> => ipcRenderer.invoke('get-message-context', messageId, count),
   getLocale: (): Promise<string> => ipcRenderer.invoke('get-locale'),
-  setLocale: (locale: string): Promise<string> => ipcRenderer.invoke('set-locale', locale)
+  setLocale: (locale: string): Promise<string> => ipcRenderer.invoke('set-locale', locale),
+
+  // アーティファクト関連API
+  createKnowledge: (text: string, id: string): Promise<{ action: string; id: string }> =>
+    ipcRenderer.invoke('create-knowledge', text, id),
+  updateKnowledge: (
+    text: string,
+    id: string,
+    targetId: string
+  ): Promise<{ action: string; id: string; originalId: string }> =>
+    ipcRenderer.invoke('update-knowledge', text, id, targetId),
+  deleteKnowledge: (ids: string[]): Promise<{ deleted: string[]; action: string }> =>
+    ipcRenderer.invoke('delete-knowledge', ids),
+  searchKnowledge: (
+    query: string,
+    limit = 20
+  ): Promise<{ results: Array<{ content: string; id: string; similarity: number }> }> =>
+    ipcRenderer.invoke('search-knowledge', query, limit)
 }
 
 if (process.contextIsolated) {

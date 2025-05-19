@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FiSearch, FiSettings, FiTool } from 'react-icons/fi'
+import { FiFileText, FiSearch, FiSettings, FiTool } from 'react-icons/fi'
 
 interface Props {
   title?: string
@@ -24,6 +24,8 @@ interface Props {
   isSettingsSidebarOpen?: boolean
   toggleToolsSidebar?: () => void
   isToolsSidebarOpen?: boolean
+  toggleArtifactSidebar?: () => void
+  isArtifactSidebarOpen?: boolean
   currentTheme?: string
   latestMessageDate?: string
 }
@@ -35,7 +37,9 @@ function Header({
   toggleSettingsSidebar,
   isSettingsSidebarOpen,
   toggleToolsSidebar,
-  isToolsSidebarOpen
+  isToolsSidebarOpen,
+  toggleArtifactSidebar,
+  isArtifactSidebarOpen
 }: Props): React.JSX.Element {
   const [searchGroundingEnabled, setSearchGroundingEnabled] = useState(true)
 
@@ -86,6 +90,15 @@ function Header({
             aria-label="Toggle tools"
           >
             <FiTool size={18} />
+          </button>
+        )}
+        {toggleArtifactSidebar && (
+          <button
+            className={`header-icon-button ${isArtifactSidebarOpen ? 'header-button-active' : ''}`}
+            onClick={toggleArtifactSidebar}
+            aria-label="Toggle artifacts"
+          >
+            <FiFileText size={18} />
           </button>
         )}
         {toggleSettingsSidebar && (

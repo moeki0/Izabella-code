@@ -42,11 +42,6 @@ function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
         const result = await window.api.updateSearchGrounding(enabled)
         if (result.success) {
           setSearchGroundingEnabled(enabled)
-          if (
-            confirm('Mode updated. The application needs to restart to apply changes. Restart now?')
-          ) {
-            await window.api.restartApp()
-          }
         }
       }
     } catch (error) {
