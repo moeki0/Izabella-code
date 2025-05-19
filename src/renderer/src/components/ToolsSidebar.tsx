@@ -11,7 +11,6 @@ function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
   const intl = useIntl()
   const [searchGroundingEnabled, setSearchGroundingEnabled] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [showRestartDialog, setShowRestartDialog] = useState(false)
   const [originalValue, setOriginalValue] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -43,7 +42,11 @@ function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
         const result = await window.api.updateSearchGrounding(enabled)
         if (result.success) {
           setSearchGroundingEnabled(enabled)
-          setShowRestartDialog(true)
+          if (
+            confirm('Mode updated. The application needs to restart to apply changes. Restart now?')
+          ) {
+            await window.api.restartApp()
+          }
         }
       }
     } catch (error) {
@@ -51,16 +54,6 @@ function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleRestartNow = async (): Promise<void> => {
-    if (window.api.restartApp) {
-      await window.api.restartApp()
-    }
-  }
-
-  const handleRestartLater = (): void => {
-    setShowRestartDialog(false)
   }
 
   if (!isOpen) return null
@@ -98,25 +91,6 @@ function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
                 <span>{intl.formatMessage({ id: 'toolsMode' })}</span>
               </label>
             </div>
-
-            {showRestartDialog && (
-              <div className="restart-dialog">
-                <div className="restart-dialog-title">
-                  {intl.formatMessage({ id: 'modeChangeRestart' })}
-                </div>
-                <div className="restart-dialog-message">
-                  {intl.formatMessage({ id: 'modeChangeConfirm' })}
-                </div>
-                <div className="restart-dialog-buttons">
-                  <button className="restart-button restart-now" onClick={handleRestartNow}>
-                    {intl.formatMessage({ id: 'restartNow' })}
-                  </button>
-                  <button className="restart-button restart-later" onClick={handleRestartLater}>
-                    {intl.formatMessage({ id: 'restartLater' })}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
         <Tools
