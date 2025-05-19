@@ -16,6 +16,8 @@ interface API {
   getTools: () => Promise<Array<Tool>>
   getEnabledTools: () => Promise<Array<ToolWithEnabled>>
   updateToolEnabled: (toolName: string, enabled: boolean) => Promise<{ success: boolean }>
+  getSearchGrounding: () => Promise<{ enabled: boolean }>
+  updateSearchGrounding: (enabled: boolean) => Promise<{ success: boolean }>
   interrupt: () => Promise<void>
   link: (url: string) => Promise<void>
   send: (input: string, isRetry: boolean) => Promise<void>

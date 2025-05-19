@@ -74,6 +74,92 @@
   max-height: calc(100vh - 48px);
 }
 
+.search-mode-selector {
+  padding: 10px 15px 15px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 15px;
+}
+
+.search-mode-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.search-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-mode-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.search-mode-option input {
+  margin: 0;
+}
+
+.restart-dialog {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.restart-dialog-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #e74c3c;
+}
+
+.restart-dialog-message {
+  font-size: 13px;
+  margin-bottom: 15px;
+  line-height: 1.4;
+  color: #333;
+}
+
+.restart-dialog-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.restart-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.restart-now {
+  background-color: #3498db;
+  color: white;
+}
+
+.restart-now:hover {
+  background-color: #2980b9;
+}
+
+.restart-later {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.restart-later:hover {
+  background-color: #ddd;
+}
+
 .tools-sidebar-description {
   padding: 0 15px 15px;
   font-size: 14px;

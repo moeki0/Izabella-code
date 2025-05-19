@@ -17,6 +17,8 @@ import { handleDeleteMessage } from './handlers/handleDeleteMessage'
 import { handleSearchMessages } from './handlers/handleSearchMessages'
 import { handleGetMessageContext } from './handlers/handleGetMessageContext'
 import { handleMessageContext } from './handlers/handleMessageContext'
+import { handleSearchGroundingGet } from './handlers/handleSearchGroundingGet'
+import { handleSearchGroundingUpdate } from './handlers/handleSearchGroundingUpdate'
 import { getLocale, setLocale, initLocale, getPreferredLocale } from './lib/intl'
 import { initializeMCP } from './lib/initializeMCP'
 
@@ -86,6 +88,8 @@ app.whenReady().then(async () => {
   ipcMain.handle('search-messages', handleSearchMessages)
   ipcMain.handle('get-message-context', handleGetMessageContext)
   ipcMain.handle('message-context', handleMessageContext)
+  ipcMain.handle('get-search-grounding', handleSearchGroundingGet)
+  ipcMain.handle('update-search-grounding', (_, enabled) => handleSearchGroundingUpdate(enabled))
 
   // Handler for getting the current locale
   ipcMain.handle('get-locale', () => getLocale())

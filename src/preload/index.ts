@@ -27,6 +27,10 @@ const api = {
   getEnabledTools: (): Promise<Array<ToolWithEnabled>> => ipcRenderer.invoke('get-tools-enabled'),
   updateToolEnabled: (toolName: string, enabled: boolean): Promise<{ success: boolean }> =>
     ipcRenderer.invoke('update-tool-enabled', toolName, enabled),
+  getSearchGrounding: (): Promise<{ enabled: boolean }> =>
+    ipcRenderer.invoke('get-search-grounding'),
+  updateSearchGrounding: (enabled: boolean): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke('update-search-grounding', enabled),
   link: (url: string): Promise<void> => ipcRenderer.invoke('link', url),
   interrupt: (): Promise<void> => ipcRenderer.invoke('interrupt'),
   send: (input: string, isRetry: boolean): Promise<void> =>

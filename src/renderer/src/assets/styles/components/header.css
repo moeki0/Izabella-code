@@ -23,6 +23,14 @@ header {
   background-color: #ddd;
 }
 
+.header-button-blue {
+  color: #3498db !important;
+}
+
+.header-button-blue:hover {
+  color: #2980b9 !important;
+}
+
 .header-menu {
   justify-self: end;
   display: flex;

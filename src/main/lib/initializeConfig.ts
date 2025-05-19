@@ -10,4 +10,5 @@ export const initializeConfig = (): void => {
   initialize('apiKeys', { google: '', openai: '' })
   initialize('mcpServers', [])
   initialize('enabledTools', [])
+  initialize('useSearchGrounding', true)
 }

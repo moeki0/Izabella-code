@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { FiSearch, FiSettings, FiTool } from 'react-icons/fi'
 
 interface Props {
@@ -36,6 +37,33 @@ function Header({
   toggleToolsSidebar,
   isToolsSidebarOpen
 }: Props): React.JSX.Element {
+  const [searchGroundingEnabled, setSearchGroundingEnabled] = useState(true)
+
+  useEffect(() => {
+    const fetchSearchGrounding = async (): Promise<void> => {
+      try {
+        if (window.api.getSearchGrounding) {
+          const result = await window.api.getSearchGrounding()
+          setSearchGroundingEnabled(result.enabled)
+        }
+      } catch (error) {
+        console.error('Failed to fetch search grounding setting:', error)
+      }
+    }
+
+    fetchSearchGrounding()
+
+    // Listen for changes to the search grounding setting
+    const handleStorageChange = async (): Promise<void> => {
+      fetchSearchGrounding()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
+
   return (
     <header role="banner" className={className}>
       <div className="header-title"></div>
@@ -51,7 +79,9 @@ function Header({
         )}
         {toggleToolsSidebar && (
           <button
-            className={`header-icon-button ${isToolsSidebarOpen ? 'header-button-active' : ''}`}
+            className={`header-icon-button ${isToolsSidebarOpen ? 'header-button-active' : ''} ${
+              searchGroundingEnabled ? '' : 'header-button-blue'
+            }`}
             onClick={toggleToolsSidebar}
             aria-label="Toggle tools"
           >

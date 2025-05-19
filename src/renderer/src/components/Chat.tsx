@@ -13,7 +13,7 @@ import Messages from './Messages'
 import MessageSearch from './MessageSearch'
 import { SettingsSidebar } from './SettingsSidebar'
 import { ToolsSidebar } from './ToolsSidebar'
-import { useIntl, getIntl } from '../lib/locale'
+import { useIntl } from '../lib/locale'
 import { cleanSearchQuery } from '../lib/utils'
 import 'highlight.js/styles/dracula.css'
 
