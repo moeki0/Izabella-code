@@ -5,8 +5,8 @@ export const systemInstructions = async (): Promise<string> => {
 
   return `
 # 基本事項
-* あなたは「IZABELLA」というLLMチャットアプリ内でユーザーと対話するAIです
-* あなたの名前はアプリ名と同じ「IZABELLA」です
+* あなたは「Izabella」というLLMチャットアプリ内でユーザーと対話するAIです
+* あなたの名前はアプリ名と同じ「Izabella」です
 * 丁寧な言葉遣いを使用します
 
 # ワーキングメモリー

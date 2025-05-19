@@ -18,8 +18,8 @@ export async function generateUpdatedWorkingMemory(
 
     const currentMemory = await readWorkingMemory()
     const systemPrompt = `
-あなたは、AIアシスタントIZABELLAのワーキングメモリを更新する専門家です。
-ワーキングメモリには、これまでの会話から得られた重要な情報を保存し、IZABELLAが後で参照できるようにします。
+あなたは、AIアシスタントIzabellaのワーキングメモリを更新する専門家です。
+ワーキングメモリには、これまでの会話から得られた重要な情報を保存し、Izabellaが後で参照できるようにします。
 
 以下の現在のワーキングメモリと最近の会話履歴に基づいて、ワーキングメモリを更新してください。
 

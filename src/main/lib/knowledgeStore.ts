@@ -13,12 +13,6 @@ interface KnowledgeEntry {
   metadata: Record<string, unknown>
   created_at: number
   importance?: number
-  // References to abstract knowledge IDs if this is an episodic knowledge
-  abstract?: string[]
-  // References to episodic knowledge IDs if this is an abstract knowledge
-  episode?: string[]
-  // Flag to indicate if this is an abstract knowledge
-  is_abstract?: boolean
 }
 
 export class KnowledgeStore {
@@ -144,9 +138,6 @@ export class KnowledgeStore {
       created_at: number
       metadata: Record<string, unknown>
       importance?: number
-      abstract?: string[]
-      episode?: string[]
-      is_abstract?: boolean
     }
 
     return {
@@ -154,10 +145,7 @@ export class KnowledgeStore {
       content: markdownContent.trim(),
       metadata: frontmatter.metadata || {},
       created_at: frontmatter.created_at || Math.floor(Date.now() / 1000),
-      importance: frontmatter.importance || 0,
-      abstract: frontmatter.abstract || [],
-      episode: frontmatter.episode || [],
-      is_abstract: frontmatter.is_abstract || false
+      importance: frontmatter.importance || 0
     }
   }
 
@@ -166,10 +154,7 @@ export class KnowledgeStore {
       id: entry.id,
       created_at: entry.created_at,
       importance: entry.importance || 0,
-      metadata: entry.metadata || {},
-      abstract: entry.abstract && entry.abstract.length > 0 ? entry.abstract : undefined,
-      episode: entry.episode && entry.episode.length > 0 ? entry.episode : undefined,
-      is_abstract: entry.is_abstract || false
+      metadata: entry.metadata || {}
     }
 
     const content = `---
@@ -584,36 +569,6 @@ ${entry.content}
     } catch (error) {
       console.error(`Error updating knowledge entry with ID ${entry.id}:`, error)
       return false
-    }
-  }
-
-  // Get all related episodic knowledge for an abstract knowledge
-  async getRelatedEpisodes(abstractId: string): Promise<KnowledgeEntry[]> {
-    try {
-      // Get the abstract knowledge first
-      const abstract = await this.getEntryById(abstractId)
-      if (
-        !abstract ||
-        !abstract.is_abstract ||
-        !abstract.episode ||
-        abstract.episode.length === 0
-      ) {
-        return []
-      }
-
-      // Fetch all related episodes
-      const episodes: KnowledgeEntry[] = []
-      for (const episodeId of abstract.episode) {
-        const episode = await this.getEntryById(episodeId)
-        if (episode) {
-          episodes.push(episode)
-        }
-      }
-
-      return episodes
-    } catch (error) {
-      console.error(`Error getting related episodes for abstract ID ${abstractId}:`, error)
-      return []
     }
   }
 

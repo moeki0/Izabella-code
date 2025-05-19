@@ -94,28 +94,6 @@ export interface ChatProps {
   ) => () => void
   registerKnowledgeSavedListener: (callback: (data: { ids: string[] }) => void) => () => void
   registerMemoryUpdatedListener: (callback: (data: { success: boolean }) => void) => () => void
-  registerAbstractConceptsListener: (
-    callback: (data: { concepts: string[]; prompt: string }) => void
-  ) => () => void
-  registerAbstractConceptsSearchListener: (
-    callback: (data: {
-      concepts: string[]
-      prompt: string
-      optimizedQuery: string
-      abstractResults: string[]
-    }) => void
-  ) => () => void
-  registerAbstractionGenerationListener: (
-    callback: (data: {
-      abstractions: Array<{
-        content: string
-        rationale: string
-      }>
-      episodeIds: string[]
-      messageId?: string
-      userMessageId?: string
-    }) => void
-  ) => () => void
   registerStreamListener: (callback: (chunk: string) => void) => () => void
   registerToolCallListener: (
     callback: (content: { toolName: string; args: string }, pending: boolean) => void
@@ -161,9 +139,6 @@ function Chat({
   registerMessageSavedListener,
   registerKnowledgeSavedListener,
   registerMemoryUpdatedListener,
-  registerAbstractConceptsListener,
-  registerAbstractConceptsSearchListener,
-  registerAbstractionGenerationListener,
   registerTitleListener,
   registerNewThreadListener,
   registerRetryListener,
@@ -522,9 +497,6 @@ function Chat({
     registerMessageSavedListener,
     registerKnowledgeSavedListener,
     registerMemoryUpdatedListener,
-    registerAbstractConceptsListener,
-    registerAbstractConceptsSearchListener,
-    registerAbstractionGenerationListener,
     isShowingSearchResult,
     registerSearchQueryListener,
     registerStartSearchListener,

@@ -46,7 +46,7 @@ export async function compressWorkingMemory(): Promise<string | Error> {
     }
 
     const systemPrompt = `
-あなたは、AIアシスタントIZABELLAのワーキングメモリを圧縮する専門家です。
+あなたは、AIアシスタントIzabellaのワーキングメモリを圧縮する専門家です。
 ユーザーとの会話から得られた重要な情報が含まれていますが、サイズが大きくなりすぎています。
 400文字に要約・圧縮してください。
 

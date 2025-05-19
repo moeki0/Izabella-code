@@ -98,10 +98,7 @@ contextBridge.exposeInMainWorld('electron', {
         'message-deleted',
         'knowledge-saved',
         'memory-updated',
-        'message-saved',
-        'abstraction-generation',
-        'abstract-concepts',
-        'abstract-concepts-search'
+        'message-saved'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.on(channel, (_, ...args) => callback(...args))
@@ -126,10 +123,7 @@ contextBridge.exposeInMainWorld('electron', {
         'message-deleted',
         'knowledge-saved',
         'memory-updated',
-        'message-saved',
-        'abstraction-generation',
-        'abstract-concepts',
-        'abstract-concepts-search'
+        'message-saved'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.removeAllListeners(channel)

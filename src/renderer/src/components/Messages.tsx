@@ -100,9 +100,6 @@ function Messages({
                 message.tool_name !== 'search_query_generation' &&
                 message.tool_name !== 'knowledge_search' &&
                 message.tool_name !== 'search_result' &&
-                message.tool_name !== 'abstraction_generation' &&
-                message.tool_name !== 'abstract_concepts' &&
-                message.tool_name !== 'abstract_concepts_search' &&
                 message.tool_name !== 'start_search' && (
                   <div className="tool">
                     <div className="tool-name">

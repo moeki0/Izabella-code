@@ -37,37 +37,6 @@ const chatProps = {
     window.electron.ipcRenderer.on('memory-updated', (_, data) => callback(data))
     return () => window.electron.ipcRenderer.removeAllListeners('memory-updated')
   },
-  registerAbstractConceptsListener: (
-    callback: (data: { concepts: string[]; prompt: string }) => void
-  ) => {
-    window.electron.ipcRenderer.on('abstract-concepts', (_, data) => callback(data))
-    return () => window.electron.ipcRenderer.removeAllListeners('abstract-concepts')
-  },
-  registerAbstractConceptsSearchListener: (
-    callback: (data: {
-      concepts: string[]
-      prompt: string
-      optimizedQuery: string
-      abstractResults: string[]
-    }) => void
-  ) => {
-    window.electron.ipcRenderer.on('abstract-concepts-search', (_, data) => callback(data))
-    return () => window.electron.ipcRenderer.removeAllListeners('abstract-concepts-search')
-  },
-  registerAbstractionGenerationListener: (
-    callback: (data: {
-      abstractions: Array<{
-        content: string
-        rationale: string
-      }>
-      episodeIds: string[]
-      messageId?: string
-      userMessageId?: string
-    }) => void
-  ) => {
-    window.electron.ipcRenderer.on('abstraction-generation', (_, data) => callback(data))
-    return () => window.electron.ipcRenderer.removeAllListeners('abstraction-generation')
-  },
   registerStreamListener: (callback: (chunk: string) => void) => {
     window.electron.ipcRenderer.on('stream', (_, chunk) => callback(chunk))
     return () => window.electron.ipcRenderer.removeAllListeners('stream')

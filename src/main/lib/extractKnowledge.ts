@@ -6,7 +6,6 @@ import {
   deleteKnowledge
 } from './knowledgeTools'
 import { Agent } from '@mastra/core'
-import { generateAbstractions, saveAbstractions } from './abstractionGenerator'
 
 interface ConversationMessage {
   role: 'user' | 'assistant'
@@ -112,21 +111,6 @@ ${conversationString}`
           processedIds.push(result.id)
         }
       }
-    }
-
-    // 抽象ナレッジの生成と保存
-    if (processedIds.length > 0) {
-      // 会話履歴とエピソードナレッジのIDを使って抽象ナレッジを生成
-      const abstractions = await generateAbstractions({
-        conversations: conversationHistory,
-        knowledge_ids: processedIds
-      })
-
-      // 抽象ナレッジを保存し、エピソードナレッジとの関連付けを行う
-      const abstractionIds = await saveAbstractions(abstractions)
-
-      // 処理されたナレッジIDのリストに抽象ナレッジのIDも追加
-      processedIds.push(...abstractionIds)
     }
 
     return processedIds
