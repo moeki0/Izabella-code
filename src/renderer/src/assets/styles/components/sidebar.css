@@ -75,7 +75,6 @@
 
 .settings {
   padding-bottom: 40px;
-  background-color: #eee;
   padding: 10px;
 }
 
@@ -116,10 +115,10 @@
 .settings-textarea {
   width: 100%;
   padding: 8px 10px;
-  border: none;
+  border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 13px;
-  background-color: rgba(225, 225, 225);
+  background-color: none;
   resize: none;
 }
 
@@ -144,7 +143,7 @@
 
 .settings-server-item {
   padding: 10px;
-  border-bottom: 1px solid #bbb;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;

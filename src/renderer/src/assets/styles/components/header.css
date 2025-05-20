@@ -6,7 +6,7 @@ header {
   top: 0;
   position: sticky;
   left: 0;
-  z-index: 200;
+  z-index: 2000;
   padding: 0 12px;
   justify-content: space-between;
   padding-left: 100px;

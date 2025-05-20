@@ -11,6 +11,7 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     app: 'Izabella',
     about: 'About Izabella',
     setting: 'Settings (JSON)',
+
     openKnowledgeFolder: 'Open Knowledge Folder',
     openMemoryFile: 'Open Memory File',
     services: 'Services',
@@ -105,6 +106,7 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     // ノート関連
     artifacts: 'Notes',
     artifactTitle: 'Title',
+    artifactsDescription: 'When you save a note, Izabella remembers the contents of the note.',
     artifactContent: 'Paste your content here...',
     save: 'Save',
     cancel: 'Cancel',
@@ -232,7 +234,8 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     artifactCreateDesc:
       '後で参照できる新しいノート（メモやコードなど）を作成し保存するツールです。',
     artifactGetTool: 'ノート取得',
-    artifactGetDesc: '特定のIDによってノートを取得して参照するためのツールです。'
+    artifactGetDesc: '特定のIDによってノートを取得して参照するためのツールです。',
+    artifactsDescription: 'ノートを保存するとIzabellaがノートの内容を記憶します。'
   }
 }
 
