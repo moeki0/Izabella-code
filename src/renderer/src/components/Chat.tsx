@@ -194,6 +194,9 @@ function Chat({
   // 最新メッセージの日付
   const [latestMessageDate, setLatestMessageDate] = useState<string>('')
 
+  // Web検索/ツールモード切替状態
+  const [searchGroundingEnabled, setSearchGroundingEnabled] = useState(true)
+
   // Calculate if any sidebar is open
   const isSidebarOpen =
     isSearchSidebarOpen ||
@@ -206,6 +209,32 @@ function Chat({
   useEffect(() => {
     setIsSettingsSidebarOpen(!!initialSettingsSidebarOpen)
   }, [initialSettingsSidebarOpen])
+
+  // Web検索/ツールモードの状態を取得
+  useEffect(() => {
+    const fetchSearchGrounding = async (): Promise<void> => {
+      try {
+        if (window.api.getSearchGrounding) {
+          const result = await window.api.getSearchGrounding()
+          setSearchGroundingEnabled(result.enabled)
+        }
+      } catch (error) {
+        console.error('Failed to fetch search grounding setting:', error)
+      }
+    }
+
+    fetchSearchGrounding()
+
+    // 設定変更を監視
+    const handleStorageChange = async (): Promise<void> => {
+      fetchSearchGrounding()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
 
   useEffect(() => {
     const unsubscribe = registerNewThreadListener(() => {
@@ -823,6 +852,7 @@ function Chat({
             isArtifactSidebarOpen={isArtifactSidebarOpen}
             currentTheme={currentTheme}
             latestMessageDate={latestMessageDate}
+            searchGroundingEnabled={searchGroundingEnabled}
           />
           <Messages
             messages={messages}
@@ -865,7 +895,12 @@ function Chat({
         </div>
       )}
       <SettingsSidebar isOpen={isSettingsSidebarOpen} onClose={toggleSettingsSidebar} />
-      <ToolsSidebar isOpen={isToolsSidebarOpen} onClose={toggleToolsSidebar} />
+      <ToolsSidebar
+        isOpen={isToolsSidebarOpen}
+        onClose={toggleToolsSidebar}
+        searchGroundingEnabled={searchGroundingEnabled}
+        setSearchGroundingEnabled={setSearchGroundingEnabled}
+      />
       <ArtifactSidebar isOpen={isArtifactSidebarOpen} onClose={toggleArtifactSidebar} />
       <div className="banner">
         {error && (

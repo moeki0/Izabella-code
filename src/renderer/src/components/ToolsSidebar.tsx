@@ -5,20 +5,39 @@ import { Tools } from './Tools'
 interface ToolsSidebarProps {
   isOpen: boolean
   onClose: () => void
+  searchGroundingEnabled?: boolean
+  setSearchGroundingEnabled?: (enabled: boolean) => void
 }
 
-function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
+function ToolsSidebar({
+  isOpen,
+  searchGroundingEnabled: externalSearchGroundingEnabled,
+  setSearchGroundingEnabled: externalSetSearchGroundingEnabled
+}: ToolsSidebarProps): React.JSX.Element | null {
   const intl = useIntl()
-  const [searchGroundingEnabled, setSearchGroundingEnabled] = useState(true)
+  const [internalSearchGroundingEnabled, setInternalSearchGroundingEnabled] = useState(true)
   const [loading, setLoading] = useState(false)
   const [originalValue, setOriginalValue] = useState<boolean | null>(null)
+
+  // 内部状態または外部から渡された状態を使用
+  const searchGroundingEnabled =
+    externalSearchGroundingEnabled !== undefined
+      ? externalSearchGroundingEnabled
+      : internalSearchGroundingEnabled
+
+  // 内部状態更新関数または外部から渡された更新関数を使用
+  const setSearchGroundingEnabled =
+    externalSetSearchGroundingEnabled || setInternalSearchGroundingEnabled
 
   useEffect(() => {
     const fetchSearchGrounding = async (): Promise<void> => {
       try {
         if (window.api.getSearchGrounding) {
           const result = await window.api.getSearchGrounding()
-          setSearchGroundingEnabled(result.enabled)
+          // 外部から状態が提供されていない場合のみ内部状態を更新
+          if (externalSearchGroundingEnabled === undefined) {
+            setSearchGroundingEnabled(result.enabled)
+          }
           setOriginalValue(result.enabled)
         }
       } catch (error) {
@@ -29,7 +48,7 @@ function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
     if (isOpen) {
       fetchSearchGrounding()
     }
-  }, [isOpen])
+  }, [isOpen, externalSearchGroundingEnabled])
 
   const handleToggleSearchGrounding = async (enabled: boolean): Promise<void> => {
     if (enabled === originalValue) {
@@ -42,6 +61,7 @@ function ToolsSidebar({ isOpen }: ToolsSidebarProps): React.JSX.Element | null {
         const result = await window.api.updateSearchGrounding(enabled)
         if (result.success) {
           setSearchGroundingEnabled(enabled)
+          setOriginalValue(enabled)
         }
       }
     } catch (error) {
