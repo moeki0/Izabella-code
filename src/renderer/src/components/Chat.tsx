@@ -695,6 +695,7 @@ function Chat({
     setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
+    setIsArtifactSidebarOpen(false)
 
     setIsSearchSidebarOpen((prevState) => {
       const newState = !prevState
@@ -733,6 +734,7 @@ function Chat({
     setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
+    setIsArtifactSidebarOpen(false)
 
     setIsKnowledgeSidebarOpen((prev) => !prev)
   }, [])
@@ -744,6 +746,7 @@ function Chat({
     setIsKnowledgeSidebarOpen(false)
     setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
+    setIsArtifactSidebarOpen(false)
 
     setIsMemorySidebarOpen((prev) => !prev)
   }, [])
@@ -755,6 +758,7 @@ function Chat({
     setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
     setIsToolsSidebarOpen(false)
+    setIsArtifactSidebarOpen(false)
 
     setIsSettingsSidebarOpen((prev) => !prev)
   }, [])
