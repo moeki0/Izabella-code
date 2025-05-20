@@ -219,7 +219,8 @@ ${entry.content}
 
   async similaritySearch(
     query: string,
-    k = 20
+    k = 20,
+    idPrefix?: string
   ): Promise<
     Array<{
       pageContent: string
@@ -231,7 +232,20 @@ ${entry.content}
   > {
     try {
       const queryEmbedding = await this.embeddings.embedQuery(query)
-      const result = this.index.searchKnn(queryEmbedding, k)
+
+      // IDプレフィックスフィルターを作成
+      let filter: ((label: number) => boolean) | undefined = undefined
+      if (idPrefix) {
+        filter = (label: number) => {
+          const docId = this.idToDocId.get(label)
+          if (!docId) return false
+          const originalId = docId.split('_chunk_')[0]
+          return originalId.startsWith(idPrefix)
+        }
+      }
+
+      // フィルター付きで検索を実行
+      const result = this.index.searchKnn(queryEmbedding, k, filter)
       const docIds = result.neighbors
         .map((id) => this.idToDocId.get(id))
         .filter(Boolean) as string[]
@@ -397,10 +411,11 @@ ${entry.content}
     return this.similaritySearch(query.slice(0, 100), k)
   }
 
-  // IDのプレフィックスで検索する関数
+  // IDのプレフィックスや部分文字列で検索する関数
   async searchByPrefix(
     prefix: string,
-    k = 20
+    k = 20,
+    query = ''
   ): Promise<
     Array<{
       pageContent: string
@@ -411,6 +426,7 @@ ${entry.content}
     }>
   > {
     try {
+      // プレフィックスフィルタリングを行うために、ファイル一覧を取得
       const allFiles = await fs.readdir(this.knowledgePath)
       const mdFiles = allFiles.filter((file) => file.endsWith('.md'))
 
@@ -420,6 +436,14 @@ ${entry.content}
         return id.startsWith(prefix)
       })
 
+      // 本文ベクトル検索が必要な場合
+      if (query) {
+        // 検索時にプレフィックスフィルターを指定して検索
+        const vecResults = await this.similaritySearch(query, k, prefix)
+        return vecResults
+      }
+
+      // クエリがない場合は従来の方法でプレフィックスのみで検索
       // 最大k個までのファイルを処理
       const selectedFiles = matchingFiles.slice(0, Math.min(k, matchingFiles.length))
 
@@ -435,6 +459,7 @@ ${entry.content}
         try {
           const filePath = join(this.knowledgePath, file)
           const entry = await this.readMarkdownFile(filePath)
+
           results.push({
             pageContent: entry.content,
             id: entry.id,

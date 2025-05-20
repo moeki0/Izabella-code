@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { createTool } from '@mastra/core'
 import { KnowledgeStore } from './knowledgeStore'
 import { store } from './store'
+import Fuse from 'fuse.js'
 
 // KnowledgeStoreのインスタンスのキャッシュ
 let knowledgeStoreInstance: KnowledgeStore | null = null
@@ -50,6 +51,193 @@ export const artifactCreate: unknown = createTool({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       throw new Error(`Artifact creation error: ${errorMessage}`)
+    }
+  }
+})
+
+export const artifactSearch: unknown = createTool({
+  id: 'search_artifacts',
+  inputSchema: z.object({
+    query: z.string().describe('Search query to find artifacts by content similarity or title')
+  }),
+  description:
+    'Tool to search for user artifacts by content similarity and title. Uses both semantic search and prefix-based search with fuzzy matching for titles.',
+  execute: async ({ context }) => {
+    try {
+      const knowledgeStore = getKnowledgeStore()
+
+      if (!context.query?.trim()) {
+        throw new Error('Search query cannot be empty')
+      }
+
+      const query = context.query.trim()
+
+      // Define result type to fix TypeScript errors
+      interface ArtifactResult {
+        id: string
+        title: string
+        content: string
+        created_at: number
+        similarity: number
+        match_type: string
+      }
+
+      const results: ArtifactResult[] = []
+      const existingIds = new Set<string>()
+
+      // First, search by searchByPrefix with the query directly
+      // This will find artifacts with IDs containing the search term
+      const prefixResults = await knowledgeStore.searchByPrefix('artifact--', 500, query)
+
+      // Get semantic search results for content-based matching
+      const semanticResults = await knowledgeStore.similaritySearch(query, 500)
+      const semanticArtifacts = semanticResults.filter((result) =>
+        result.id.startsWith('artifact--')
+      )
+
+      // Process prefix search results
+      for (const result of prefixResults) {
+        const titleMatch = result.id.match(/^artifact--(.+)$/)
+        const title = titleMatch ? titleMatch[1] : result.id
+
+        results.push({
+          id: result.id,
+          title,
+          content: result.pageContent,
+          created_at: result.created_at,
+          similarity: 0.95, // High relevance for direct prefix matches
+          match_type: 'prefix'
+        })
+        existingIds.add(result.id)
+      }
+
+      // Process semantic search results
+      for (const result of semanticArtifacts) {
+        if (!existingIds.has(result.id)) {
+          const titleMatch = result.id.match(/^artifact--(.+)$/)
+          const title = titleMatch ? titleMatch[1] : result.id
+
+          results.push({
+            id: result.id,
+            title,
+            content: result.pageContent,
+            created_at: result.created_at,
+            similarity: result._similarity,
+            match_type: 'semantic'
+          })
+          existingIds.add(result.id)
+        }
+      }
+
+      // Get all artifacts for fuzzy search
+      const allArtifacts = await knowledgeStore.searchByPrefix('artifact--', 20)
+      const artifactItems = allArtifacts.map((result) => {
+        const titleMatch = result.id.match(/^artifact--(.+)$/)
+        const title = titleMatch ? titleMatch[1] : result.id
+
+        return {
+          id: result.id,
+          title,
+          content: result.pageContent,
+          created_at: result.created_at,
+          _similarity: result._similarity
+        }
+      })
+
+      // Set up fuzzy search options
+      const fuseOptions = {
+        includeScore: true,
+        keys: ['title'],
+        threshold: 0.4 // Lower threshold means more strict matching
+      }
+
+      // Perform fuzzy search on artifact titles
+      const fuse = new Fuse(artifactItems, fuseOptions)
+      const fuseResults = fuse.search(query)
+
+      // Add fuzzy search results (deduplicate by ID)
+      for (const result of fuseResults) {
+        if (!existingIds.has(result.item.id)) {
+          existingIds.add(result.item.id)
+          results.push({
+            id: result.item.id,
+            title: result.item.title,
+            content: result.item.content,
+            created_at: result.item.created_at,
+            similarity: result.score ? 1 - result.score : 0.5, // Convert Fuse score to similarity
+            match_type: 'fuzzy_id'
+          })
+        }
+      }
+
+      // Sort by similarity (highest first)
+      results.sort((a, b) => b.similarity - a.similarity)
+
+      return JSON.stringify({
+        success: true,
+        count: results.length,
+        artifacts: results
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      throw new Error(`Artifact search error: ${errorMessage}`)
+    }
+  }
+})
+
+export const artifactUpdate: unknown = createTool({
+  id: 'update_artifact',
+  inputSchema: z.object({
+    id: z.string().describe('ID of the artifact to update (required)'),
+    title: z.string().optional().describe('New title for the artifact (optional)'),
+    content: z.string().optional().describe('New content for the artifact (optional)')
+  }),
+  description:
+    'Tool to update an existing artifact. Provide either a new title, new content, or both.',
+  execute: async ({ context }) => {
+    try {
+      // Validate input
+      if (!context.id?.trim()) {
+        throw new Error('Artifact ID cannot be empty')
+      }
+
+      if (!context.title?.trim() && !context.content?.trim()) {
+        throw new Error('At least one of title or content must be provided')
+      }
+
+      const artifactId = context.id.trim()
+
+      // Check if ID starts with artifact-- prefix, if not, add it
+      const fullArtifactId = artifactId.startsWith('artifact--')
+        ? artifactId
+        : `artifact--${artifactId}`
+
+      // Get KnowledgeStore instance
+      const knowledgeStore = getKnowledgeStore()
+
+      // Get current artifact
+      const entry = await knowledgeStore.getEntryById(fullArtifactId)
+
+      if (!entry) {
+        throw new Error(`Artifact with ID "${artifactId}" not found`)
+      }
+
+      // Prepare update data
+      const newTitle = context.title?.trim() || entry.id.replace(/^artifact--/, '')
+      const newContent = context.content?.trim() || entry.content
+      const newId = `artifact--${newTitle}`
+
+      // Update the artifact
+      await knowledgeStore.upsertText(newContent, newId, fullArtifactId)
+
+      return JSON.stringify({
+        success: true,
+        message: `Artifact "${newTitle}" has been updated successfully.`,
+        id: newId
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      throw new Error(`Artifact update error: ${errorMessage}`)
     }
   }
 })
