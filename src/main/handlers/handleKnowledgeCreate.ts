@@ -1,6 +1,8 @@
 import { ipcMain } from 'electron'
 import { store } from '../lib/store'
 import { KnowledgeStore } from '../lib/knowledgeStore'
+import { generateArtifactTitle } from '../lib/generateArtifactTitle'
+import { mainWindow } from '..'
 
 let knowledgeStore: KnowledgeStore | null = null
 
@@ -14,14 +16,34 @@ const getKnowledgeStore = (): KnowledgeStore => {
 }
 
 export const handleKnowledgeCreate = (): void => {
-  ipcMain.handle('create-knowledge', async (_, text: string, id: string) => {
+  // 既存のハンドラーをIDが指定された場合のために残す
+  ipcMain.handle('create-knowledge', async (_, text: string, id?: string) => {
     try {
       const store = getKnowledgeStore()
-      await store.addTexts([text], [id])
+
+      // IDが指定されていない場合はGeminiを使ってタイトルを自動生成
+      let finalId = id
+      if (!finalId) {
+        const generatedTitle = await generateArtifactTitle(text)
+        finalId = `note--${generatedTitle}`
+      }
+
+      await store.addTexts([text], [finalId])
+
+      // タイトル情報をフロントエンドに送信
+      const title = finalId.replace(/^note--/, '')
+      if (mainWindow) {
+        mainWindow.webContents.send('note-created', {
+          id: finalId,
+          title: title,
+          content: text
+        })
+      }
 
       return {
         action: 'created',
-        id
+        id: finalId,
+        title: title
       }
     } catch (error) {
       console.error('Knowledge creation error:', error)

@@ -20,7 +20,6 @@ interface Props {
 function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
   const [artifacts, setArtifacts] = useState<Artifact[]>([])
   const [content, setContent] = useState('')
-  const [title, setTitle] = useState('')
   const [loading, setLoading] = useState(false)
   const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -65,26 +64,35 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
   useEffect(() => {
     if (isOpen) {
       fetchArtifacts()
+
+      // note-createdイベントリスナーを追加
+      const handleNoteCreated = (): void => {
+        // アーティファクト一覧を再取得
+        fetchArtifacts()
+      }
+
+      window.electron.ipcRenderer.on('note-created', handleNoteCreated)
+
+      return () => {
+        window.electron.ipcRenderer.removeAllListeners('note-created')
+      }
     }
   }, [isOpen, fetchArtifacts])
 
   // アーティファクト保存処理
   const handleSaveArtifact = async (): Promise<void> => {
-    if (!content.trim() || !title.trim()) {
+    if (!content.trim()) {
       return
     }
 
     setLoading(true)
     try {
       if (window.api.createKnowledge) {
-        // "note--" プレフィックスにタイトルを付けたIDを生成
-        const id = `note--${title.trim()}`
-
-        window.api.createKnowledge(content, id)
+        // バックエンドでタイトルを自動生成
+        window.api.createKnowledge(content)
 
         // 保存後、入力フィールドをクリアしてアーティファクト一覧を再取得
         setContent('')
-        setTitle('')
         fetchArtifacts()
       }
     } catch (error) {
@@ -150,13 +158,7 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
         </div>
         {/* 新規アーティファクト入力フォーム */}
         <div className="artifact-new-form">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={intl.formatMessage({ id: 'artifactTitle' }) || 'Title'}
-            className="artifact-title-input"
-          />
+          {/* タイトル入力フィールドを削除 - LLMで自動生成 */}
           <div className="artifact-editor">
             <ReactCodeMirror
               value={content}
@@ -166,7 +168,8 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
                 EditorView.lineWrapping
               ]}
               placeholder={
-                intl.formatMessage({ id: 'artifactContent' }) || 'Paste your content here...'
+                intl.formatMessage({ id: 'artifactContentAutoTitle' }) ||
+                'Paste your content here... Title will be generated automatically.'
               }
               className="artifact-codemirror"
             />
@@ -175,7 +178,7 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
             <button
               className="artifact-save-button"
               onClick={handleSaveArtifact}
-              disabled={loading || !content.trim() || !title.trim()}
+              disabled={loading || !content.trim()}
             >
               {intl.formatMessage({ id: 'save' }) || 'Save'}
             </button>
@@ -225,32 +228,7 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
               type="text"
               disabled
               value={editTitle}
-              onChange={(e) => {
-                setEditTitle(e.target.value)
-
-                if (autoSaveTimeout) {
-                  clearTimeout(autoSaveTimeout)
-                }
-
-                const newTimeout = setTimeout(() => {
-                  if (selectedArtifact && editContent.trim() && e.target.value.trim()) {
-                    window.api
-                      .updateKnowledge?.(
-                        editContent,
-                        `note--${e.target.value.trim()}`,
-                        selectedArtifact.id
-                      )
-                      .then(() => {
-                        fetchArtifacts()
-                      })
-                      .catch((error) => {
-                        console.error('Failed to auto-save artifact:', error)
-                      })
-                  }
-                }, 1000)
-
-                setAutoSaveTimeout(newTimeout)
-              }}
+              readOnly
               placeholder={intl.formatMessage({ id: 'artifactTitle' }) || 'Title'}
               className="artifact-modal-title-input"
             />
@@ -265,9 +243,10 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
                   }
 
                   const newTimeout = setTimeout(() => {
-                    if (selectedArtifact && value.trim() && editTitle.trim()) {
+                    if (selectedArtifact && value.trim()) {
+                      // タイトルを更新せず、元のIDでコンテンツのみ更新
                       window.api
-                        .updateKnowledge?.(value, `note--${editTitle.trim()}`, selectedArtifact.id)
+                        .updateKnowledge?.(value, selectedArtifact.id, selectedArtifact.id)
                         .then(() => {
                           fetchArtifacts()
                         })

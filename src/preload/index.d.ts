@@ -39,7 +39,10 @@ interface API {
   setLocale: (locale: string) => Promise<string>
 
   // アーティファクト関連API
-  createKnowledge: (text: string, id: string) => Promise<{ action: string; id: string }>
+  createKnowledge: (
+    text: string,
+    id?: string
+  ) => Promise<{ action: string; id: string; title: string }>
   updateKnowledge: (
     text: string,
     id: string,
@@ -78,7 +81,8 @@ export const validChannels = [
   'search-result',
   'knowledge-saved',
   'memory-updated',
-  'message-saved'
+  'message-saved',
+  'note-created'
 ] as const
 
 export type ValidChannel = (typeof validChannels)[number]

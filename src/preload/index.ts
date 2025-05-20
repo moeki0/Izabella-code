@@ -55,7 +55,10 @@ const api = {
   setLocale: (locale: string): Promise<string> => ipcRenderer.invoke('set-locale', locale),
 
   // アーティファクト関連API
-  createKnowledge: (text: string, id: string): Promise<{ action: string; id: string }> =>
+  createKnowledge: (
+    text: string,
+    id?: string
+  ): Promise<{ action: string; id: string; title: string }> =>
     ipcRenderer.invoke('create-knowledge', text, id),
   updateKnowledge: (
     text: string,
@@ -119,7 +122,8 @@ contextBridge.exposeInMainWorld('electron', {
         'message-deleted',
         'knowledge-saved',
         'memory-updated',
-        'message-saved'
+        'message-saved',
+        'note-created'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.on(channel, (_, ...args) => callback(...args))
@@ -144,7 +148,8 @@ contextBridge.exposeInMainWorld('electron', {
         'message-deleted',
         'knowledge-saved',
         'memory-updated',
-        'message-saved'
+        'message-saved',
+        'note-created'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.removeAllListeners(channel)
