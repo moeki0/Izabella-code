@@ -186,7 +186,7 @@ export async function searchKnowledgeWithQueryInfo(
   similarityThreshold = 0.1,
   workingMemory: string
 ): Promise<SearchQueryResult> {
-  const optimizedQuery = await generateSearchQuery(prompt, recentMessages, workingMemory)
+  const optimizedQuery = `重要: ${prompt}` + recentMessages.join('\n')
   const allResults = await searchKnowledgeWithPrompt(
     prompt,
     recentMessages,

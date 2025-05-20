@@ -27,10 +27,10 @@ export const initializeMCP = async (): Promise<void> => {
 
   const messageTools = {
     search_message: messageSearch,
-    create_artifact: artifactCreate,
-    search_artifacts: artifactSearch,
-    update_artifact: artifactUpdate,
-    get_artifact: artifactGet
+    create_note: artifactCreate,
+    search_notes: artifactSearch,
+    update_note: artifactUpdate,
+    get_note: artifactGet
   }
   const mcpTools = await mcp.getTools()
   tools = { ...messageTools, ...mcpTools }
