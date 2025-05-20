@@ -701,7 +701,6 @@ function Chat({
   const toggleKnowledgeSidebar = useCallback(() => {
     // 他のサイドバーを閉じる
     setIsSearchSidebarOpen(false)
-    setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
@@ -714,7 +713,6 @@ function Chat({
     // 他のサイドバーを閉じる
     setIsSearchSidebarOpen(false)
     setIsKnowledgeSidebarOpen(false)
-    setIsMemorySidebarOpen(false)
     setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
 
@@ -727,7 +725,6 @@ function Chat({
     setIsSearchSidebarOpen(false)
     setIsKnowledgeSidebarOpen(false)
     setIsMemorySidebarOpen(false)
-    setIsSettingsSidebarOpen(false)
     setIsToolsSidebarOpen(false)
 
     setIsSettingsSidebarOpen((prev) => !prev)
