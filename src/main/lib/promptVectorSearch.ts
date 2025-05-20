@@ -78,7 +78,7 @@ export async function searchKnowledgeWithPrompt(
   prompt: string,
   recentMessages: string[] = [],
   limit = 20,
-  similarityThreshold = 0.1,
+  similarityThreshold = 0.5,
   workingMemory: string = ''
 ): Promise<PromptSearchResult[]> {
   try {
@@ -183,7 +183,7 @@ export async function searchKnowledgeWithQueryInfo(
   prompt: string,
   recentMessages: string[] = [],
   limit = 20,
-  similarityThreshold = 0.1,
+  similarityThreshold = 0.5,
   workingMemory: string
 ): Promise<SearchQueryResult> {
   const optimizedQuery = `重要: ${prompt}` + recentMessages.join('\n')
