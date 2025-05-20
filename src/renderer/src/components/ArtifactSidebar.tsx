@@ -35,12 +35,12 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
     try {
       if (window.api.searchKnowledge) {
         // アーティファクトのプレフィックスで検索
-        const result = await window.api.searchKnowledge('prefix:artifact--', 100)
+        const result = await window.api.searchKnowledge('prefix:note--', 100)
 
         if (result.results) {
           // ナレッジアイテムをアーティファクト形式に変換
           const artifactItems: Artifact[] = result.results.map((item) => {
-            const titleMatch = item.id.match(/^artifact--(.+)$/)
+            const titleMatch = item.id.match(/^note--(.+)$/)
             const title = titleMatch ? titleMatch[1] : item.id
 
             return {
@@ -77,8 +77,8 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
     setLoading(true)
     try {
       if (window.api.createKnowledge) {
-        // "artifact--" プレフィックスにタイトルを付けたIDを生成
-        const id = `artifact--${title.trim()}`
+        // "note--" プレフィックスにタイトルを付けたIDを生成
+        const id = `note--${title.trim()}`
 
         window.api.createKnowledge(content, id)
 
@@ -233,7 +233,7 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
                     window.api
                       .updateKnowledge?.(
                         editContent,
-                        `artifact--${e.target.value.trim()}`,
+                        `note--${e.target.value.trim()}`,
                         selectedArtifact.id
                       )
                       .then(() => {
@@ -263,11 +263,7 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
                   const newTimeout = setTimeout(() => {
                     if (selectedArtifact && value.trim() && editTitle.trim()) {
                       window.api
-                        .updateKnowledge?.(
-                          value,
-                          `artifact--${editTitle.trim()}`,
-                          selectedArtifact.id
-                        )
+                        .updateKnowledge?.(value, `note--${editTitle.trim()}`, selectedArtifact.id)
                         .then(() => {
                           fetchArtifacts()
                         })

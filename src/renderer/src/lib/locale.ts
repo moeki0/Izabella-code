@@ -102,14 +102,14 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     deepResearchMode: 'Deep Research Mode',
     deepResearchActive: 'Deep Research Active',
     cmdEnterToSend: 'Press ⌘ + Enter to send',
-    // アーティファクト関連
-    artifacts: 'Artifacts',
+    // ノート関連
+    artifacts: 'Notes',
     artifactTitle: 'Title',
     artifactContent: 'Paste your content here...',
     save: 'Save',
     cancel: 'Cancel',
-    savedArtifacts: 'Saved Artifacts',
-    noArtifacts: 'No artifacts saved yet',
+    savedArtifacts: 'Saved Notes',
+    noArtifacts: 'No notes saved yet',
     editArtifact: 'Edit Artifact',
     confirmDeleteArtifact: 'Are you sure you want to delete this artifact?',
     deleteArtifactConfirmation: 'Are you sure you want to delete "{title}"?',
@@ -217,22 +217,22 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     deepResearchMode: '徹底検索モード',
     deepResearchActive: '徹底検索中',
     cmdEnterToSend: '⌘ + Enter で送信',
-    // アーティファクト関連
-    artifacts: 'アーティファクト',
+    // ノート関連
+    artifacts: 'ノート',
     artifactTitle: 'タイトル',
     artifactContent: 'コンテンツをここに貼り付け...',
     save: '保存',
     cancel: 'キャンセル',
-    savedArtifacts: '保存済みアーティファクト',
-    noArtifacts: 'アーティファクトはまだ保存されていません',
-    editArtifact: 'アーティファクトを編集',
-    confirmDeleteArtifact: 'このアーティファクトを削除してもよろしいですか？',
+    savedArtifacts: '保存済みノート',
+    noArtifacts: 'ノートはまだ保存されていません',
+    editArtifact: 'ノートを編集',
+    confirmDeleteArtifact: 'このノートを削除してもよろしいですか？',
     deleteArtifactConfirmation: '"{title}"を削除してもよろしいですか？',
-    artifactCreateTool: 'アーティファクト作成',
+    artifactCreateTool: 'ノート作成',
     artifactCreateDesc:
-      '後で参照できる新しいアーティファクト（メモやコードなど）を作成し保存するツールです。',
-    artifactGetTool: 'アーティファクト取得',
-    artifactGetDesc: '特定のIDによってアーティファクトを取得して参照するためのツールです。'
+      '後で参照できる新しいノート（メモやコードなど）を作成し保存するツールです。',
+    artifactGetTool: 'ノート取得',
+    artifactGetDesc: '特定のIDによってノートを取得して参照するためのツールです。'
   }
 }
 

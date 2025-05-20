@@ -17,13 +17,13 @@ const getKnowledgeStore = (): KnowledgeStore => {
 }
 
 export const artifactCreate: unknown = createTool({
-  id: 'create_artifact',
+  id: 'create_note',
   inputSchema: z.object({
-    title: z.string().describe('Title of the artifact (required)'),
-    content: z.string().describe('Content of the artifact (in markdown format, required)')
+    title: z.string().describe('Title of the note (required)'),
+    content: z.string().describe('Content of the note (in markdown format, required)')
   }),
   description:
-    'Tool to create and store user artifacts. Useful for saving memos, code, and valuable information for later reference.',
+    'Tool to create and store user notes. Useful for saving memos, code, and valuable information for later reference.',
   execute: async ({ context }) => {
     try {
       // Validate title and content
@@ -34,34 +34,34 @@ export const artifactCreate: unknown = createTool({
       const title = context.title.trim()
       const content = context.content.trim()
 
-      // Generate ID with "artifact--" prefix
-      const id = `artifact--${title}`
+      // Generate ID with "note--" prefix
+      const id = `note--${title}`
 
       // Get KnowledgeStore instance
       const knowledgeStore = getKnowledgeStore()
 
-      // Save artifact as knowledge
+      // Save note as knowledge
       await knowledgeStore.addTexts([content], [id])
 
       return JSON.stringify({
         success: true,
-        message: `Artifact "${title}" has been created successfully.`,
+        message: `Note "${title}" has been created successfully.`,
         id: id
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`Artifact creation error: ${errorMessage}`)
+      throw new Error(`Note creation error: ${errorMessage}`)
     }
   }
 })
 
 export const artifactSearch: unknown = createTool({
-  id: 'search_artifacts',
+  id: 'search_notes',
   inputSchema: z.object({
-    query: z.string().describe('Search query to find artifacts by content similarity or title')
+    query: z.string().describe('Search query to find notes by content similarity or title')
   }),
   description:
-    'Tool to search for user artifacts by content similarity and title. Uses both semantic search and prefix-based search with fuzzy matching for titles.',
+    'Tool to search for user notes by content similarity and title. Uses both semantic search and prefix-based search with fuzzy matching for titles.',
   execute: async ({ context }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
@@ -86,17 +86,15 @@ export const artifactSearch: unknown = createTool({
 
       // First, search by searchByPrefix with the query directly
       // This will find artifacts with IDs containing the search term
-      const prefixResults = await knowledgeStore.searchByPrefix('artifact--', 500, query)
+      const prefixResults = await knowledgeStore.searchByPrefix('note--', 500, query)
 
       // Get semantic search results for content-based matching
       const semanticResults = await knowledgeStore.similaritySearch(query, 500)
-      const semanticArtifacts = semanticResults.filter((result) =>
-        result.id.startsWith('artifact--')
-      )
+      const semanticArtifacts = semanticResults.filter((result) => result.id.startsWith('note--'))
 
       // Process prefix search results
       for (const result of prefixResults) {
-        const titleMatch = result.id.match(/^artifact--(.+)$/)
+        const titleMatch = result.id.match(/^note--(.+)$/)
         const title = titleMatch ? titleMatch[1] : result.id
 
         results.push({
@@ -112,7 +110,7 @@ export const artifactSearch: unknown = createTool({
       // Process semantic search results
       for (const result of semanticArtifacts) {
         if (!existingIds.has(result.id)) {
-          const titleMatch = result.id.match(/^artifact--(.+)$/)
+          const titleMatch = result.id.match(/^note--(.+)$/)
           const title = titleMatch ? titleMatch[1] : result.id
 
           results.push({
@@ -127,9 +125,9 @@ export const artifactSearch: unknown = createTool({
       }
 
       // Get all artifacts for fuzzy search
-      const allArtifacts = await knowledgeStore.searchByPrefix('artifact--', 20)
+      const allArtifacts = await knowledgeStore.searchByPrefix('note--', 20)
       const artifactItems = allArtifacts.map((result) => {
-        const titleMatch = result.id.match(/^artifact--(.+)$/)
+        const titleMatch = result.id.match(/^note--(.+)$/)
         const title = titleMatch ? titleMatch[1] : result.id
 
         return {
@@ -171,7 +169,7 @@ export const artifactSearch: unknown = createTool({
       return JSON.stringify({
         success: true,
         count: results.length,
-        artifacts: results
+        notes: results
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
@@ -181,19 +179,18 @@ export const artifactSearch: unknown = createTool({
 })
 
 export const artifactUpdate: unknown = createTool({
-  id: 'update_artifact',
+  id: 'update_note',
   inputSchema: z.object({
-    id: z.string().describe('ID of the artifact to update (required)'),
-    title: z.string().optional().describe('New title for the artifact (optional)'),
-    content: z.string().optional().describe('New content for the artifact (optional)')
+    id: z.string().describe('ID of the note to update (required)'),
+    title: z.string().optional().describe('New title for the note (optional)'),
+    content: z.string().optional().describe('New content for the note (optional)')
   }),
-  description:
-    'Tool to update an existing artifact. Provide either a new title, new content, or both.',
+  description: 'Tool to update an existing note. Provide either a new title, new content, or both.',
   execute: async ({ context }) => {
     try {
       // Validate input
       if (!context.id?.trim()) {
-        throw new Error('Artifact ID cannot be empty')
+        throw new Error('Note ID cannot be empty')
       }
 
       if (!context.title?.trim() && !context.content?.trim()) {
@@ -202,10 +199,8 @@ export const artifactUpdate: unknown = createTool({
 
       const artifactId = context.id.trim()
 
-      // Check if ID starts with artifact-- prefix, if not, add it
-      const fullArtifactId = artifactId.startsWith('artifact--')
-        ? artifactId
-        : `artifact--${artifactId}`
+      // Check if ID starts with note-- prefix, if not, add it
+      const fullArtifactId = artifactId.startsWith('note--') ? artifactId : `note--${artifactId}`
 
       // Get KnowledgeStore instance
       const knowledgeStore = getKnowledgeStore()
@@ -218,45 +213,43 @@ export const artifactUpdate: unknown = createTool({
       }
 
       // Prepare update data
-      const newTitle = context.title?.trim() || entry.id.replace(/^artifact--/, '')
+      const newTitle = context.title?.trim() || entry.id.replace(/^note--/, '')
       const newContent = context.content?.trim() || entry.content
-      const newId = `artifact--${newTitle}`
+      const newId = `note--${newTitle}`
 
       // Update the artifact
       await knowledgeStore.upsertText(newContent, newId, fullArtifactId)
 
       return JSON.stringify({
         success: true,
-        message: `Artifact "${newTitle}" has been updated successfully.`,
+        message: `Note "${newTitle}" has been updated successfully.`,
         id: newId
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`Artifact update error: ${errorMessage}`)
+      throw new Error(`Note update error: ${errorMessage}`)
     }
   }
 })
 
 export const artifactGet: unknown = createTool({
-  id: 'get_artifact',
+  id: 'get_note',
   inputSchema: z.object({
-    id: z.string().describe('ID of the artifact to retrieve (required)')
+    id: z.string().describe('ID of the note to retrieve (required)')
   }),
   description:
-    'Tool to retrieve a single artifact by ID. Returns the artifact content, title, and metadata.',
+    'Tool to retrieve a single note by ID. Returns the note content, title, and metadata.',
   execute: async ({ context }) => {
     try {
       // Validate input
       if (!context.id?.trim()) {
-        throw new Error('Artifact ID cannot be empty')
+        throw new Error('Note ID cannot be empty')
       }
 
       const artifactId = context.id.trim()
 
-      // Check if ID starts with artifact-- prefix, if not, add it
-      const fullArtifactId = artifactId.startsWith('artifact--')
-        ? artifactId
-        : `artifact--${artifactId}`
+      // Check if ID starts with note-- prefix, if not, add it
+      const fullArtifactId = artifactId.startsWith('note--') ? artifactId : `note--${artifactId}`
 
       // Get KnowledgeStore instance
       const knowledgeStore = getKnowledgeStore()
@@ -265,15 +258,15 @@ export const artifactGet: unknown = createTool({
       const entry = await knowledgeStore.getEntryById(fullArtifactId)
 
       if (!entry) {
-        throw new Error(`Artifact with ID "${artifactId}" not found`)
+        throw new Error(`Note with ID "${artifactId}" not found`)
       }
 
       // Get title from ID
-      const title = entry.id.replace(/^artifact--/, '')
+      const title = entry.id.replace(/^note--/, '')
 
       return JSON.stringify({
         success: true,
-        artifact: {
+        note: {
           id: entry.id,
           title,
           content: entry.content,
@@ -283,7 +276,7 @@ export const artifactGet: unknown = createTool({
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`Artifact retrieval error: ${errorMessage}`)
+      throw new Error(`Note retrieval error: ${errorMessage}`)
     }
   }
 })
