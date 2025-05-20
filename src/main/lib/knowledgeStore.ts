@@ -35,6 +35,7 @@ export class KnowledgeStore {
     this.nextId = 0
     this.initKnowledgeDirectory()
     this.initHnswIndex()
+    this.cleanupOldEntries()
   }
 
   private async initKnowledgeDirectory(): Promise<void> {
@@ -628,6 +629,7 @@ ${entry.content}
           return false
         }
         entry.importance = (entry.importance || 0) + amount
+        await this.writeMarkdownFile(entry)
         return true
       } catch {
         return false
@@ -666,6 +668,45 @@ ${entry.content}
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   close(): void {}
+
+  async cleanupOldEntries(): Promise<void> {
+    try {
+      console.log('Starting cleanup of old knowledge entries...')
+      const allFiles = await fs.readdir(this.knowledgePath)
+      const mdFiles = allFiles.filter((file) => file.endsWith('.md'))
+      const thirtyDaysInSeconds = 30 * 24 * 60 * 60
+      const now = Math.floor(Date.now() / 1000)
+      const idsToDelete: string[] = []
+
+      for (const file of mdFiles) {
+        try {
+          const filePath = join(this.knowledgePath, file)
+          const entry = await this.readMarkdownFile(filePath)
+
+          // Check if the entry is older than 30 days and has importance of 0
+          const ageInSeconds = now - entry.created_at
+          const hasZeroImportance = entry.importance === 0 || entry.importance === undefined
+
+          if (ageInSeconds >= thirtyDaysInSeconds && hasZeroImportance) {
+            const id = entry.id
+            idsToDelete.push(id)
+            console.log(`Marking old knowledge entry for deletion: ${id}`)
+          }
+        } catch (error) {
+          console.error(`Error processing file during cleanup: ${file}`, error)
+        }
+      }
+
+      if (idsToDelete.length > 0) {
+        console.log(`Deleting ${idsToDelete.length} old knowledge entries`)
+        await this.deleteByIds(idsToDelete)
+      } else {
+        console.log('No old knowledge entries to delete')
+      }
+    } catch (error) {
+      console.error('Error during knowledge cleanup:', error)
+    }
+  }
 
   // Add a knowledge entry with full metadata
   async addKnowledgeEntry(entry: KnowledgeEntry): Promise<boolean> {

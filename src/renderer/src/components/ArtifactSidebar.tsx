@@ -145,7 +145,9 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
       </div>
 
       <div className="artifact-sidebar-content">
-        <div className="artifact-sidebar-content-description">{intl.formatMessage({ id: 'artifactsDescription' })}</div>
+        <div className="artifact-sidebar-content-description">
+          {intl.formatMessage({ id: 'artifactsDescription' })}
+        </div>
         {/* 新規アーティファクト入力フォーム */}
         <div className="artifact-new-form">
           <input
