@@ -220,6 +220,7 @@ function ArtifactSidebar({ isOpen }: Props): React.JSX.Element | null {
           <div className="artifact-edit-modal-content">
             <input
               type="text"
+              disabled
               value={editTitle}
               onChange={(e) => {
                 setEditTitle(e.target.value)
