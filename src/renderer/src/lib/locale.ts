@@ -115,7 +115,9 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     deleteArtifactConfirmation: 'Are you sure you want to delete "{title}"?',
     artifactCreateTool: 'Create Artifact',
     artifactCreateDesc:
-      'Tool to create and save a new artifact (memo, code, etc.) that can be accessed later.'
+      'Tool to create and save a new artifact (memo, code, etc.) that can be accessed later.',
+    artifactGetTool: 'Get Artifact',
+    artifactGetDesc: 'Tool to retrieve a specific artifact by ID for reference.'
   },
   ja: {
     app: 'Izabella',
@@ -228,7 +230,9 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     deleteArtifactConfirmation: '"{title}"を削除してもよろしいですか？',
     artifactCreateTool: 'アーティファクト作成',
     artifactCreateDesc:
-      '後で参照できる新しいアーティファクト（メモやコードなど）を作成し保存するツールです。'
+      '後で参照できる新しいアーティファクト（メモやコードなど）を作成し保存するツールです。',
+    artifactGetTool: 'アーティファクト取得',
+    artifactGetDesc: '特定のIDによってアーティファクトを取得して参照するためのツールです。'
   }
 }
 

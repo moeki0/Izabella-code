@@ -76,7 +76,6 @@ export const artifactSearch: unknown = createTool({
       interface ArtifactResult {
         id: string
         title: string
-        content: string
         created_at: number
         similarity: number
         match_type: string
@@ -103,7 +102,6 @@ export const artifactSearch: unknown = createTool({
         results.push({
           id: result.id,
           title,
-          content: result.pageContent,
           created_at: result.created_at,
           similarity: 0.95, // High relevance for direct prefix matches
           match_type: 'prefix'
@@ -120,7 +118,6 @@ export const artifactSearch: unknown = createTool({
           results.push({
             id: result.id,
             title,
-            content: result.pageContent,
             created_at: result.created_at,
             similarity: result._similarity,
             match_type: 'semantic'
@@ -138,7 +135,6 @@ export const artifactSearch: unknown = createTool({
         return {
           id: result.id,
           title,
-          content: result.pageContent,
           created_at: result.created_at,
           _similarity: result._similarity
         }
@@ -162,7 +158,6 @@ export const artifactSearch: unknown = createTool({
           results.push({
             id: result.item.id,
             title: result.item.title,
-            content: result.item.content,
             created_at: result.item.created_at,
             similarity: result.score ? 1 - result.score : 0.5, // Convert Fuse score to similarity
             match_type: 'fuzzy_id'
@@ -238,6 +233,57 @@ export const artifactUpdate: unknown = createTool({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       throw new Error(`Artifact update error: ${errorMessage}`)
+    }
+  }
+})
+
+export const artifactGet: unknown = createTool({
+  id: 'get_artifact',
+  inputSchema: z.object({
+    id: z.string().describe('ID of the artifact to retrieve (required)')
+  }),
+  description:
+    'Tool to retrieve a single artifact by ID. Returns the artifact content, title, and metadata.',
+  execute: async ({ context }) => {
+    try {
+      // Validate input
+      if (!context.id?.trim()) {
+        throw new Error('Artifact ID cannot be empty')
+      }
+
+      const artifactId = context.id.trim()
+
+      // Check if ID starts with artifact-- prefix, if not, add it
+      const fullArtifactId = artifactId.startsWith('artifact--')
+        ? artifactId
+        : `artifact--${artifactId}`
+
+      // Get KnowledgeStore instance
+      const knowledgeStore = getKnowledgeStore()
+
+      // Get artifact
+      const entry = await knowledgeStore.getEntryById(fullArtifactId)
+
+      if (!entry) {
+        throw new Error(`Artifact with ID "${artifactId}" not found`)
+      }
+
+      // Get title from ID
+      const title = entry.id.replace(/^artifact--/, '')
+
+      return JSON.stringify({
+        success: true,
+        artifact: {
+          id: entry.id,
+          title,
+          content: entry.content,
+          created_at: entry.created_at,
+          metadata: entry.metadata
+        }
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      throw new Error(`Artifact retrieval error: ${errorMessage}`)
     }
   }
 })
