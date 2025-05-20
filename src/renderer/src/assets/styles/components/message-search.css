@@ -12,9 +12,9 @@
 .message-search {
   display: flex;
   align-items: center;
+  border: 1px solid #ddd;
   background: none;
   transition: all 0.2s ease;
-  background-color: rgba(224, 224, 224);
   padding: 8px;
   border-radius: 7px;
 }
