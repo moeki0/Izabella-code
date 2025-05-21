@@ -19,7 +19,7 @@ const getKnowledgeStore = (): KnowledgeStore => {
 export const artifactCreate: unknown = createTool({
   id: 'create_note',
   inputSchema: z.object({
-    title: z.string().describe('Title of the note (required)'),
+    id: z.string().describe(`抽出した情報の簡潔なID(英数字とハイフン)`),
     content: z.string().describe('Content of the note (in markdown format, required)')
   }),
   description:
@@ -27,11 +27,11 @@ export const artifactCreate: unknown = createTool({
   execute: async ({ context }) => {
     try {
       // Validate title and content
-      if (!context.title?.trim() || !context.content?.trim()) {
+      if (!context.id?.trim() || !context.content?.trim()) {
         throw new Error('Title and content cannot be empty')
       }
 
-      const title = context.title.trim()
+      const title = context.id.trim()
       const content = context.content.trim()
 
       // Generate ID with "note--" prefix
