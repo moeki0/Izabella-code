@@ -120,7 +120,16 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     artifactCreateDesc:
       'Tool to create and save a new artifact (memo, code, etc.) that can be accessed later.',
     artifactGetTool: 'Get Artifact',
-    artifactGetDesc: 'Tool to retrieve a specific artifact by ID for reference.'
+    artifactGetDesc: 'Tool to retrieve a specific artifact by ID for reference.',
+    // Knowledge Management
+    knowledgeManagement: 'Knowledge Management',
+    reindexKnowledge: 'Reindex Knowledge',
+    reindexKnowledgeDescription: 'Rebuild knowledge index based on Markdown files.',
+    reindexKnowledgeConfirm: 'Reindex knowledge? This process may take some time.',
+    reindexing: 'Reindexing...',
+    reindexCompleted: 'Reindexing completed. Processed {count} entries.',
+    reindexFailed: 'Reindexing failed.',
+    reindexError: 'An error occurred during reindexing.'
   },
   ja: {
     app: 'Izabella',
@@ -237,7 +246,17 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
       '後で参照できる新しいノート（メモやコードなど）を作成し保存するツールです。',
     artifactGetTool: 'ノート取得',
     artifactGetDesc: '特定のIDによってノートを取得して参照するためのツールです。',
-    artifactsDescription: 'ノートを保存するとIzabellaがノートの内容を記憶します。'
+    artifactsDescription: 'ノートを保存するとIzabellaがノートの内容を記憶します。',
+    // Knowledge Management
+    knowledgeManagement: 'ナレッジ管理',
+    reindexKnowledge: 'ナレッジの再インデックス',
+    reindexKnowledgeDescription: 'Markdownファイルに基づいてナレッジインデックスを再構築します。',
+    reindexKnowledgeConfirm:
+      'ナレッジを再インデックスしますか？この処理には時間がかかる場合があります。',
+    reindexing: '再インデックス中...',
+    reindexCompleted: '再インデックスが完了しました。{count}件のエントリを処理しました。',
+    reindexFailed: '再インデックスに失敗しました。',
+    reindexError: '再インデックスエラーが発生しました。'
   }
 }
 

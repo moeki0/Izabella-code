@@ -72,7 +72,9 @@ const api = {
     query: string,
     limit = 20
   ): Promise<{ results: Array<{ content: string; id: string; similarity: number }> }> =>
-    ipcRenderer.invoke('search-knowledge', query, limit)
+    ipcRenderer.invoke('search-knowledge', query, limit),
+  reindexKnowledge: (): Promise<{ success: boolean; reindexedCount: number }> =>
+    ipcRenderer.invoke('reindex-knowledge')
 }
 
 if (process.contextIsolated) {
@@ -123,7 +125,8 @@ contextBridge.exposeInMainWorld('electron', {
         'knowledge-saved',
         'memory-updated',
         'message-saved',
-        'note-created'
+        'note-created',
+        'knowledge-reindexed'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.on(channel, (_, ...args) => callback(...args))
@@ -149,7 +152,8 @@ contextBridge.exposeInMainWorld('electron', {
         'knowledge-saved',
         'memory-updated',
         'message-saved',
-        'note-created'
+        'note-created',
+        'knowledge-reindexed'
       ]
       if (validChannels.includes(channel)) {
         ipcRenderer.removeAllListeners(channel)

@@ -24,6 +24,8 @@ function SettingsSidebar({ isOpen }: SettingsSidebarProps): React.JSX.Element | 
   const [newServerCommandLine, setNewServerCommandLine] = useState('')
   const [newServerEnv, setNewServerEnv] = useState('')
   const [currentLocale, setCurrentLocale] = useState<SupportedLocales>('en')
+  const [isReindexing, setIsReindexing] = useState(false)
+  const [reindexMessage, setReindexMessage] = useState('')
   const intl = useIntl()
 
   const fetchSettings = useCallback(async (): Promise<void> => {
@@ -172,6 +174,33 @@ function SettingsSidebar({ isOpen }: SettingsSidebarProps): React.JSX.Element | 
     }
   }
 
+  const handleReindexKnowledge = async (): Promise<void> => {
+    const confirmMessage = intl.formatMessage({ id: 'reindexKnowledgeConfirm' })
+    if (!confirm(confirmMessage)) {
+      return
+    }
+
+    setIsReindexing(true)
+    setReindexMessage(intl.formatMessage({ id: 'reindexing' }))
+
+    try {
+      const result = await window.api.reindexKnowledge()
+      if (result.success) {
+        setReindexMessage(
+          intl.formatMessage({ id: 'reindexCompleted' }, { count: result.reindexedCount })
+        )
+      } else {
+        setReindexMessage(intl.formatMessage({ id: 'reindexFailed' }))
+      }
+    } catch (error) {
+      console.error('Reindex error:', error)
+      setReindexMessage(intl.formatMessage({ id: 'reindexError' }))
+    } finally {
+      setIsReindexing(false)
+      setTimeout(() => setReindexMessage(''), 5000)
+    }
+  }
+
   // Initial fetch of settings
   useEffect(() => {
     if (isOpen) {
@@ -231,6 +260,31 @@ function SettingsSidebar({ isOpen }: SettingsSidebarProps): React.JSX.Element | 
             <button className="settings-save-button" onClick={saveApiKeys}>
               Save
             </button>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3 className="settings-section-title">
+            {intl.formatMessage({ id: 'reindexKnowledge' })}
+          </h3>
+          <div className="settings-input-group">
+            <p className="settings-description">
+              {intl.formatMessage({ id: 'reindexKnowledgeDescription' })}
+            </p>
+            <button
+              className="settings-save-button"
+              onClick={handleReindexKnowledge}
+              disabled={isReindexing}
+            >
+              {isReindexing
+                ? intl.formatMessage({ id: 'reindexing' })
+                : intl.formatMessage({ id: 'reindexKnowledge' })}
+            </button>
+            {reindexMessage && (
+              <div className="settings-message" style={{ marginTop: '10px', fontSize: '14px' }}>
+                {reindexMessage}
+              </div>
+            )}
           </div>
         </div>
 

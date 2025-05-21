@@ -53,6 +53,7 @@ interface API {
     query: string,
     limit?: number
   ) => Promise<{ results: Array<{ content: string; id: string; similarity: number }> }>
+  reindexKnowledge: () => Promise<{ success: boolean; reindexedCount: number }>
 }
 
 declare global {
@@ -82,7 +83,8 @@ export const validChannels = [
   'knowledge-saved',
   'memory-updated',
   'message-saved',
-  'note-created'
+  'note-created',
+  'knowledge-reindexed'
 ] as const
 
 export type ValidChannel = (typeof validChannels)[number]
