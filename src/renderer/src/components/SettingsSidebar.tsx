@@ -280,11 +280,7 @@ function SettingsSidebar({ isOpen }: SettingsSidebarProps): React.JSX.Element | 
                 ? intl.formatMessage({ id: 'reindexing' })
                 : intl.formatMessage({ id: 'reindexKnowledge' })}
             </button>
-            {reindexMessage && (
-              <div className="settings-message" style={{ marginTop: '10px', fontSize: '14px' }}>
-                {reindexMessage}
-              </div>
-            )}
+            {reindexMessage && <div className="settings-message">{reindexMessage}</div>}
           </div>
         </div>
 
