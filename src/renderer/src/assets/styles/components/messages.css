@@ -326,7 +326,7 @@ code.language-reasoning {
 }
 
 .loading-text {
-  font-size: 12px;
+  font-size: 16px;
   color: #666;
   animation: pulse 1.5s infinite;
 }
