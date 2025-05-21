@@ -683,7 +683,7 @@ ${entry.content}
 
           // Check if the entry is older than 30 days and has importance of 0
           const ageInSeconds = now - entry.created_at
-          const hasZeroImportance = entry.importance === 0 || entry.importance === undefined
+          const hasZeroImportance = entry.importance === undefined || entry.importance < 30
 
           if (ageInSeconds >= thirtyDaysInSeconds && hasZeroImportance) {
             const id = entry.id
