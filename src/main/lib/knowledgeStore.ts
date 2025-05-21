@@ -88,14 +88,8 @@ export class KnowledgeStore {
         Object.entries(mapping.docIdToId).map(([key, value]) => [key, Number(value)])
       )
       this.nextId = mapping.nextId
-    } catch {
-      const dim = 1536
-      const maxElements = 100000
-      this.index = new HierarchicalNSW('cosine', dim)
-      this.index.initIndex(maxElements, 16, 200, 100)
-      this.idToDocId = new Map()
-      this.docIdToId = new Map()
-      this.nextId = 0
+    } catch (e) {
+      console.error(e)
     }
   }
 
