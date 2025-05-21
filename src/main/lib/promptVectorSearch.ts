@@ -31,7 +31,7 @@ export async function generateSearchQuery(
   workingMemory: string = ''
 ): Promise<string> {
   try {
-    const geminiModel = 'gemini-2.0-flash'
+    const geminiModel = 'gemini-2.5-flash-preview-04-17'
     const model = google(geminiModel)
 
     const result = await generateObject({
@@ -39,6 +39,13 @@ export async function generateSearchQuery(
       schema: z.object({
         query: z.string()
       }),
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 2048
+          }
+        }
+      },
       temperature: 0,
       prompt: `
 あなたはベクトル検索のためのクエリを生成するシステムです。
