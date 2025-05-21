@@ -167,9 +167,13 @@ ${entry.content}
     await fs.writeFile(filePath, content, 'utf-8')
   }
 
-  async addDocuments(texts: string[], ids: string[]): Promise<number> {
+  async addDocuments(texts: string[], ids: string[], importanceValues?: number[]): Promise<number> {
     if (texts.length !== ids.length) {
       throw new Error('Texts and ids must have the same length')
+    }
+
+    if (importanceValues && texts.length !== importanceValues.length) {
+      throw new Error('Texts and importance values must have the same length')
     }
 
     const splitter = new RecursiveCharacterTextSplitter({
@@ -187,7 +191,7 @@ ${entry.content}
         content: texts[i],
         metadata: {},
         created_at: Math.floor(Date.now() / 1000),
-        importance: 0
+        importance: importanceValues ? importanceValues[i] : 0
       }
 
       try {
@@ -327,8 +331,8 @@ ${entry.content}
     await this.saveIndex()
   }
 
-  async addTexts(texts: string[], ids: string[]): Promise<number> {
-    return this.addDocuments(texts, ids)
+  async addTexts(texts: string[], ids: string[], importanceValues?: number[]): Promise<number> {
+    return this.addDocuments(texts, ids, importanceValues)
   }
 
   async upsertText(text: string, id: string, targetId: string): Promise<number> {

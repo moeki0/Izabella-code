@@ -41,16 +41,23 @@ export const createKnowledge: unknown = createTool({
 - project-design-decisions
 - user-preferences-ui
 - development-timeline-2025
-      `)
+      `),
+    importance: z
+      .number()
+      .int()
+      .min(0)
+      .max(100)
+      .optional()
+      .describe('知識の初期重要度 (0-100, 100が最も重要)')
   }),
   description:
     '会話から抽出した知識を新しいエントリとして作成します。ユーザーとの会話から重要な情報を識別した場合に使用してください。',
-  execute: async ({ context: { text, id } }) => {
+  execute: async ({ context: { text, id, importance } }) => {
     try {
       const knowledgeStore = getKnowledgeStore()
 
       // 新しい知識エントリを作成
-      await knowledgeStore.addTexts([text], [id])
+      await knowledgeStore.addTexts([text], [id], [importance || 0])
 
       return JSON.stringify({
         action: 'created',

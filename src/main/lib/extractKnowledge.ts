@@ -46,7 +46,7 @@ export async function processConversationForKnowledge(
 各知識エントリは以下の形式で作成してください:
 - id: 内容を簡潔に表す英数字とハイフンの文字列（例: user-preferences, project-timeline）
 - content: 抽出したテキスト内容（詳細かつ具体的に）
-- relevance_score: 重要度を1〜5で評価（5が最も重要）
+- importance: 知識の重要度を0-100で評価（100が最も重要）
 
 ## フェーズ2: 知識の管理
 抽出した各知識エントリについて:
@@ -58,6 +58,7 @@ export async function processConversationForKnowledge(
    - update_knowledge ツールを使用して知識を更新
 3. 類似する知識が見つからない場合:
    - create_knowledge ツールを使用して新しいエントリを作成
+   - importanceパラメータには評価した重要度（0-100）を設定
 4. 古くなったり不要になった知識が見つかった場合:
    - delete_knowledge ツールを使用して削除
 

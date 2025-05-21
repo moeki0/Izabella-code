@@ -7,20 +7,13 @@ export const knowledgeEntrySchema = z.object({
     .describe(
       'ナレッジとして保存すべき具体的なテキスト内容。会話から関連部分を正確に抽出するか、簡潔に要約してください。'
     ),
-  relevance_score: z
-    .number()
-    .int()
-    .min(1)
-    .max(5)
-    .describe(
-      '現在の会話履歴におけるこの情報の重要度を1〜5のスケールで評価してください（5が最も重要）'
-    ),
   importance: z
     .number()
     .int()
     .min(0)
+    .max(100)
     .default(0)
-    .describe('ナレッジの蓄積的な重要度。参照されるたびに増加します。')
+    .describe('ナレッジの重要度を0-100で評価（100が最も重要）')
 })
 
 export const knowledgeExtractionSchema = z.object({
