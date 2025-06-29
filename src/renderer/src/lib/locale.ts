@@ -102,7 +102,7 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     otherKnowledge: 'Related Knowledges',
     deepResearchMode: 'Deep Research Mode',
     deepResearchActive: 'Deep Research Active',
-    cmdEnterToSend: 'Press ⌘ + Enter to send',
+    cmdEnterToSend: 'Press Enter to send, Shift+Enter for new line',
     // ノート関連
     artifacts: 'Notes',
     artifactTitle: 'Title',
@@ -228,7 +228,7 @@ export const locale: Record<SupportedLocales, LocaleMessages> = {
     memoryUpdated: 'メモリが更新されました',
     deepResearchMode: '徹底検索モード',
     deepResearchActive: '徹底検索中',
-    cmdEnterToSend: '⌘ + Enter で送信',
+    cmdEnterToSend: 'Enter で送信、Shift+Enter で改行',
     // ノート関連
     artifacts: 'ノート',
     artifactTitle: 'タイトル',

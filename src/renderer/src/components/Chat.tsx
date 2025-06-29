@@ -604,8 +604,9 @@ function Chat({
 
   const handleKeyDown = async (e: React.KeyboardEvent): Promise<void> => {
     if (
-      e.metaKey &&
       e.key === 'Enter' &&
+      !e.shiftKey &&
+      !e.nativeEvent.isComposing &&
       initialized &&
       !(!running && input.replaceAll(/[\s\n\r]+/g, '').length === 0)
     ) {
