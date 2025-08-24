@@ -31,7 +31,7 @@ export async function generateSearchQuery(
   workingMemory: string = ''
 ): Promise<string> {
   try {
-    const geminiModel = 'gemini-2.5-flash-preview-04-17'
+    const geminiModel = 'gemini-2.5-flash'
     const model = google(geminiModel)
 
     const result = await generateObject({

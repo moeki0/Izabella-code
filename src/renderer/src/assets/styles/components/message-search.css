@@ -12,11 +12,11 @@
 .message-search {
   display: flex;
   align-items: center;
-  border: 1px solid #ddd;
-  background: none;
+  background: white;
   transition: all 0.2s ease;
   padding: 8px;
   border-radius: 7px;
+  font-size: 16px;
 }
 
 .message-search .search-icon {
@@ -28,7 +28,6 @@
 .message-search input {
   flex-grow: 1;
   background: transparent;
-  font-size: 12px;
   width: 100%;
 }
 

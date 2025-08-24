@@ -3,10 +3,10 @@ import { LanguageModel } from 'ai'
 
 export const model = async (useSearchGrounding: boolean): Promise<LanguageModel> => {
   if (useSearchGrounding) {
-    return google('gemini-2.5-flash-preview-04-17', {
-      useSearchGrounding: useSearchGrounding
+    return google('gemini-2.5-flash', {
+      useSearchGrounding: true
     })
   } else {
-    return google('gemini-2.5-flash-preview-04-17')
+    return google('gemini-2.5-flash')
   }
 }

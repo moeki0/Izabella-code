@@ -2,6 +2,7 @@
   padding: 4px 10px;
   line-height: 1.8;
   word-break: break-all;
+  color: #555;
 }
 
 .messages-inner {
@@ -65,25 +66,32 @@ main {
   max-width: 100%;
 }
 
+.user-container {
+  background: white;
+}
+
 .user-container-with-sidebar {
   width: calc(100vw - 300px);
 }
 
 .user {
-  border-radius: 20px;
-  background: rgba(230, 230, 230, 0.45);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding: 4px 10px;
+  border-radius: 30px;
+  border: 1px solid #bbb;
+  background: white;
+  padding: 10px 20px;
   width: 100%;
   z-index: 800;
-  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   max-width: 800px;
+  max-height: 300px;
   justify-self: center;
   display: flex;
   align-items: end;
   position: relative;
+}
+
+.cm-scroller {
+  max-height: 200px;
 }
 
 .user-footer {
@@ -333,4 +341,11 @@ code.language-reasoning {
 
 .name {
   font-weight: bold;
+}
+
+.user-message {
+  justify-self: right;
+  background: #ebf1f5;
+  padding: 4px 24px;
+  border-radius: 32px;
 }

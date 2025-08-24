@@ -1,6 +1,6 @@
 header {
   -webkit-app-region: drag;
-  height: 45px;
+  height: 50px;
   min-height: 36px;
   width: 100%;
   top: 0;
@@ -12,7 +12,6 @@ header {
   padding-left: 100px;
   display: flex;
   align-items: center;
-  box-shadow: 1px 0 2px 1px rgba(0, 0, 0, 0.07);
 }
 
 .header-scrolled {

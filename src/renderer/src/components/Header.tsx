@@ -1,5 +1,5 @@
 import React from 'react'
-import { FiFileText, FiSearch, FiSettings, FiTool } from 'react-icons/fi'
+import { MdSearch, MdSettings } from 'react-icons/md'
 
 interface Props {
   title?: string
@@ -37,11 +37,6 @@ function Header({
   isSearchSidebarOpen,
   toggleSettingsSidebar,
   isSettingsSidebarOpen,
-  toggleToolsSidebar,
-  isToolsSidebarOpen,
-  toggleArtifactSidebar,
-  isArtifactSidebarOpen,
-  searchGroundingEnabled = true
 }: Props): React.JSX.Element {
   return (
     <header role="banner" className={className}>
@@ -53,27 +48,7 @@ function Header({
             onClick={toggleSearchSidebar}
             aria-label="Toggle search"
           >
-            <FiSearch size={18} />
-          </button>
-        )}
-        {toggleToolsSidebar && (
-          <button
-            className={`header-icon-button ${isToolsSidebarOpen ? 'header-button-active' : ''} ${
-              searchGroundingEnabled ? '' : 'header-button-blue'
-            }`}
-            onClick={toggleToolsSidebar}
-            aria-label="Toggle tools"
-          >
-            <FiTool size={18} />
-          </button>
-        )}
-        {toggleArtifactSidebar && (
-          <button
-            className={`header-icon-button ${isArtifactSidebarOpen ? 'header-button-active' : ''}`}
-            onClick={toggleArtifactSidebar}
-            aria-label="Toggle artifacts"
-          >
-            <FiFileText size={18} />
+            <MdSearch size={24} />
           </button>
         )}
         {toggleSettingsSidebar && (
@@ -82,7 +57,7 @@ function Header({
             onClick={toggleSettingsSidebar}
             aria-label="Toggle settings"
           >
-            <FiSettings size={18} />
+            <MdSettings size={24} />
           </button>
         )}
       </div>

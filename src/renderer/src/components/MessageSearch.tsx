@@ -222,7 +222,6 @@ const MessageSearch = ({ onMessageSelect }: MessageSearchProps): React.JSX.Eleme
     <div className="message-search-container" ref={searchRef}>
       <div className="message-search-wrapper">
         <div className="message-search">
-          <FiSearch className="search-icon" size={12} />
           <input
             type="text"
             value={searchQuery}

@@ -1,4 +1,9 @@
 /* Sidebar content specific styles */
+
+.sidebar {
+  background: #ebf1f5;
+}
+
 .knowledge-summary,
 .memory-summary {
   display: flex;
@@ -102,10 +107,10 @@
 }
 
 .settings-section-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 300;
   margin: 0;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   top: 46px;
   color: #333;
 }
@@ -126,21 +131,19 @@
 .settings-textarea {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 13px;
+  border: none;
   background-color: none;
   resize: none;
 }
 
 .settings-save-button,
 .settings-server-remove-button {
-  padding: 2px 15px;
-  background-color: rgb(16, 127, 239);
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 10px 20px;
+  background-color: #0077ff;
+  border: none;
+  border-radius: 30px;
   color: white;
-  font-size: 12px;
   cursor: default;
   margin-top: 8px;
 }

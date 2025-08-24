@@ -23,7 +23,7 @@ export async function processConversationForKnowledge(
       delete_knowledge: deleteKnowledge
     }
 
-    const model = google('gemini-2.5-flash-preview-04-17')
+    const model = google('gemini-2.5-flash')
     const agent = new Agent({
       instructions: `
 あなたは会話から知識を抽出し、整理・管理するエージェントです。まず会話履歴を分析して重要な情報を特定し、それを知識ベースに保存します。

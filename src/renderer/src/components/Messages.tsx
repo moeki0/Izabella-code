@@ -139,7 +139,6 @@ function Messages({
                 )}
               {message.role === 'assistant' && (
                 <>
-                  <div className="name">Izabella</div>
                   <HighlightedMarkdown
                     content={getDisplayableContent(message.content || '')}
                     searchQuery={searchQuery}
@@ -210,8 +209,7 @@ function Messages({
                 </>
               )}
               {message.role === 'user' && (
-                <div>
-                  <div className="name">You</div>
+                <div className="user-message">
                   <HighlightedMarkdown content={message.content || ''} searchQuery={searchQuery} />
                 </div>
               )}
